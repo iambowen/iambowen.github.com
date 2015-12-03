@@ -1,0 +1,1411 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="最近在做一个关于Docker的spike的时候，遇到了这样的一个需求。我需要在Docker build Mysql服务的image的时候完成两个数据库的schema migration，不包含数据的migration. 其中一个数据库只有表，另外一个数据库还包括了store &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/posts/5/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2014/01/14/exportimport-databaseprocedures-in--mysql">Export/Import Database/procedures in Mysql</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-01-14T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2014/01/14/exportimport-databaseprocedures-in--mysql#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2014/01/14/exportimport-databaseprocedures-in--mysql">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近在做一个关于<a href="http://docker.io">Docker</a>的spike的时候，遇到了这样的一个需求。我需要在Docker build Mysql服务的image的时候完成两个数据库的schema migration，不包含数据的migration. 其中一个数据库只有表，另外一个数据库还包括了store procedures和函数.
+假设只有表的数据库叫做table_only, 有函数和store procedure的数据库叫做table_with_sp，数据在的主机名/地址为 host1，目标mysql服务器为host2。</p>
+
+<h5>Step 1: 导出schema/store procedures/functions</h5>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysqldump -h host1 -u root -p --no-data table_only &gt; table_only.sql
+</span><span class='line'>mysqldump -h host1 -u root -p --no-data --routines table_with_sp &gt; table_with_sp.sql
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h5>Step 2: Migration</h5>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql -h host2 -u root -p -e <span class="s2">&quot;create database table_only; create database table_with_sp&quot;</span>
+</span><span class='line'>mysql -h host2 -u root -p table_only &lt; table_only.sql
+</span><span class='line'>mysql -h host2 -u root -p table_with_sp &lt; table_with_sp.sql
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Notes</h4>
+
+<ul>
+<li>不想用任何命令的，可以用可视化的数据库工具进行导出，Mac下可以使用<a href="">SequelPro</a>，非常方便，是免费的工具。</li>
+<li>如果想自动化整个过程，可以考虑对host2的mysql 配置做如下的修改，让mysqldump的时候自动使用如下的authentication.</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>mysqldump<span class="o">]</span>
+</span><span class='line'><span class="nv">user</span><span class="o">=</span>root
+</span><span class='line'><span class="nv">password</span><span class="o">=</span>password
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2014/01/14/deploy-rails-4-app-to-heroku">Deploy Rails 4 App to Heroku</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-01-14T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2014/01/14/deploy-rails-4-app-to-heroku#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2014/01/14/deploy-rails-4-app-to-heroku">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>今天参加Railsgirls的活动，被抓壮丁去做了Rails应用在Heroku部署的演示，本来以为很简单，照着<a href="http://rgcn.github.io/heroku/">教程</a> 走一遍就好了，但是没想到其中还是有些坑的，做了个简单的ppt，解释下里面的坑。</p>
+
+<script async class="speakerdeck-embed" data-id="29a27f305cc901317bda563746ea3d55" data-ratio="1.2994923857868" src="//speakerdeck.com/assets/embed.js"></script>
+
+
+<p></p>
+
+<h4>为什么要安装rails_12factor</h4>
+
+<blockquote><p>By default Rails 4 will return a 404 if an asset is not handled via an external proxy such as Nginx. While this default behavior may help you debug your Nginx configuration, it makes a default Rails app with assets unusable on a twelve-factor platform. ….  The rails_serve_static_assets gem enables your Rails server to deliver your assets directly, instead of returning a 404.</p></blockquote>
+
+<p>产品环境里面，rails应用可能是在类似Nginx的服务器后面，静态的assets，比如对/public/assets/application.css
+的请求是由Nginx直接处理的，但是Heroku并没有使用类似Nginx这样的proxy，而是在routing layer
+做的loadbalancing。所以当你请求静态的assets的时候，会得到404的错误。rails_12factor包含了rails_serve_static_assets这个gem，
+可以把对assets的控制权交给Rails应用本身。这样就不会出现拿不到更新的css的情况了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2014/01/11/openwrt_and_thunder">Openwrt+迅雷离线实现离线下载以及家庭存储解决方案</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-01-11T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2014/01/11/openwrt_and_thunder#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2014/01/11/openwrt_and_thunder">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前一段时间考虑如果实现一个家庭存储的解决方案，NAS是一个解决思路，不过价格略贵，即便是双11活动的时候，最便宜的也得接近1000块，这还不算硬盘的价格。后来参考了一篇用路由器(OpenWrt系统)和移动硬盘来实现家庭存储的文章，决定试下用路由器+移动硬盘的方案。
+<a href="http://wiki.openwrt.org/">OpenWrt</a>是一个基于linux的嵌入式操作系统，你可以通过opkg来定制安装软件包，来获取你所需要的服务, 如aria2下载服务，DDNS服务，SMB共享文件服务等。它对路由器的硬件有一定的要求，所以首先得选择下合适的路由器。最后的软硬件选择为:</p>
+
+<ol>
+<li>水星mw4530r  320</li>
+<li>希捷1T移动硬盘  440</li>
+<li>迅雷白金会员  90</li>
+</ol>
+
+
+<p>路由是直接从taobao上买了刷好的系统，主要是为了超频和升级16M内存，后来才意识到软件其实可以安装在移动硬盘上，多花了70比较失败。水星的这款是支持2.4G和5.G双频的，实际使用没觉得有什么太大的区别。大概配置了如下的这些服务:</p>
+
+<ol>
+<li>ftp 服务, 用来从路由器外接的移动硬盘下载电影</li>
+<li>samba 文件共享服务, 用来在不用的电脑/系统间进行文件共享，直接选择共享文件去播放电影，偶尔有卡顿，还是下载到本机比较好</li>
+<li>aria2 下载服务，用来在路由器上下载文件，同时可以用迅雷离线进行远程下载</li>
+<li>ddns服务，动态路由，可以把路由绑定到域名上，这样就能在任何地方访问到我的路由器</li>
+</ol>
+
+
+<p>大部分的服务比较容易配置，直接在Luci的web界面就可以配置了，还可以配置mDLNA的服务，这个只能等到去新房的电视机上测试了。这里只说几个稍微tricky点的设置。
+动态路由:</p>
+
+<ol>
+<li>申请花生壳动态域名, 如 <code>myname.oicp.net</code></li>
+<li>在DDNS配置页面中绑定你申请的动态域名</li>
+<li><code>ssh root@192.168.1.1</code>, 修改<code>/etc/config/uhttpd</code> 将 <code>option rfc1918_filter 1</code>  修改为 <code>option rfc1918_filter 0</code>，允许openwrt 接受external的请求.</li>
+<li>重启DDNS服务，<code>/etc/init.d/ddns restart</code></li>
+</ol>
+
+
+<p><img src="/images/1.png" style="width: 680px; ">
+离线下载:</p>
+
+<ol>
+<li>申请离线下载，双十一的时候有活动，迅雷白金会员半价, 90块。还是比较超值的，离线空间大概有300多T，支持多种协议,如BT、磁力链接、ed2k等，基本上高清电影随便往进去扔。</li>
+<li>在chrome下安装 <a href="https://chrome.google.com/webstore/detail/thunderlixianassistant/eehlmkfpnagoieibahhcghphdbjcdmen?hl=zh-CN">迅雷离线助手</a> 这个插件，可以帮助你直接导出aria2/aria2-rpc/wget/IDM/Orbit/YAAW下载。</li>
+<li>安装完成后，登陆<a href="http://dynamic.cloud.vip.xunlei.com/">迅雷离线</a>， 打开右上角设置，修改Aria2 json path 为 <code>http://myname.oicp.net:6800/jsonrpc</code></li>
+<li>点击任意一个资源下拉框，选择 yyaw导出，之后访问 <code>http://myname.oicp.net/aria2</code>，就可以看到正在下载的任务了。</li>
+</ol>
+
+
+<p><img src="/images/2.png" style="width: 680px; ">
+<img src="/images/3.png" style="width: 680px; "></p>
+
+<p>国内云存储的选择很多，微云，115，百度云，华为网盘，迅雷离线空间等，存储空间都是以T为单位，大部分是不用付费的，每个云存储都有相应的客户端做同步。迅雷的价格最贵，但是它有几点好处:</p>
+
+<ol>
+<li>离线空间更大，300T+，按照单部高清电影50G来计算，可以放6000部电影了，这辈子估计也看不完</li>
+<li>资源丰富，很多时候，你可以发现，下载任务刚添加，就完成了，可以推测服务器上早就有这个资源了，凭借md5校验码来验证资源是否，存在的话，直接做个链接就可以了</li>
+<li>迅雷做了很好的CDN，所以不管你的网络运营商是什么，电信、联通还是铁通，都可以做到峰值下载</li>
+<li>迅雷云播，可以直接在电脑或者手机客户端上播放离线空间资源，还能自动匹配字幕</li>
+</ol>
+
+
+<p>国家的版权控制越来越严格，可以想见的将来，资源的获取会更加困难，首先是音乐，因为目前音乐作品在网络上缺乏一个很好的渠道和商业模式去盈利，因此发行商或者利益相关者会盯的更紧些。电影则不然，清晰版的影片一般会在下映后或者更长时间才会出现，盈利不会受到很大影响。后来思考一番，多下载点影片和无损音乐在云端，路由接的移动硬盘除了放部分电影之类的话，也可以作为文档或者家里的视频照片等的存储空间。你可以使用samba或者ftp去上传文件，就是每次人工干预会略不爽，可以使用rsync做文件的同步，然后用crontab建个定时自动运行的任务就可以了。 大概的步骤是如下这样:</p>
+
+<ol>
+<li>把你的public key 扔到openwrt系统上，openwrt使用的是一个比较轻量的ssl服务，叫做dropbear,所以ssh key放置的目录也不太一样。你可以直接run这条命令: <code>cat ~/.ssh/id_rsa.pub |  ssh root@192.168.1.1 "cat &gt;&gt; /etc/dropbear/authorized_keys”</code>. 这样你ssh到openwrt的时候就不需要再输入密码.</li>
+<li>安装rsync, <code>opkg install rsync</code>.</li>
+<li>在pc端新建cron job，假设我希望每天晚上11点半同步所有dropbox里面的文件， 运行<code>crontab -e</code>，添加<code>”30 23 * * * rsync -r ~/Dropbox/ root@192.168.1.1:/mnt/sda1/Dropbox/“</code>, 保存即可</li>
+</ol>
+
+
+<p>自己去搭建这么一套简单的家庭存储的解决方案的好处很多:</p>
+
+<ol>
+<li>省钱，一场电影要30块，两个人一年看10次电影就差不多了。路由器的功耗很低，每小时只有几瓦，如果你开着一台PC去下载，一小时至少400w左右的功耗，从这个角度也节省了钱。</li>
+<li>最大化利用带宽，压榨宽带资源。一个月的宽带费用要一两百，所以一定要做到物尽其用，在家人都上班的时候添加好任务，回家之后就可以观看电影，不会影响到家人去使用网络。</li>
+<li>私人服务器。由于电信运营商对上行带宽的限制，从外部访问路由上的ftp下载服务比较慢，但是下载一些文档照片是足够了，上传的速度很快，所以如果你在旅游的时候拍的照片啊什么的，可以上传到服务器上，家人就可以在电视上看了。</li>
+<li>可玩性高。可以在openwrt上安装使用的服务远不止此，比如使用摄像头进行监控服务，只要有无线摄像头连接上，可以随时监控家里的情况。13号baidu就要退出一款无线摄像头，价格只有99，非常之便宜。还有类似流媒体服务，在家庭多个位置放置无线音箱，在手机或者电视，pc上控制播放，很有趣。</li>
+</ol>
+
+
+<p>当然，相比NAS，还是有些不足，比如:</p>
+
+<ol>
+<li>单个USB移动硬盘无法做数据的备份，比如raid，如果硬盘出问题，数据可能丢失。</li>
+<li>意外断电可能导致的设备损坏。</li>
+</ol>
+
+
+<p>几年前我在TCL教育做实习的时候，他们已经开始做基于android的智能电视了，在互联网企业杀入这个市场后，家庭智能化趋势已经不可阻挡了，物联网真正的实现也近在眼前。其中智能电视，路由器和游戏机是几个比较关键的要素，国内的几家公司，比如小米，马上要推出的小米路由或者果壳等，比较值得关注。随着宽带计划提升到国家战略层面，访问敏感网站逐渐松绑，互联网带来的自由革命也即将到来。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2013/12/04/restarting-virtualbox-under-osx">Restarting Virtualbox Under Osx</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-12-04T00:00:00+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2013/12/04/restarting-virtualbox-under-osx#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2013/12/04/restarting-virtualbox-under-osx">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>使用vagrant启动虚拟机的时候遇到了如下的错误:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; vagrant up
+</span><span class='line'>Bringing machine <span class="s1">&#39;default&#39;</span> up with <span class="s1">&#39;virtualbox&#39;</span> provider...
+</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Clearing any previously <span class="nb">set </span>forwarded ports...
+</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Creating shared folders metadata...
+</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Clearing any previously <span class="nb">set </span>network interfaces...
+</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Available bridged network interfaces:
+</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Preparing network interfaces based on configuration...
+</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Forwarding ports...
+</span><span class='line'><span class="o">[</span>default<span class="o">]</span> -- <span class="nv">22</span> <span class="o">=</span>&gt; <span class="m">2222</span> <span class="o">(</span>adapter 1<span class="o">)</span>
+</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Booting VM...
+</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Waiting <span class="k">for</span> machine to boot. This may take a few minutes...
+</span><span class='line'>The guest machine entered an invalid state <span class="k">while</span> waiting <span class="k">for</span> it
+</span><span class='line'>to boot. Valid states are <span class="s1">&#39;starting, running&#39;</span>. The machine is in the
+</span><span class='line'><span class="s1">&#39;poweroff&#39;</span> state. Please verify everything is configured
+</span><span class='line'>properly and try again.
+</span><span class='line'>
+</span><span class='line'>If the provider you<span class="s1">&#39;re using has a GUI that comes with it,</span>
+</span><span class='line'><span class="s1">it is often helpful to open that and watch the machine, since the</span>
+</span><span class='line'><span class="s1">GUI often has more helpful error messages than Vagrant can retrieve.</span>
+</span><span class='line'><span class="s1">For example, if you&#39;</span>re using VirtualBox, run <span class="sb">`</span>vagrant up<span class="sb">`</span> <span class="k">while</span> the
+</span><span class='line'>VirtualBox GUI is open.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>错误信息提示我虚拟机所处状态(poweroff)，不能启动。原因未知，不过除了信息中给出的解决办法，还可以通过重启VirtualBox来解决。办法如下:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; sudo /Library/StartupItems/VirtualBox/VirtualBox restart
+</span><span class='line'>Password:
+</span><span class='line'>Unloading VBoxUSB.kext
+</span><span class='line'>Unloading VBoxDrv.kext
+</span><span class='line'>/Applications/VirtualBox.app/Contents/MacOS/VBoxAutostart <span class="o">=</span>&gt; /Applications/VirtualBox.app/Contents/MacOS/VBoxAutostart-amd64
+</span><span class='line'>………..
+</span><span class='line'>Loading VBoxDrv.kext
+</span><span class='line'>Loading VBoxUSB.kext
+</span><span class='line'>Loading VBoxNetFlt.kext
+</span><span class='line'>Loading VBoxNetAdp.kext
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后就可以顺利的通过Vagrant启动虚拟机了。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/11/18/change-system-library-path">Change System Library Path</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-11-18T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/11/18/change-system-library-path#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/11/18/change-system-library-path">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>找不到共享文件是我们在native build的时候经常遇到的问题，有一种情况是操作系统上确实没有该共享文件，还有一种是含有该共享文件的目录没有被加入到library 查询的路径中。</p>
+
+<p>假设现在我们需要把 <code>/opt/lib/lib.test.so</code> 加入到library path中.
+在不想影响到系统配置的情况下，我们可以修改环境变量:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>/opt/lib:<span class="nv">$LD_LIBRARY_PATH</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>easy right?
+如果你确信你是想一劳永逸的把<code>/opt/lib/</code>加入到library path中，那么可以直接修改ldconfig的配置:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo ldconfig <span class="p">|</span> grep opt
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>目前尚未出现<code>/opt/</code>。
+怎么办呢？直接去修改<code>/etc/ld.so.conf.d/</code> 下的配置文件。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>ls -al /etc/ld.so.conf.d/
+</span><span class='line'>total 16
+</span><span class='line'>drwxr-xr-x.  <span class="m">2</span> root root <span class="m">4096</span> Mar  <span class="m">9</span>  <span class="m">2013</span> .
+</span><span class='line'>drwxr-xr-x. <span class="m">65</span> root root <span class="m">4096</span> Nov <span class="m">18</span> 10:04 ..
+</span><span class='line'>-r--r--r--.  <span class="m">1</span> root root  <span class="m">324</span> Feb <span class="m">22</span>  <span class="m">2013</span> kernel-2.6.32-358.el6.x86_64.conf
+</span><span class='line'>-rw-r--r--.  <span class="m">1</span> root root   <span class="m">17</span> Dec  <span class="m">7</span>  <span class="m">2012</span> mysql-x86_64.conf
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>less /etc/ld.so.conf.d/mysql-x86_64.conf
+</span><span class='line'>/usr/lib64/mysql
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>看上去规则很简单，第一步为app添加配置文件，第二步在文件中写入library的路径。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo <span class="nb">echo</span> “/opt/lib” &gt; /etc/ld.so.conf.d/opt.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>make it happen</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ld.so.conf.d<span class="o">]</span><span class="nv">$ </span>sudo ldconfig
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ld.so.conf.d<span class="o">]</span><span class="nv">$ </span>ldconfig -v <span class="p">|</span> grep opt
+</span><span class='line'>/opt/lib:
+</span><span class='line'>ldconfig: File /opt/lib/lib.test.so is empty, not checked.    <span class="c">#测试文件</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So, are you happy now?</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/osx/2013/11/06/automately-install-dmg-package-under-osx">Automately Install Dmg Package Under OSX</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-11-06T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/osx/2013/11/06/automately-install-dmg-package-under-osx#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/osx/2013/11/06/automately-install-dmg-package-under-osx">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>The common way install a new app in osx is like:</p>
+
+<ol>
+<li>Install from AppStore;</li>
+<li>Download *.dmg file and open it then click install script;</li>
+</ol>
+
+
+<p>For the App that can only be installed from *.dmg file, there&rsquo;s a better way to automate the install process.
+The second way includes following steps:</p>
+
+<ol>
+<li>Download the package-*.dmg file;</li>
+<li>Mount *.dmg file to file system- e.g /Volumes/app_name</li>
+<li>Install app with the installer or *.pkg file</li>
+</ol>
+
+
+<p>Given we want to install <a href="www.vagrantup.com">vagrant</a>:
+For the  first step, say <code>curl -O download_link</code> for people don&rsquo;t have tools like <code>wget</code>. If you have <code>wget</code>, say installed through brew <code>brew install wget</code>, you can just use <code>wget</code>.</p>
+
+<p>For the second step, we can use <code>hdiutil</code> command to mount the dmg file to <code>/Volumes</code>.</p>
+
+<p>For the last step, the <code>installer</code> in osx perfectly solve the issue. Command like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo installer -store -pkg /Volumes/Vagrant/Vagrant.pkg -target /
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And it would use the administrator previlidge to install the package.</p>
+
+<p>For the whole install process, the only thing you need to do is type in the password. And <a href="https://raw.github.com/iambowen/vagrant_wrapper/master/install.sh">this</a> is an example for fulfilling the automation. Surely it can be improved more genericly, for I only use this for vagrant session.^_^</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/11/04/record-and-play-back-terminal-session">Record and Play Back Terminal Session</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-11-04T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/11/04/record-and-play-back-terminal-session#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/11/04/record-and-play-back-terminal-session">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Nowadays, lots of people would use video to record a tutorial for demonstrating. It&rsquo;s cool for vividly showing everything to people. The only issue is that file size of video is relatively large. From this point of view, the old way of recording actions from console might be a better idea.</p>
+
+<p><code>script</code> and <code>scriptreplay</code> are console recording/playing tools. <code>script</code> would record time and actions of current session in two different files. And <code>scriptreplay</code> would play those actions again in the console。 It&rsquo;s quite easy to use these tools, just like the following:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@bogon shell<span class="o">]</span><span class="nv">$ </span>script -t 2&gt;timing.log -a output.session
+</span><span class='line'>Script started, file is output.session
+</span><span class='line'><span class="o">[</span>vagrant@bogon shell<span class="o">]</span><span class="nv">$ </span>ls -al .
+</span><span class='line'>total 24
+</span><span class='line'>drwxrwxr-x <span class="m">2</span> vagrant vagrant <span class="m">4096</span> Nov  <span class="m">5</span> 09:37 .
+</span><span class='line'>drwx------ <span class="m">4</span> vagrant vagrant <span class="m">4096</span> Nov  <span class="m">4</span> 12:15 ..
+</span><span class='line'>-rw-rw-r-- <span class="m">1</span> vagrant vagrant <span class="m">4400</span> Nov  <span class="m">5</span> 09:42 output.session
+</span><span class='line'>-rw-rw-r-- <span class="m">1</span> vagrant vagrant   <span class="m">55</span> Nov  <span class="m">4</span> 12:16 test.txt
+</span><span class='line'>-rw-rw-r-- <span class="m">1</span> vagrant vagrant  <span class="m">111</span> Nov  <span class="m">5</span> 16:21 timing.log
+</span><span class='line'><span class="o">[</span>vagrant@bogon shell<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> /tmp/
+</span><span class='line'><span class="o">[</span>vagrant@bogon tmp<span class="o">]</span><span class="nv">$ </span>ls
+</span><span class='line'>input.txt  ks-script-iuQ695  ks-script-iuQ695.log  output.txt  stderr  try.txt  vboxguest-Module.symvers  yum.log
+</span><span class='line'><span class="o">[</span>vagrant@bogon tmp<span class="o">]</span><span class="nv">$ </span>touch something.txt
+</span><span class='line'><span class="o">[</span>vagrant@bogon tmp<span class="o">]</span><span class="nv">$ </span><span class="nb">exit</span>
+</span><span class='line'><span class="nb">exit</span>
+</span><span class='line'>Script <span class="k">done</span>, file is output.session
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So the <code>-t</code> would record the time and <code>-a</code> would record actions to different files. In the command below, we also redirect the error message to <code>timing.log</code> file.
+And if we want to replay it, just use the <code>scriptreplay</code> command, like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scriptreplay timing.log output.session
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then it would play what you have done before.
+The thing you need to pay attention to is that such recording just happen in a session, so actions like switching user to do something would break that, to my understanding. Personally, I would use <code>su user -c 'commands'</code> to solve this issue.</p>
+
+<p>It might not be a feature used often times, but it probably would help if you want to share or show actions you&rsquo;ve done to others.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/10/31/math-in-shell">Math in Shell</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-10-31T00:00:00+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/10/31/math-in-shell#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/10/31/math-in-shell">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近半年的所作的项目中，接触了些Ops的工作，自动化工具如Chef/Puppet都用过些。这些工具都很不错，但是过程当中会遇到一些问题，需要你基础的系统/shell知识，从而认识到了其重要性，开始系统学习，目前阅读的书为: <linux shell scripting cookbook version> 以及浏览china-unix论坛。</p>
+
+<p>Shell的强大是毋庸置疑的，所以进行数学运算也就是理所应当具有的功能。Shell可以用<code>declare/let/(( ))/[]</code>进行一些简单的数学运算。
+Shell 支持的运算:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ARITHMETIC EVALUATION
+</span><span class='line'>       The  shell  allows arithmetic expressions to be evaluated, under certain circumstances <span class="o">(</span>see the <span class="nb">let </span>and <span class="nb">declare builtin </span>commands and Arithmetic Expansion<span class="o">)</span>.
+</span><span class='line'>       Evaluation is <span class="k">done</span> in fixed-width integers with no check <span class="k">for</span> overflow, though division by <span class="m">0</span> is trapped and flagged as an error.  The  operators  and  their
+</span><span class='line'>       precedence, associativity, and values are the same as in the C language.  The following list of operators is grouped into levels of equal-precedence opera-
+</span><span class='line'>       tors.  The levels are listed in order of decreasing precedence.
+</span><span class='line'>
+</span><span class='line'>       id++ id--
+</span><span class='line'>              variable post-increment and post-decrement
+</span><span class='line'>       ++id --id
+</span><span class='line'>              variable pre-increment and pre-decrement
+</span><span class='line'>       - +    unary minus and plus
+</span><span class='line'>       ! ~    logical and bitwise negation
+</span><span class='line'>       **     exponentiation
+</span><span class='line'>       * / %  multiplication, division, remainder
+</span><span class='line'>       + -    addition, subtraction
+</span><span class='line'>       &lt;&lt; &gt;&gt;  left and right bitwise shifts
+</span><span class='line'>       &lt;<span class="o">=</span> &gt;<span class="o">=</span> &lt; &gt;
+</span><span class='line'>              <span class="nv">comparison</span>
+</span><span class='line'>       <span class="o">==</span> !<span class="o">=</span>  equality and inequality
+</span><span class='line'>       <span class="p">&amp;</span>      bitwise AND
+</span><span class='line'>       ^      bitwise exclusive OR
+</span><span class='line'>       <span class="p">|</span>      bitwise OR
+</span><span class='line'>       <span class="o">&amp;&amp;</span>     logical AND
+</span><span class='line'>       <span class="o">||</span>     logical OR
+</span><span class='line'>       expr?expr:expr
+</span><span class='line'>              conditional <span class="nv">operator</span>
+</span><span class='line'>       <span class="o">=</span> *<span class="o">=</span> /<span class="o">=</span> %<span class="o">=</span> +<span class="o">=</span> -<span class="o">=</span> &lt;&lt;<span class="o">=</span> &gt;&gt;<span class="o">=</span> <span class="p">&amp;</span><span class="o">=</span> ^<span class="o">=</span> <span class="p">|</span><span class="o">=</span>
+</span><span class='line'>              assignment
+</span><span class='line'>       expr1 , expr2
+</span><span class='line'>              comma
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到涵盖了通用的编程语言中的数学运算方式，那么在shell中可以通过那些命令来进行计算呢？</p>
+
+<p><code>declare</code>: 声明变量同时定义其属性。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/bash</span>
+</span><span class='line'><span class="nv">n</span><span class="o">=</span>1*2*9/3
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$n</span>
+</span><span class='line'><span class="nb">declare</span> -i n
+</span><span class='line'><span class="nv">n</span><span class="o">=</span>1*2*9/3
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$n</span>
+</span><span class='line'>
+</span><span class='line'>result:
+</span><span class='line'>1*2*9/3
+</span><span class='line'>
+</span><span class='line'>6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面的例子可以看出，只有将变量声明为整数，shell才会认为你是在尝试进行数学运算而不是单纯的字符串变量。</p>
+
+<p><code>expr</code>: 数学表达式运算</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">z</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">5</span> + 1<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$z</span>
+</span><span class='line'><span class="nv">a</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">7</span> % 2<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$a</span>
+</span><span class='line'><span class="nv">d</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">1</span> <span class="se">\&amp;</span> 0<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$d</span>
+</span><span class='line'><span class="c">#error</span>
+</span><span class='line'><span class="nv">b</span><span class="o">=</span><span class="sb">`</span>expr 7*2<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$b</span>
+</span><span class='line'>
+</span><span class='line'>result:
+</span><span class='line'>6
+</span><span class='line'>1
+</span><span class='line'>0
+</span><span class='line'>7*2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>expr后所带的表达式运算符必须以空格分开，不然会被当做字符串，不会进行运算，一些meta字符比如&amp; %等，必须转义才可以执行。</p>
+
+<p><code>let</code>:  后面跟随数学表达式并进行运算</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ a</span><span class="o">=</span>2
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ b</span><span class="o">=</span>2
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span><span class="nv">result</span><span class="o">=</span>a+b
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>4
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span>result++
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>5
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span>result--
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>4
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>同样，在计算的时候需要用空格分隔。</p>
+
+<p><code>(( ))</code> 和<code>[]</code>也可以起到类似的作用。参加如下的例子:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ a</span><span class="o">=</span>1
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ b</span><span class="o">=</span>2
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="nv">$[</span> a + b <span class="o">]</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>3
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="nv">$[</span> <span class="nv">$a</span> + b <span class="o">]</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>3
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="k">$((</span><span class="nv">$a</span> <span class="o">+</span> <span class="m">50</span><span class="k">))</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>51
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="k">$((</span><span class="nv">$a</span> <span class="o">-</span> <span class="m">50</span><span class="k">))</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>-49
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="k">$((</span><span class="m">16#2</span>a<span class="k">))</span>  <span class="c">#进制转换,将16进制的”2a”转换为十进制的数字, 相当酷帅吊炸天</span>
+</span><span class='line'><span class="m">42</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="k">$((</span><span class="m">2#1111</span><span class="k">))</span>
+</span><span class='line'>15
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>(())</code>或者<code>[]</code>中的变量也可以加或者不加$符号从表达式外获取。以上这些命令只能处理整数运算，如果想要进行浮点数运算，就得求助<code>bc</code>命令了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;5 * 0.86&quot;</span> <span class="p">|</span> bc
+</span><span class='line'>4.30
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ n</span><span class="o">=</span>40
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span> <span class="nb">echo</span> <span class="s2">&quot;$n * 0.86&quot;</span> <span class="p">|</span> bc
+</span><span class='line'>34.40
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;scale=3;4/7&quot;</span> <span class="p">|</span> bc   <span class="c">#指定十进制浮点运算的精度</span>
+</span><span class='line'>.571
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">umask</span>
+</span><span class='line'>0002
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;obase=8;$(( 8#666 &amp; (8#777 ^ 8#$(umask)) ))&quot;</span> <span class="p">|</span> bc
+</span><span class='line'>664
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ no</span><span class="o">=</span>100
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;obase=2;$no&quot;</span> <span class="p">|</span> bc   <span class="c">#进制转换, 10进制-&gt; 2进制</span>
+</span><span class='line'>1100100
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;sqrt(100)&quot;</span> <span class="p">|</span> bc <span class="c">#开方</span>
+</span><span class='line'>10
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;10^10&quot;</span> <span class="p">|</span> bc   <span class="c">#次方计算</span>
+</span><span class='line'>10000000000
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>bc</code>的功能远超上面所列举的例子，想仔细研究的话就 <code>man bc</code>…., enjoy。</p>
+
+<p>references:<a href="http://www.sal.ksu.edu/faculty/tim/unix_sg/bash/math.html">1</a>, <a href="http://bbs.chinaunix.net/forum.php?mod=viewthread&amp;tid=218853&amp;page=7#pid1617953">2</a>, <a href="http://www.amazon.com/Linux-Scripting-Cookbook-Second-Edition/dp/1782162747">3</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/10/29/learning-centos-yum4-advanced-commands--etc">Learning Centos: Yum(4) Advanced Commands & Etc</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-10-29T00:00:00+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/10/29/learning-centos-yum4-advanced-commands--etc#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/10/29/learning-centos-yum4-advanced-commands--etc">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://iambowen.github.io/2013/07/31/learning-yum3-basic-commands/">前一篇</a> YUM基本命令，介绍了工作中比较常用的一些命令。除此之外，YUM还有些不太常用的但是还算比较有趣的命令，在此我们稍微探索发现下。</p>
+
+<p><code>yum shell</code>: yum内建的交互式shell</p>
+
+<p>在这个shell中，我们可以进行各种操作，比如罗列所有repo，搜索/查看软件信息等等。eg:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo yum shell
+</span><span class='line'>Loaded plugins: fastestmirror
+</span><span class='line'>Setting up Yum Shell
+</span><span class='line'>&gt; search vim-common
+</span><span class='line'>Loading mirror speeds from cached hostfile
+</span><span class='line'> * base: mirrors.btte.net
+</span><span class='line'> * extras: mirrors.stuhome.net
+</span><span class='line'> * updates: mirrors.btte.net
+</span><span class='line'>N/S Matched: vim-common <span class="o">==============================================================================</span>
+</span><span class='line'>vim-common.x86_64 : The common files needed by any version of the VIM editor
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>好处非常明显，就是免掉了每次去多输入”yum”。实际的测试发现，除了<code>Install/Remove</code>之外，大多数的命令都可以在这个shell下执行。其中的原因不太明白，也没有找到合理的解释。</p>
+
+<p><code>yum history</code>: 记录所有yum transaction的历史
+yum 的transaction 记录都被保存在/var/lib/yum/history/ 下的sqlite db文件中，通过history命令，我们可以查看到软件安装的详细记录，执行者，具体操作，影响的package等。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> <span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo yum <span class="nb">history</span>
+</span><span class='line'>Loaded plugins: fastestmirror
+</span><span class='line'>ID     <span class="p">|</span> Login user               <span class="p">|</span> Date and <span class="nb">time</span>    <span class="p">|</span> Action<span class="o">(</span>s<span class="o">)</span>      <span class="p">|</span> Altered
+</span><span class='line'>-------------------------------------------------------------------------------
+</span><span class='line'> <span class="m">7</span> <span class="p">|</span>  &lt;vagrant&gt;               <span class="p">|</span> 2013-10-26 06:30 <span class="p">|</span> Install        <span class="p">|</span>   58
+</span><span class='line'> <span class="m">6</span> <span class="p">|</span>  &lt;vagrant&gt;               <span class="p">|</span> 2013-10-26 05:08 <span class="p">|</span> Install        <span class="p">|</span>    3
+</span><span class='line'> <span class="m">5</span> <span class="p">|</span>  &lt;vagrant&gt;               <span class="p">|</span> 2013-09-25 08:25 <span class="p">|</span> Install        <span class="p">|</span>    3
+</span><span class='line'> <span class="m">4</span> <span class="p">|</span>  &lt;vagrant&gt;               <span class="p">|</span> 2013-09-24 07:04 <span class="p">|</span> Install        <span class="p">|</span>    1
+</span><span class='line'> <span class="m">3</span> <span class="p">|</span>  &lt;veewee&gt;                <span class="p">|</span> 2013-03-09 15:50 <span class="p">|</span> Install        <span class="p">|</span>   <span class="m">16</span>  &lt;
+</span><span class='line'> <span class="m">2</span> <span class="p">|</span>  &lt;veewee&gt;                <span class="p">|</span> 2013-03-09 15:49 <span class="p">|</span> I, U           <span class="p">|</span>   <span class="m">40</span> &gt;
+</span><span class='line'> <span class="m">1</span> <span class="p">|</span> System &lt;<span class="nb">unset</span>&gt;           <span class="p">|</span> 2013-03-09 15:37 <span class="p">|</span> Install        <span class="p">|</span>  199
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过ID可以查找Transaction发生时候的相关信息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo yum <span class="nb">history </span>info 3
+</span><span class='line'>Loaded plugins: fastestmirror
+</span><span class='line'>Transaction ID : 3
+</span><span class='line'>Begin <span class="nb">time</span>     : Sat Mar  <span class="m">9</span> 15:50:00 2013
+</span><span class='line'>Begin rpmdb    : 239:6f5a8ecd22e6f0a663940801ef56d66b2ad40228
+</span><span class='line'>End <span class="nb">time</span>       :            15:50:07 <span class="m">2013</span> <span class="o">(</span><span class="m">7</span> seconds<span class="o">)</span>
+</span><span class='line'>End rpmdb      : 255:92e8267085fc364911baebaf646b14856fb20498
+</span><span class='line'>User           :  &lt;veewee&gt;
+</span><span class='line'>Return-Code    : Success
+</span><span class='line'>Command Line   : -y install puppet facter
+</span><span class='line'>Transaction performed with:
+</span><span class='line'>    Installed     rpm-4.8.0-32.el6.x86_64                       @anaconda-CentOS-201303020151.x86_64/6.4
+</span><span class='line'>    Installed     yum-3.2.29-40.el6.centos.noarch               @anaconda-CentOS-201303020151.x86_64/6.4
+</span><span class='line'>    Installed     yum-plugin-fastestmirror-1.1.30-14.el6.noarch @anaconda-CentOS-201303020151.x86_64/6.4
+</span><span class='line'>Packages Altered:
+</span><span class='line'>    Dep-Install augeas-libs-0.9.0-4.el6.x86_64        @base
+</span><span class='line'>    Dep-Install compat-readline5-5.2-17.1.el6.x86_64  @base
+</span><span class='line'>    Dep-Install dmidecode-1:2.11-2.el6.x86_64         @base
+</span><span class='line'>    Install     facter-1:1.6.17-1.el6.x86_64          @puppetlabs
+</span><span class='line'>    Dep-Install hiera-1.1.2-1.el6.noarch              @puppetlabs
+</span><span class='line'>    ...
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>既然可以记录Transaction，那么势必也会提供undo和redo的功能:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   sudo yum <span class="nb">history </span>undo <span class="m">7</span>  <span class="c">#将Transaction 7中安装的所有软件都删除</span>
+</span><span class='line'>   sudo yum <span class="nb">history </span>redo <span class="m">8</span>  <span class="c">#将Transaction 7中删除的软件重新安装</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于系统管理员来说，这应该算得上是个比较有用的命令。前面提到yum的交易记录数据库文件保存在 <code>/var/lib/yum/history/</code>下面，如果想将Transction记录到新的db文件中，可以用<code>yum history new</code>，它会清空<code>/var/lib/yum/history/</code>目录，然后新建db文件。想打开某个history记录文件可以用<code>yum load-transaction file_name</code>。</p>
+
+<p><code>yum provides</code> :  通过软件安装后的可执行文件，反查安装它的package</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum provides /usr/bin/vim
+</span><span class='line'>1:vim-enhanced-7.2.411-1.8.el6.x86_64 : A version of the VIM editor which includes recent enhancements
+</span><span class='line'>Repo        : installed
+</span><span class='line'>Matched from:
+</span><span class='line'>Other       : Provides-match: /usr/bin/vim
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum provides wget
+</span><span class='line'>wget-1.12-1.8.el6.x86_64 : A utility <span class="k">for</span> retrieving files using the HTTP or FTP protocols
+</span><span class='line'>Repo        : installed
+</span><span class='line'>Matched from:
+</span><span class='line'>Other       : Provides-match: wget
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum provides /*/vi
+</span><span class='line'>1:vim-minimal-7.2.411-1.8.el6.x86_64 : A minimal version of the VIM editor
+</span><span class='line'>Repo        : installed
+</span><span class='line'>Matched from:
+</span><span class='line'>Other       : Provides-match: /bin/vi
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个命令还是略有用处的。</p>
+
+<p><code>yum downgrade</code>: 版本回滚</p>
+
+<p>在持续部署出错时候，使用downgrade可以顺利进行版本的回滚。</p>
+
+<p>好吧，熟悉了这些个命令和相关配置，我相信，从使用的角度讲，已经相当的足够了。下一篇将尝试搭建自己的yum repo服务器。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/database/2013/10/26/be-careful-when-you-playing-with-history-database">Be Careful When You Playing With History Database</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-10-26T00:00:00+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/database/2013/10/26/be-careful-when-you-playing-with-history-database#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/database/2013/10/26/be-careful-when-you-playing-with-history-database">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>When we talking about History database, we are generally saying the database that deposit the actions performed on other databases by application. It is freaking important for recording the critical action that performed by users in both  business and development point of view.  With the help of ChangeLog database, we can easily track that an purchased transaction has or has not happened at certain time, thus by querying this table, we will 100% sure if the user wants to confirm with the transaction.</p>
+
+<p>A typical table, say ChangeLog in History database, would have such kind of schema:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; show create table ChangeLog<span class="se">\G</span>
+</span><span class='line'>*************************** 1. row ***************************
+</span><span class='line'>       Table: ChangeLog
+</span><span class='line'>Create Table: CREATE TABLE <span class="sb">`</span>ChangeLog<span class="sb">`</span> <span class="o">(</span>
+</span><span class='line'>  <span class="sb">`</span>ID<span class="sb">`</span> bigint<span class="o">(</span>40<span class="o">)</span> NOT NULL AUTO_INCREMENT,
+</span><span class='line'>  <span class="sb">`</span>TableName<span class="sb">`</span> varchar<span class="o">(</span>40<span class="o">)</span> DEFAULT NULL,
+</span><span class='line'>  <span class="sb">`</span>ForeignKey<span class="sb">`</span> varchar<span class="o">(</span>40<span class="o">)</span> DEFAULT NULL,
+</span><span class='line'>  <span class="sb">`</span>Who<span class="sb">`</span> varchar<span class="o">(</span>255<span class="o">)</span> DEFAULT NULL,
+</span><span class='line'>  <span class="sb">`</span>Field<span class="sb">`</span> varchar<span class="o">(</span>40<span class="o">)</span> DEFAULT NULL,
+</span><span class='line'>  <span class="sb">`</span>Mod<span class="sb">`</span> int<span class="o">(</span>11<span class="o">)</span> NOT NULL DEFAULT <span class="s1">&#39;0&#39;</span>,
+</span><span class='line'>  <span class="sb">`</span>OldValue<span class="sb">`</span> text,
+</span><span class='line'>  <span class="sb">`</span>NewValue<span class="sb">`</span> text,
+</span><span class='line'>  <span class="sb">`</span>Comments<span class="sb">`</span> varchar<span class="o">(</span>200<span class="o">)</span> DEFAULT NULL,
+</span><span class='line'>  PRIMARY KEY <span class="o">(</span><span class="sb">`</span>ID<span class="sb">`</span>,<span class="sb">`</span>Mod<span class="sb">`</span><span class="o">)</span>,
+</span><span class='line'>  KEY <span class="sb">`</span>idx1<span class="sb">`</span> <span class="o">(</span><span class="sb">`</span>TableName<span class="sb">`</span>,<span class="sb">`</span>ForeignKey<span class="sb">`</span><span class="o">)</span>
+</span><span class='line'><span class="o">)</span> <span class="nv">ENGINE</span><span class="o">=</span>InnoDB DEFAULT <span class="nv">CHARSET</span><span class="o">=</span>latin1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The schema shows that it would record action done on some table by someone from certain value to other value on certain time. Two columns, TableName and ForeignKey, are indexed, which would be faster if you take those two in the where clause. The thing you need to aware is that index of ForeignKey is only working when TableName is also existed in the where clause.</p>
+
+<p>History database is normally huge and rarely has replica, as we can imagine. The reason, I suspect, is the changing-write/read operation much more frequently than other tables. Normally, it has several following characters:</p>
+
+<ol>
+<li>Query/Scan/Join operation could cause performance on database for it has large bunch of data;</li>
+<li>It&rsquo;s pretty pretty important that I don’t need to talk about this twice;</li>
+<li>Things in the history database is genuine, application or log can fake but the history table does not lie;</li>
+<li>Since it’s might be the only database, clearly it’s not</li>
+</ol>
+
+
+<p>Due to the importance of History database, few people would have access. But there gonna be chance that you would talk to it. And the following are the tips I learned from a senior developer about interacting with History database:</p>
+
+<ol>
+<li>Pair with someone who are experienced and can make sure the query you write would not do harm to the database;</li>
+<li>Check the ChangeLog table schema first, attention whether it has some columns indexed;</li>
+<li>Use “&ndash;“  in the beginning to comment out your query in case if you hit enter before you complete the query;</li>
+<li>To “explain" the query you want to run firstly, to see whether the query would happen in a very large dataset, if it is, then you need to consider the consequent for running the query.</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; Explain <span class="k">select</span> * from ChangeLog where <span class="nv">TableName</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> and <span class="nv">ForeignKey</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span><span class='line'>+----+-------------+-----------+------+---------------+------+---------+-------------+------+-------------+
+</span><span class='line'><span class="p">|</span> id <span class="p">|</span> select_type <span class="p">|</span> table     <span class="p">|</span> <span class="nb">type</span> <span class="p">|</span> possible_keys <span class="p">|</span> key  <span class="p">|</span> key_len <span class="p">|</span> ref         <span class="p">|</span> rows <span class="p">|</span> Extra       <span class="p">|</span>
+</span><span class='line'>+----+-------------+-----------+------+---------------+------+---------+-------------+------+-------------+
+</span><span class='line'><span class="p">|</span>  <span class="m">1</span> <span class="p">|</span> SIMPLE      <span class="p">|</span> ChangeLog <span class="p">|</span> ref  <span class="p">|</span> idx1          <span class="p">|</span> idx1 <span class="p">|</span> <span class="m">86</span>      <span class="p">|</span> const,const <span class="p">|</span>   <span class="m">61</span> <span class="p">|</span> Using where <span class="p">|</span>
+</span><span class='line'>+----+-------------+-----------+------+---------------+------+---------+-------------+------+-------------+
+</span><span class='line'><span class="m">1</span> row in <span class="nb">set</span> <span class="o">(</span>0.47 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What we can see from the result of explain is that the query would happen only in 61 rows, which would barely cause performance issue on the database. Of course, good to go.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/posts/6">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/posts/4">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

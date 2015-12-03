@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Linux | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/linux/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Compressing and Uncompressing Files Under Linux]]></title>
+    <link href="http://iambowen.github.com/linux/2014/08/21/compressing-and-uncompressing-files-under-linux"/>
+    <updated>2014-08-21T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/linux/2014/08/21/compressing-and-uncompressing-files-under-linux</id>
+    <content type="html"><![CDATA[<p>针对Linux下常用的压缩和解压的命令，做了一次分享，tar这个命令很强大，但是命令组合比较难记，总结了下规律，按照ppt中的方式应该会很容易记忆。</p>
+
+<script async class="speakerdeck-embed" data-id="468c63000b2801322b687e018f638151" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Change System Library Path]]></title>
+    <link href="http://iambowen.github.com/linux/2013/11/18/change-system-library-path"/>
+    <updated>2013-11-18T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/linux/2013/11/18/change-system-library-path</id>
+    <content type="html"><![CDATA[<p>找不到共享文件是我们在native build的时候经常遇到的问题，有一种情况是操作系统上确实没有该共享文件，还有一种是含有该共享文件的目录没有被加入到library 查询的路径中。</p>
+
+<p>假设现在我们需要把 <code>/opt/lib/lib.test.so</code> 加入到library path中.
+在不想影响到系统配置的情况下，我们可以修改环境变量:</p>
+
+<pre><code class="bash">export LD_LIBRARY_PATH=/opt/lib:$LD_LIBRARY_PATH
+</code></pre>
+
+<p>easy right?
+如果你确信你是想一劳永逸的把<code>/opt/lib/</code>加入到library path中，那么可以直接修改ldconfig的配置:</p>
+
+<pre><code class="bash">[vagrant@localhost ~]$ sudo ldconfig | grep opt
+[vagrant@localhost ~]$
+</code></pre>
+
+<p>目前尚未出现<code>/opt/</code>。
+怎么办呢？直接去修改<code>/etc/ld.so.conf.d/</code> 下的配置文件。</p>
+
+<pre><code class="bash">[vagrant@localhost ~]$ ls -al /etc/ld.so.conf.d/
+total 16
+drwxr-xr-x.  2 root root 4096 Mar  9  2013 .
+drwxr-xr-x. 65 root root 4096 Nov 18 10:04 ..
+-r--r--r--.  1 root root  324 Feb 22  2013 kernel-2.6.32-358.el6.x86_64.conf
+-rw-r--r--.  1 root root   17 Dec  7  2012 mysql-x86_64.conf
+
+[vagrant@localhost ~]$ less /etc/ld.so.conf.d/mysql-x86_64.conf
+/usr/lib64/mysql
+</code></pre>
+
+<p>看上去规则很简单，第一步为app添加配置文件，第二步在文件中写入library的路径。</p>
+
+<pre><code class="bash">sudo echo “/opt/lib” &gt; /etc/ld.so.conf.d/opt.conf
+</code></pre>
+
+<p>make it happen</p>
+
+<pre><code class="bash">[vagrant@localhost ld.so.conf.d]$ sudo ldconfig
+
+[vagrant@localhost ld.so.conf.d]$ ldconfig -v | grep opt
+/opt/lib:
+ldconfig: File /opt/lib/lib.test.so is empty, not checked.    #测试文件
+</code></pre>
+
+<p>So, are you happy now?</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Record and Play Back Terminal Session]]></title>
+    <link href="http://iambowen.github.com/linux/2013/11/04/record-and-play-back-terminal-session"/>
+    <updated>2013-11-04T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/linux/2013/11/04/record-and-play-back-terminal-session</id>
+    <content type="html"><![CDATA[<p>Nowadays, lots of people would use video to record a tutorial for demonstrating. It&rsquo;s cool for vividly showing everything to people. The only issue is that file size of video is relatively large. From this point of view, the old way of recording actions from console might be a better idea.</p>
+
+<p><code>script</code> and <code>scriptreplay</code> are console recording/playing tools. <code>script</code> would record time and actions of current session in two different files. And <code>scriptreplay</code> would play those actions again in the console。 It&rsquo;s quite easy to use these tools, just like the following:</p>
+
+<pre><code class="bash">[vagrant@bogon shell]$ script -t 2&gt;timing.log -a output.session
+Script started, file is output.session
+[vagrant@bogon shell]$ ls -al .
+total 24
+drwxrwxr-x 2 vagrant vagrant 4096 Nov  5 09:37 .
+drwx------ 4 vagrant vagrant 4096 Nov  4 12:15 ..
+-rw-rw-r-- 1 vagrant vagrant 4400 Nov  5 09:42 output.session
+-rw-rw-r-- 1 vagrant vagrant   55 Nov  4 12:16 test.txt
+-rw-rw-r-- 1 vagrant vagrant  111 Nov  5 16:21 timing.log
+[vagrant@bogon shell]$ cd /tmp/
+[vagrant@bogon tmp]$ ls
+input.txt  ks-script-iuQ695  ks-script-iuQ695.log  output.txt  stderr  try.txt  vboxguest-Module.symvers  yum.log
+[vagrant@bogon tmp]$ touch something.txt
+[vagrant@bogon tmp]$ exit
+exit
+Script done, file is output.session
+</code></pre>
+
+<p>So the <code>-t</code> would record the time and <code>-a</code> would record actions to different files. In the command below, we also redirect the error message to <code>timing.log</code> file.
+And if we want to replay it, just use the <code>scriptreplay</code> command, like this:</p>
+
+<pre><code class="bash">scriptreplay timing.log output.session
+</code></pre>
+
+<p>Then it would play what you have done before.
+The thing you need to pay attention to is that such recording just happen in a session, so actions like switching user to do something would break that, to my understanding. Personally, I would use <code>su user -c 'commands'</code> to solve this issue.</p>
+
+<p>It might not be a feature used often times, but it probably would help if you want to share or show actions you&rsquo;ve done to others.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Math in Shell]]></title>
+    <link href="http://iambowen.github.com/linux/2013/10/31/math-in-shell"/>
+    <updated>2013-10-31T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/linux/2013/10/31/math-in-shell</id>
+    <content type="html"><![CDATA[<p>最近半年的所作的项目中，接触了些Ops的工作，自动化工具如Chef/Puppet都用过些。这些工具都很不错，但是过程当中会遇到一些问题，需要你基础的系统/shell知识，从而认识到了其重要性，开始系统学习，目前阅读的书为: <linux shell scripting cookbook version> 以及浏览china-unix论坛。</p>
+
+<p>Shell的强大是毋庸置疑的，所以进行数学运算也就是理所应当具有的功能。Shell可以用<code>declare/let/(( ))/[]</code>进行一些简单的数学运算。
+Shell 支持的运算:</p>
+
+<pre><code class="bash">ARITHMETIC EVALUATION
+       The  shell  allows arithmetic expressions to be evaluated, under certain circumstances (see the let and declare builtin commands and Arithmetic Expansion).
+       Evaluation is done in fixed-width integers with no check for overflow, though division by 0 is trapped and flagged as an error.  The  operators  and  their
+       precedence, associativity, and values are the same as in the C language.  The following list of operators is grouped into levels of equal-precedence opera-
+       tors.  The levels are listed in order of decreasing precedence.
+
+       id++ id--
+              variable post-increment and post-decrement
+       ++id --id
+              variable pre-increment and pre-decrement
+       - +    unary minus and plus
+       ! ~    logical and bitwise negation
+       **     exponentiation
+       * / %  multiplication, division, remainder
+       + -    addition, subtraction
+       &lt;&lt; &gt;&gt;  left and right bitwise shifts
+       &lt;= &gt;= &lt; &gt;
+              comparison
+       == !=  equality and inequality
+       &amp;      bitwise AND
+       ^      bitwise exclusive OR
+       |      bitwise OR
+       &amp;&amp;     logical AND
+       ||     logical OR
+       expr?expr:expr
+              conditional operator
+       = *= /= %= += -= &lt;&lt;= &gt;&gt;= &amp;= ^= |=
+              assignment
+       expr1 , expr2
+              comma
+</code></pre>
+
+<p>可以看到涵盖了通用的编程语言中的数学运算方式，那么在shell中可以通过那些命令来进行计算呢？</p>
+
+<p><code>declare</code>: 声明变量同时定义其属性。</p>
+
+<pre><code class="bash">#!/bin/bash
+n=1*2*9/3
+echo $n
+declare -i n
+n=1*2*9/3
+echo $n
+
+result:
+1*2*9/3
+
+6
+</code></pre>
+
+<p>从上面的例子可以看出，只有将变量声明为整数，shell才会认为你是在尝试进行数学运算而不是单纯的字符串变量。</p>
+
+<p><code>expr</code>: 数学表达式运算</p>
+
+<pre><code class="bash">z=`expr 5 + 1`
+echo $z
+a=`expr 7 % 2`
+echo $a
+d=`expr 1 \&amp; 0`
+echo $d
+#error
+b=`expr 7*2`
+echo $b
+
+result:
+6
+1
+0
+7*2  
+</code></pre>
+
+<p>expr后所带的表达式运算符必须以空格分开，不然会被当做字符串，不会进行运算，一些meta字符比如&amp; %等，必须转义才可以执行。</p>
+
+<p><code>let</code>:  后面跟随数学表达式并进行运算</p>
+
+<pre><code class="bash">[vagrant@localhost shell]$ a=2
+[vagrant@localhost shell]$ b=2
+[vagrant@localhost shell]$ let result=a+b
+[vagrant@localhost shell]$ echo $result
+4
+[vagrant@localhost shell]$ let result++
+[vagrant@localhost shell]$ echo $result
+5
+[vagrant@localhost shell]$ let result--
+[vagrant@localhost shell]$ echo $result
+4
+</code></pre>
+
+<p>同样，在计算的时候需要用空格分隔。</p>
+
+<p><code>(( ))</code> 和<code>[]</code>也可以起到类似的作用。参加如下的例子:</p>
+
+<pre><code class="bash">[vagrant@localhost shell]$ a=1
+[vagrant@localhost shell]$ b=2
+[vagrant@localhost shell]$ result=$[ a + b ]
+[vagrant@localhost shell]$ echo $result
+3
+
+
+[vagrant@localhost shell]$ result=$[ $a + b ]
+[vagrant@localhost shell]$ echo $result
+3
+
+
+[vagrant@localhost shell]$ result=$(($a + 50))
+[vagrant@localhost shell]$ echo $result
+51
+
+[vagrant@localhost shell]$ result=$(($a - 50))
+[vagrant@localhost shell]$ echo $result
+-49
+
+[vagrant@localhost shell]$ echo $((16#2a))  #进制转换,将16进制的”2a”转换为十进制的数字, 相当酷帅吊炸天
+42  
+
+[vagrant@localhost shell]$ echo $((2#1111))
+15
+</code></pre>
+
+<p><code>(())</code>或者<code>[]</code>中的变量也可以加或者不加$符号从表达式外获取。以上这些命令只能处理整数运算，如果想要进行浮点数运算，就得求助<code>bc</code>命令了。</p>
+
+<pre><code class="bash">[vagrant@localhost shell]$ echo "5 * 0.86" | bc
+4.30
+
+[vagrant@localhost ~]$ n=40
+[vagrant@localhost ~]$  echo "$n * 0.86" | bc
+34.40
+
+[vagrant@localhost ~]$ echo "scale=3;4/7" | bc   #指定十进制浮点运算的精度
+.571
+
+[vagrant@localhost ~]$ umask
+0002
+[vagrant@localhost ~]$ echo "obase=8;$(( 8#666 &amp; (8#777 ^ 8#$(umask)) ))" | bc
+664
+
+[vagrant@localhost ~]$ no=100
+[vagrant@localhost ~]$ echo "obase=2;$no" | bc   #进制转换, 10进制-&gt; 2进制
+1100100
+
+[vagrant@localhost ~]$ echo "sqrt(100)" | bc #开方
+10
+
+[vagrant@localhost ~]$ echo "10^10" | bc   #次方计算
+10000000000
+</code></pre>
+
+<p><code>bc</code>的功能远超上面所列举的例子，想仔细研究的话就 <code>man bc</code>…., enjoy。</p>
+
+<p>references:<a href="http://www.sal.ksu.edu/faculty/tim/unix_sg/bash/math.html">1</a>, <a href="http://bbs.chinaunix.net/forum.php?mod=viewthread&amp;tid=218853&amp;page=7#pid1617953">2</a>, <a href="http://www.amazon.com/Linux-Scripting-Cookbook-Second-Edition/dp/1782162747">3</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Learning Centos: Yum(4) Advanced Commands & Etc]]></title>
+    <link href="http://iambowen.github.com/linux/2013/10/29/learning-centos-yum4-advanced-commands--etc"/>
+    <updated>2013-10-29T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/linux/2013/10/29/learning-centos-yum4-advanced-commands--etc</id>
+    <content type="html"><![CDATA[<p><a href="http://iambowen.github.io/2013/07/31/learning-yum3-basic-commands/">前一篇</a> YUM基本命令，介绍了工作中比较常用的一些命令。除此之外，YUM还有些不太常用的但是还算比较有趣的命令，在此我们稍微探索发现下。</p>
+
+<p><code>yum shell</code>: yum内建的交互式shell</p>
+
+<p>在这个shell中，我们可以进行各种操作，比如罗列所有repo，搜索/查看软件信息等等。eg:</p>
+
+<pre><code class="bash">[vagrant@localhost ~]$ sudo yum shell
+Loaded plugins: fastestmirror
+Setting up Yum Shell
+&gt; search vim-common
+Loading mirror speeds from cached hostfile
+ * base: mirrors.btte.net
+ * extras: mirrors.stuhome.net
+ * updates: mirrors.btte.net
+N/S Matched: vim-common ==============================================================================
+vim-common.x86_64 : The common files needed by any version of the VIM editor
+</code></pre>
+
+<p>好处非常明显，就是免掉了每次去多输入”yum”。实际的测试发现，除了<code>Install/Remove</code>之外，大多数的命令都可以在这个shell下执行。其中的原因不太明白，也没有找到合理的解释。</p>
+
+<p><code>yum history</code>: 记录所有yum transaction的历史
+yum 的transaction 记录都被保存在/var/lib/yum/history/ 下的sqlite db文件中，通过history命令，我们可以查看到软件安装的详细记录，执行者，具体操作，影响的package等。</p>
+
+<pre><code class="bash">     [vagrant@localhost ~]$ sudo yum history
+Loaded plugins: fastestmirror
+ID     | Login user               | Date and time    | Action(s)      | Altered
+-------------------------------------------------------------------------------
+     7 |  &lt;vagrant&gt;               | 2013-10-26 06:30 | Install        |   58
+     6 |  &lt;vagrant&gt;               | 2013-10-26 05:08 | Install        |    3
+     5 |  &lt;vagrant&gt;               | 2013-09-25 08:25 | Install        |    3
+     4 |  &lt;vagrant&gt;               | 2013-09-24 07:04 | Install        |    1
+     3 |  &lt;veewee&gt;                | 2013-03-09 15:50 | Install        |   16  &lt;
+     2 |  &lt;veewee&gt;                | 2013-03-09 15:49 | I, U           |   40 &gt;
+     1 | System &lt;unset&gt;           | 2013-03-09 15:37 | Install        |  199
+</code></pre>
+
+<p>通过ID可以查找Transaction发生时候的相关信息。</p>
+
+<pre><code class="bash">[vagrant@localhost ~]$ sudo yum history info 3
+Loaded plugins: fastestmirror
+Transaction ID : 3
+Begin time     : Sat Mar  9 15:50:00 2013
+Begin rpmdb    : 239:6f5a8ecd22e6f0a663940801ef56d66b2ad40228
+End time       :            15:50:07 2013 (7 seconds)
+End rpmdb      : 255:92e8267085fc364911baebaf646b14856fb20498
+User           :  &lt;veewee&gt;
+Return-Code    : Success
+Command Line   : -y install puppet facter
+Transaction performed with:
+    Installed     rpm-4.8.0-32.el6.x86_64                       @anaconda-CentOS-201303020151.x86_64/6.4
+    Installed     yum-3.2.29-40.el6.centos.noarch               @anaconda-CentOS-201303020151.x86_64/6.4
+    Installed     yum-plugin-fastestmirror-1.1.30-14.el6.noarch @anaconda-CentOS-201303020151.x86_64/6.4
+Packages Altered:
+    Dep-Install augeas-libs-0.9.0-4.el6.x86_64        @base
+    Dep-Install compat-readline5-5.2-17.1.el6.x86_64  @base
+    Dep-Install dmidecode-1:2.11-2.el6.x86_64         @base
+    Install     facter-1:1.6.17-1.el6.x86_64          @puppetlabs
+    Dep-Install hiera-1.1.2-1.el6.noarch              @puppetlabs
+    ...
+</code></pre>
+
+<p>既然可以记录Transaction，那么势必也会提供undo和redo的功能:</p>
+
+<pre><code class="bash">   sudo yum history undo 7  #将Transaction 7中安装的所有软件都删除
+   sudo yum history redo 8  #将Transaction 7中删除的软件重新安装
+</code></pre>
+
+<p>对于系统管理员来说，这应该算得上是个比较有用的命令。前面提到yum的交易记录数据库文件保存在 <code>/var/lib/yum/history/</code>下面，如果想将Transction记录到新的db文件中，可以用<code>yum history new</code>，它会清空<code>/var/lib/yum/history/</code>目录，然后新建db文件。想打开某个history记录文件可以用<code>yum load-transaction file_name</code>。</p>
+
+<p><code>yum provides</code> :  通过软件安装后的可执行文件，反查安装它的package</p>
+
+<pre><code class="bash">vagrant@localhost ~]$ yum provides /usr/bin/vim
+1:vim-enhanced-7.2.411-1.8.el6.x86_64 : A version of the VIM editor which includes recent enhancements
+Repo        : installed
+Matched from:
+Other       : Provides-match: /usr/bin/vim
+
+[vagrant@localhost ~]$ yum provides wget
+wget-1.12-1.8.el6.x86_64 : A utility for retrieving files using the HTTP or FTP protocols
+Repo        : installed
+Matched from:
+Other       : Provides-match: wget
+
+[vagrant@localhost ~]$ yum provides /*/vi
+1:vim-minimal-7.2.411-1.8.el6.x86_64 : A minimal version of the VIM editor
+Repo        : installed
+Matched from:
+Other       : Provides-match: /bin/vi
+</code></pre>
+
+<p>这个命令还是略有用处的。</p>
+
+<p><code>yum downgrade</code>: 版本回滚</p>
+
+<p>在持续部署出错时候，使用downgrade可以顺利进行版本的回滚。</p>
+
+<p>好吧，熟悉了这些个命令和相关配置，我相信，从使用的角度讲，已经相当的足够了。下一篇将尝试搭建自己的yum repo服务器。</p>
+]]></content>
+  </entry>
+  
+</feed>

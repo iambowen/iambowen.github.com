@@ -1,0 +1,410 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Facter - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/puppet/2015/04/21/facter">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Facter</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-04-21T00:00:00+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="https://github.com/puppetlabs/facter]">facter</a>是一个以key/value形式收集系统信息的工具。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>root@localhost ~<span class="o">]</span><span class="c"># yum provides /usr/bin/facter</span>
+</span><span class='line'>1:facter-1.6.17-1.el6.x86_64 : Ruby module <span class="k">for</span> collecting simple facts about a host operating system
+</span><span class='line'>Repo        : installed
+</span><span class='line'>Matched from:
+</span><span class='line'>Other       : Provides-match: /usr/bin/facter
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ansible和Puppet都用它来收集系统信息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[</span><span class="n">root</span><span class="vi">@localhost</span> <span class="o">~]</span><span class="c1"># facter</span>
+</span><span class='line'><span class="n">architecture</span> <span class="o">=&gt;</span> <span class="n">x86_64</span>
+</span><span class='line'><span class="n">boardproductname</span> <span class="o">=&gt;</span> <span class="no">VirtualBox</span>
+</span><span class='line'><span class="n">facterversion</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="o">.</span><span class="mi">6</span><span class="o">.</span><span class="mi">17</span>
+</span><span class='line'><span class="n">hardwareisa</span> <span class="o">=&gt;</span> <span class="n">x86_64</span>
+</span><span class='line'><span class="n">hardwaremodel</span> <span class="o">=&gt;</span> <span class="n">x86_64</span>
+</span><span class='line'><span class="n">ipaddress</span> <span class="o">=&gt;</span> <span class="mi">10</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">2</span><span class="o">.</span><span class="mi">15</span>
+</span><span class='line'><span class="n">ipaddress_eth0</span> <span class="o">=&gt;</span> <span class="mi">10</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">2</span><span class="o">.</span><span class="mi">15</span>
+</span><span class='line'><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'><span class="n">operatingsystem</span> <span class="o">=&gt;</span> <span class="no">CentOS</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>facter是跨平台的，所以可以利用它来获取不同服务器的信息。
+比如Ansible中有专门的facter模块。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="o">~&gt;</span> <span class="n">ansible</span> <span class="n">vagrant</span> <span class="o">-</span><span class="n">m</span> <span class="n">facter</span> <span class="o">-</span><span class="n">i</span> <span class="n">hosts</span>
+</span><span class='line'><span class="n">vagrant</span> <span class="o">|</span> <span class="n">success</span> <span class="o">&gt;&gt;</span> <span class="p">{</span>
+</span><span class='line'>   <span class="s">&quot;architecture&quot;</span><span class="p">:</span> <span class="s">&quot;x86_64&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;augeasversion&quot;</span><span class="p">:</span> <span class="s">&quot;0.9.0&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;changed&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;domain&quot;</span><span class="p">:</span> <span class="s">&quot;localdomain&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;facterversion&quot;</span><span class="p">:</span> <span class="s">&quot;1.6.17&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;fqdn&quot;</span><span class="p">:</span> <span class="s">&quot;localhost.localdomain&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;hardwareisa&quot;</span><span class="p">:</span> <span class="s">&quot;x86_64&quot;</span><span class="p">,</span>
+</span><span class='line'> <span class="o">......</span>
+</span><span class='line'> <span class="sb">``</span><span class="err">`</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">在</span><span class="n">puppet</span><span class="err">中，可以如此使用</span><span class="p">:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>puppet
+case $::operatingsystem {
+  &lsquo;CentOS&rsquo;: { include centos }
+  &lsquo;MacOS&rsquo;:  { include mac }
+}</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="err">因为</span><span class="n">facter</span><span class="err">的变量都是</span><span class="k">global</span><span class="err">的，所以直接使用</span><span class="sb">`$operatingsystem`</span><span class="err">也是可以的。</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">有两种方式可以添加自定义的</span><span class="n">facter</span><span class="err">变量</span><span class="p">(</span><span class="n">fact</span><span class="p">)</span><span class="err">，其中通过环境变量的方式会比较容易，只要环境变量名是以</span><span class="sb">`FACTOR_`</span>
+</span><span class='line'><span class="err">开头，都可以通过</span><span class="n">facter</span><span class="err">读取到该变量。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>bash
+~> export FACTER_cartman_is_gay=&ldquo;true&rdquo;
+~> facter | grep cartman
+cartman_is_gay => true</p>
+
+<p>~> export FACTER_KYLE_MOM_IS_BITCH=&ldquo;true&rdquo;
+~> facter | grep kyle
+kyle_mom_is_bitch => true</p>
+
+<p>~> export FACTER_cartman_is_gay=&ldquo;false&rdquo;
+~> facter | grep cartman
+cartman_is_gay => false</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="err">可以看出，</span><span class="n">fact</span><span class="err">变量的大小写无关的，自定义的</span><span class="n">fact</span><span class="err">可以被</span><span class="n">override</span><span class="err">的，</span><span class="n">puppetlabs</span><span class="err">的文档中说系统</span><span class="n">fact</span>
+</span><span class='line'><span class="err">不能被</span><span class="n">override</span><span class="err">，但是貌似可以，不知道哪里出了问题。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>bash
+[vagrant@localhost ~]$ facter | grep operatingsystem
+operatingsystem => CentOS
+operatingsystemrelease => 6.4
+[vagrant@localhost ~]$ export FACTER_operatingsystem=&ldquo;Rock&rdquo;
+[vagrant@localhost ~]$ facter | grep operatingsystem
+operatingsystem => Rock
+operatingsystemrelease => 2.6.32-358.el6.x86_64
+```</p>
+
+<p>我们老一点的系统都部署在数据中心，所有的服务器的配置用puppet管理，基本上都是虚拟化，基于一个标准的
+镜像，标准镜像spin up的服务器中会添加一个自定义的fact，用来判断是否是自定义的系统。我其实不太喜欢
+这样的使用方式，首先这让puppet manifest的可读性降低了，找遍整个repo都不找不到在哪里定义的这个变
+量，其次，让puppet manifest对系统产生了依赖性，不够灵活。</p>
+
+<hr />
+
+<p><a href="https://puppetlabs.com/blog/facter-part-1-facter-101">1</a></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-04-21T00:00:00+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/puppet/'>puppet</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/puppet/2015/04/21/facter" data-via="boweniam" data-counturl="http://iambowen.github.com/puppet/2015/04/21/facter" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/puppet/2015/04/16/puppet-cron-pitfall" title="Previous Post: puppet cron pitfall">&laquo; puppet cron pitfall</a>
+      
+      
+        <a class="basic-alignment right" href="/2015/05/08/bag-of-tricks" title="Next Post: bag of tricks">bag of tricks &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

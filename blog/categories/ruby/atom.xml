@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Ruby | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/ruby/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Ubuntu 12.04 Compile Ruby Enterprise Error Fix]]></title>
+    <link href="http://iambowen.github.com/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix"/>
+    <updated>2013-04-23T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix</id>
+    <content type="html"><![CDATA[<p>Recently I&rsquo;ve been learn to use <a href="http://vagrantup.com">Vagrant</a>. to set up a production like env under ubuntu 12.04. However, when I tried to compile REE- ruby enterprise version, I caught into the following error:</p>
+
+<pre><code class="bash">./libtool: line 983: warning: setlocale: LC_CTYPE: cannot change locale (UTF-8)
+src/tcmalloc.cc:1672:54: error: conflicting declaration 'void * (* __memalign_hook)(size_t, size_t, const void *)'
+/usr/include/malloc.h:183:39: error: "__memalign_hook" has a previous declaration as 'void * (* volatile __memalign_hook) (size_t, size_t, const void *)'
+src/tcmalloc.cc: In function 'void PrintStats(int)':
+src/tcmalloc.cc:523:47: warning: ignoring return value of 'ssize_t write(int, const void *, size_t)', declared with attribute warn_unused_result (-Wunused-result)
+src/tcmalloc.cc: In function 'void {anonymous}::ReportLargeAlloc(Length, void *)';
+src/tcmalloc.cc:1010:47: warning: ignoring return value of 'ssize_t write(int, const void *, size_t)', declared with attribute warn_unused_result [-Wunused-result]
+make: *** (libtcmalloc_minimal_la-tcmalloc.lo) Error 1
+</code></pre>
+
+<p>I dig a little throught google and it turns out to be a very easy solution. Just redefine the fucntion name</p>
+
+<pre><code class="bash">void *(* __memalign_hook) (size_t, size_t, const void *)
+</code></pre>
+
+<p>to be</p>
+
+<pre><code class="bash">void *(*  volatile  __memalign_hook) (size_t, size_t, const void *)
+</code></pre>
+
+<p>in the tcmalloc.cc src file . To declare it to be volatile type function can solve that issue and keep the compiling on. Actually, I could have found the reason because as to what the log says, the issue is pretty clear. Seems like I depend on google too much&hellip;.. it&rsquo;s not good.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Invalid Gemspec Because of the Date Format in Specification]]></title>
+    <link href="http://iambowen.github.com/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification"/>
+    <updated>2011-11-29T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification</id>
+    <content type="html"><![CDATA[<p>In the morning, i was writing a automation sql script for QA. And after move the source file from mac mini to my machine. It met such warning as i tried to run the file.</p>
+
+<pre><code class="bash">Invalid gemspec in [/Users/twer/.rvm/gems/ree-1.8.7-2011.03@development/specifications/childprocess-0.2.1.gemspec]: invalid date format in specification: "2011-08-11 00:00:00.000000000Z"
+</code></pre>
+
+<p>It&rsquo;s ok because it&rsquo;s just warning. But i am just a little bit agnoied by the message. So i decided to kill this warning message. After search in google, i found the <a href="http://stackoverflow.com/questions/5771758/invalid-gemspec-because-of-the-date-format-in-specification">answer</a>.</p>
+
+<p>And the steps should be:</p>
+
+<pre><code class="bash">/Users/twer/.rvm/gems/ree-1.8.7-2011.03@develoment/specifications/childprocess-0.2.1.gemspec
+</code></pre>
+
+<ul>
+<li>Find the spec that is causing the problem, search it in vi with string &ldquo;2011&rdquo; and i found that line.</li>
+<li>Change <code>s.date = %q{2011-08-11 00:00:00.000000000Z}</code> to <code>s.date = %q{2011-08-11}</code></li>
+</ul>
+
+
+<p>Cool, done, no more bothering information.</p>
+]]></content>
+  </entry>
+  
+</feed>

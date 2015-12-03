@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Ops | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/ops/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Essential Curl]]></title>
+    <link href="http://iambowen.github.com/ops/2015/02/16/essential-curl"/>
+    <updated>2015-02-16T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/ops/2015/02/16/essential-curl</id>
+    <content type="html"><![CDATA[<h3>什么是curl</h3>
+
+<hr />
+
+<p><a href="http://curl.haxx.se/">curl</a>是我们在Linux下常用的下载文件或者测试web服务的工具，罗列下他们常
+用的一些场景，当做总结。curl支持多种网络协议,包括最新的HTTP/2。</p>
+
+<h3>获取网页源码</h3>
+
+<hr />
+
+<p>```bash
+~> curl www.google.com
+<HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
+<TITLE>302 Moved</TITLE></HEAD><BODY></p>
+
+<H1>302 Moved</H1>
+
+
+<p>The document has moved
+<A HREF="http://www.google.com.hk/url?sa=p&amp;hl=zh-CN&amp;pref=hkredirect&amp;pval=yes&amp;q=http://www.google.com.hk/%3Fgws_rd%3Dcr&amp;ust=1423205620492528&amp;usg=AFQjCNGJFP3kOpmF9vbNWK_cgRr7G5yffQ">here</A>.
+</BODY></HTML>
+```</p>
+
+<h3>文件下载</h3>
+
+<hr />
+
+<p><code>curl</code>缺省会输出文件的内容，用下面的命令可以用<code>curl</code>将文件保存到指定的目录，curl比较苦逼的地方在于，
+如果不是保存当前目录，需要自己指定要保存的文件名。</p>
+
+<pre><code class="bash">~&gt; cd /opt/ &amp;&amp; curl -O http://ergonlogic.com/files/boxes/debian-current.box
+~&gt; curl -o /opt/current.box http://ergonlogic.com/files/boxes/debian-current.box
+</code></pre>
+
+<h3>多线程下载</h3>
+
+<hr />
+
+<p><code>curl</code>不支持多线程下载，我用过的一个多线程下载的工具是<a href="http://aria2.sourceforge.net/">aria2</a>，蛮好用的，而且这货还支持bt,ed2k等p2p协议下载。</p>
+
+<pre><code class="bash">~&gt; aria2c -x5 https://github.com/jose-lpa/veewee-openbsd/releases/download/v0.5.5/openbsd55.box
+</code></pre>
+
+<h3>通过代理访问资源</h3>
+
+<hr />
+
+<p>有两种方式可以让<code>curl</code>使用proxy，第一种是通过设置环境变量，<code>http_proxy, https_proxy</code>等，用<code>no_proxy</code>去设置屏蔽代理的列表。</p>
+
+<pre><code class="bash">~&gt; export http_proxy="http://proxy:3128"
+</code></pre>
+
+<p>让proxy对一些地址无效。</p>
+
+<pre><code class="bash">~&gt; export no_proxy="127.0.0.1,localhost.localdomain"
+</code></pre>
+
+<p>另外一种是在运行命令时直接指定使用的proxy或者不使用proxy。</p>
+
+<pre><code class="bash">~&gt; curl -x "http://proxy:3128" www.google.com
+~&gt; curl -x "socks5://proxy:3128" www.google.com
+~&gt; curl --noproxy * www.google.com
+</code></pre>
+
+<p>curl的<code>--noproxy</code>是需要指定一个exclude的列表。</p>
+
+<h3>花式下载和断点续传</h3>
+
+<hr />
+
+<p>对于很规则的下载url，可以通配符或者正则来处理，比如我想下载自己博客的几个图片。</p>
+
+<pre><code class="bash">~&gt; curl -O http://iambowen.github.io/images/[1-3].png
+
+--_curl_--http://iambowen.github.io/images/1.png
+ % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                Dload  Upload   Total   Spent    Left  Speed
+100  222k  100  222k    0     0  59816      0  0:00:03  0:00:03 --:--:-- 59808
+
+--_curl_--http://iambowen.github.io/images/2.png
+100  342k  100  342k    0     0  33117      0  0:00:10  0:00:10 --:--:-- 48607
+
+--_curl_--http://iambowen.github.io/images/3.png
+100  208k  100  208k    0     0  32245      0  0:00:06  0:00:06 --:--:-- 39914
+</code></pre>
+
+<p>断点续传,除了保证文件完整性，还可以检查文件是否有变动，如果有变化则更新，没有则保持文件原有状态。</p>
+
+<pre><code class="bash">~&gt; curl -O -C http://ergonlogic.com/files/boxes/debian-current.box
+</code></pre>
+
+<h3>获取headers信息</h3>
+
+<hr />
+
+<p>有时候，我们只需要看到返回的headers信息，查看cache是否命中，或者返回码。</p>
+
+<pre><code class="bash">~&gt; curl -I www.baidu.com
+HTTP/1.1 200 OK
+Date: Tue, 10 Feb 2015 08:25:12 GMT
+Content-Type: text/html; charset=utf-8
+Connection: Keep-Alive
+......
+</code></pre>
+
+<p>传说使用<code>telnet</code>命令可能拿到更多的http headers信息，无法验证，方式如下。</p>
+
+<pre><code class="bash">~&gt; telnet 0 4000
+Trying 0.0.0.0...
+Connected to 0.
+Escape character is '^]'.
+GET / HTTP/1.1
+HOST: 127.0.0.1:4000
+
+HTTP/1.1 200 OK
+Etag: 232a2c-320c-54d9ce22
+Content-Type: text/html
+Content-Length: 12812
+Last-Modified: Tue, 10 Feb 2015 09:23:46 GMT
+Server: WEBrick/1.3.1 (Ruby/1.9.3/2014-11-13)
+Date: Tue, 10 Feb 2015 09:29:24 GMT
+Connection: Keep-Alive
+</code></pre>
+
+<h3>follow redirection信息</h3>
+
+<hr />
+
+<p>有时候访问的资源，可能被临时或者永久转移，所以会有中间跳转的过程，但是直接去<code>curl</code>是拿不到完整信息的。</p>
+
+<pre><code class="bash">~&gt; curl -I www.google.com
+HTTP/1.1 302 Found
+Location: http://www.google.com.hk/url?sa=p&amp;hl=zh-CN&amp;pref=hkredirect&amp;pval=yes&amp;q=http://www.google.com.hk/%3Fgws_rd%3Dcr&amp;ust=1423564147298386&amp;usg=AFQjCNHZ7kXJXOfOQyCSOQ6ZGOPjeVaIYg
+Cache-Control: private
+Content-Type: text/html; charset=UTF-8
+......
+</code></pre>
+
+<p>通过下面的方式可以拿到所有的返回信息。</p>
+
+<pre><code class="bash">~&gt; curl -LI www.google.com
+HTTP/1.1 302 Found
+Location: http://www.google.com.hk/url?sa=p&amp;hl=zh-CN&amp;pref=hkredirect&amp;pval=yes&amp;q=http://www.google.com.hk/%3Fgws_rd%3Dcr&amp;ust=1423559822825114&amp;usg=AFQjCNEEY2qyq9HghaQVZ89ugMv9kvDlLA
+......
+
+HTTP/1.1 302 Found
+Location: http://www.google.com.hk/?gws_rd=cr
+......
+
+HTTP/1.1 200 OK
+Date: Tue, 10 Feb 2015 09:16:35 GMT
+Expires: -1
+......
+</code></pre>
+
+<h3>加入验证的请求</h3>
+
+<hr />
+
+<p>有时候在请求一些资源时，需要通过验证才能完成访问，可以用<code>username:password</code>加URL即可。</p>
+
+<pre><code class="bash">~&gt; curl http://user:password@echo.httpkit.com?queryString
+</code></pre>
+
+<h3>伪装user agent的请求</h3>
+
+<hr />
+
+<p>有的服务器可能会限制访问的User-Agent类型，用curl测试的时候可以用相应得参数进行伪装。</p>
+
+<pre><code class="bash">~&gt; curl  echo.httpkit.com
+ "headers": {
+   "host": "echo.httpkit.com",
+   "user-agent": "curl/7.37.1",
+   "accept": "*/*"
+}
+
+~&gt;  curl -A "Bad Ass"  echo.httpkit.com
+ "headers": {
+   "host": "echo.httpkit.com",
+   "user-agent": "Bad Ass",
+   "accept": "*/*"
+ },
+</code></pre>
+
+<h3>发起HTTP请求</h3>
+
+<hr />
+
+<p>用<code>-X</code>可以指定发起请求的HTTP方法, 如果用<code>POST</code>或者<code>PUT</code>等方法，可以用 <code>-d</code>指定request body，<code>-H</code>可以指定请求的一些Headers。</p>
+
+<pre><code class="bash">~&gt; curl -X PUT -H 'Content-Type: application/json' -d '{"firstName":"Kris", "lastName":"Jordan"}' echo.httpkit.com
+{
+ "method": "PUT",
+ "uri": "/",
+ "path": {
+   "name": "/",
+   "query": "",
+   "params": {}
+ },
+ "headers": {
+   "x-forwarded-for": "210.74.157.146",
+   "host": "echo.httpkit.com",
+   "user-agent": "curl/7.37.1",
+   "accept": "*/*",
+   "content-type": "application/json",
+   "content-length": "41"
+ },
+ "body": "{\"firstName\":\"Kris\", \"lastName\":\"Jordan\"}",
+ "ip": "127.0.0.1",
+ "powered-by": "http://httpkit.com",
+ "docs": "http://httpkit.com/echo"
+ }
+</code></pre>
+
+<h3>上传文件</h3>
+
+<hr />
+
+<pre><code class="bash">~&gt; curl --form "fileupload=@filename.txt" http://hostname/resource
+</code></pre>
+
+<h3>处理cookies</h3>
+
+<hr />
+
+<p>保存cookies到本地</p>
+
+<pre><code class="bash"> ~&gt; curl -c echo.cookies  http://www.baidu.com &gt; /dev/null
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 88672    0 88672    0     0   298k      0 --:--:-- --:--:-- --:--:--  297k
+ ~&gt; less echo.cookies
+# Netscape HTTP Cookie File
+# http://curl.haxx.se/docs/http-cookies.html
+# This file was generated by libcurl! Edit at your own risk.
+
+.baidu.com      TRUE    /       FALSE   3571557287      BAIDUID 287BE3DB1621FDE977C39D21BD02CA45:FG=1
+.baidu.com      TRUE    /       FALSE   3571557287      BAIDUPSID       287BE3DB1621FDE977C39D21BD02CA45
+www.baidu.com   FALSE   /       FALSE   0       BDSVRTM 0
+www.baidu.com   FALSE   /       FALSE   0       BD_HOME 0
+.baidu.com      TRUE    /       FALSE   0       H_PS_PSSID      10422_1449_11089
+</code></pre>
+
+<p>使用cookie 发起请求</p>
+
+<pre><code class="bash">~&gt; curl -b echo.cookies  http://www.baidu.com &gt; /dev/null
+</code></pre>
+
+<h3>fail on error</h3>
+
+<hr />
+
+<p>对于服务器端错误，http请求没有任何输出，<code>curl</code>的返回为0，使用<code>-f</code>参数可以在遇到服务器错误是返回非0(22)。
+最近在完成一个用Bamboo host的package去部署的任务的时候用到了这个参数，一旦下载package出错，部署会中断。</p>
+
+<pre><code class="bash">~&gt; curl -f http://iambowen.github.io/ksjdkfsjdf
+curl: (22) The requested URL returned error: 404 Not Found
+~&gt; echo $?
+22
+</code></pre>
+
+<h3>从浏览器"偷取"curl的命令</h3>
+
+<hr />
+
+<p>觉得<code>curl</code>指令太难记忆，可以直接从浏览器中"偷"取， Chrome提供了这样的功能:</p>
+
+<p><img src="/images/curl.png" alt="chrome" /></p>
+
+<h3>References</h3>
+
+<hr />
+
+<p><a href="http://www.ruanyifeng.com/blog/2011/09/curl.html">1</a>
+<a href="https://gist.github.com/303182519/132568fd0e58cae57202">2</a>
+<a href="http://httpkit.com/resources/HTTP-from-the-Command-Line/">3</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Essential Wget]]></title>
+    <link href="http://iambowen.github.com/ops/2015/02/06/essential-wget"/>
+    <updated>2015-02-06T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/ops/2015/02/06/essential-wget</id>
+    <content type="html"><![CDATA[<h3>什么wget</h3>
+
+<hr />
+
+<p><a href="https://www.gnu.org/software/wget/">wget</a>是*nix下常用的下载文件或者测试web服务的工具，
+wget支持多种网络协议，但是从介绍看，wget更像是一个文件下载工具。</p>
+
+<h3>获取网页源码</h3>
+
+<hr />
+
+<p><code>wget</code>默认会将网页或者文件直接下载保存,所以直接显示返回内容的话，可以用 <code>-q</code>关闭<code>wget</code>的输出,然后用<code>-O -</code>
+将输出重定向到标准输出，然后用<code>cat</code>将内容打印出来。</p>
+
+<pre><code class="bash">~&gt; wget echo.httpkit.com
+--2015-02-10 11:01:50--  http://echo.httpkit.com/
+Resolving echo.httpkit.com... 50.112.251.120
+Connecting to echo.httpkit.com|50.112.251.120|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 374 [application/json]
+Saving to: ‘index.html’
+
+~&gt; wget -qO - echo.httpkit.com | cat
+......
+ "headers": {
+   "x-forwarded-for": "210.74.157.146",
+   "host": "echo.httpkit.com",
+   "user-agent": "Wget/1.14 (darwin12.5.0)",
+   "accept": "*/*"
+ },
+ ......
+</code></pre>
+
+<h3>文件下载</h3>
+
+<hr />
+
+<p><code>wget</code>缺省会将url中最后的文件作为文件名并且将文件保存在本地，用下面的命令可以将文件保存到指定的目录，这点比<code>curl</code>要好。</p>
+
+<pre><code class="bash">~&gt; wget -P /opt http://ergonlogic.com/files/boxes/debian-current.box
+</code></pre>
+
+<h3>通过代理访问资源</h3>
+
+<hr />
+
+<p>有两种方式可以让<code>wget</code>时使用proxy，第一种是通过设置环境变量，<code>http_proxy, https_proxy</code>。</p>
+
+<pre><code class="bash">~&gt; export http_proxy="http://proxy:3128"
+</code></pre>
+
+<p>让proxy对一些地址无效。</p>
+
+<pre><code class="bash">~&gt; export no_proxy="127.0.0.1,localhost.localdomain"
+</code></pre>
+
+<p>另外一种是在运行命令时直接指定使用的proxy或者不使用proxy。</p>
+
+<pre><code class="bash">~&gt; wget  -e http_proxy=127.0.0.1:8080 www.baidu.com
+~&gt; wget --no-proxy www.baidu.com
+</code></pre>
+
+<p>同样是不使用proxy，curl的<code>--noproxy</code>是需要指定一个exclude的列表，但是wget的<code>--no-proxy</code>就是
+针对当前访问资源，不使用proxy。</p>
+
+<h3>花式下载和断点续传</h3>
+
+<hr />
+
+<p>对于wildcard支持，wget的介绍感觉有点乱，提供的参数看上去不怎么友好，想实现和<code>curl</code>中一样的效果，可能要换个方式。</p>
+
+<pre><code class="bash">~&gt; wget  http://iambowen.github.io/images/{1..3}.png
+--2015-02-17 14:19:35--  http://iambowen.github.io/images/1.png
+Resolving iambowen.github.io... 103.245.222.133
+Connecting to iambowen.github.io|103.245.222.133|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 227632 (222K) [image/png]
+Saving to: ‘1.png’
+--2015-02-17 14:19:35--  http://iambowen.github.io/images/2.png
+Reusing existing connection to iambowen.github.io:80.
+HTTP request sent, awaiting response... 200 OK
+Length: 350735 (343K) [image/png]
+Saving to: ‘2.png’
+.....
+Saving to: ‘3.png’
+</code></pre>
+
+<h3>获取headers信息</h3>
+
+<hr />
+
+<p>wget可以用<code>-S</code>参数来查看返回的header信息。</p>
+
+<pre><code class="bash">~&gt; wget -qS www.baidu.com
+ HTTP/1.1 200 OK
+ Date: Tue, 10 Feb 2015 08:27:27 GMT
+ Content-Type: text/html; charset=utf-8
+ Transfer-Encoding: chunked
+ Connection: Keep-Alive
+ ......
+</code></pre>
+
+<h3>返回redirection信息</h3>
+
+<hr />
+
+<p>不同于curl，wget缺省就是follow redirections。</p>
+
+<pre><code class="bash">~&gt; wget -qS www.google.com
+ HTTP/1.1 302 Found
+ Location: http://www.google.com.hk/url?sa=p&amp;hl=zh-CN&amp;pref=hkredirect&amp;pval=yes&amp;q=http://www.google.com.hk/%3Fgws_rd%3Dcr&amp;ust=1423559992840904&amp;usg=AFQjCNFkDUqlbUFFIcVDOEXMELBQnEsZIA
+ Cache-Control: private
+ Content-Type: text/html; charset=UTF-8
+ ......
+ HTTP/1.1 302 Found
+ Location: http://www.google.com.hk/?gws_rd=cr
+ Cache-Control: private
+ ......
+ HTTP/1.1 200 OK
+ Date: Tue, 10 Feb 2015 09:19:23 GMT
+ Expires: -1
+ ......
+</code></pre>
+
+<h3>加入验证的请求</h3>
+
+<hr />
+
+<pre><code class="bash">~&gt; wget http://user:password@echo.httpkit.com?queryString
+</code></pre>
+
+<h3>伪装user agent的请求</h3>
+
+<hr />
+
+<pre><code class="bash">~&gt; wget --user-agent="Mozilla: Gay" -qO- echo.httpkit.com | cat
+"headers": {
+  "host": "echo.httpkit.com",
+  "user-agent": "Mozilla: Gay",
+  "accept": "*/*"
+}
+</code></pre>
+
+<p><code>-U</code>的作用和<code>--user-agent</code>一样, wget的option parse是用<code>getopt</code>实现，所以可以理解<code>-U</code>的存在。</p>
+
+<h3>request with HTTP header</h3>
+
+<hr />
+
+<p>使用<code>--header=String</code>去添加header,可以在一个请求中设置多次。</p>
+
+<pre><code class="bash">~&gt; wget --header="Cartman: is bitch"  --header="JB: stands for Justin Bieber" -qO- echo.httpkit.com | cat
+.....
+ "headers": {
+   "x-forwarded-for": "210.74.157.146",
+   "host": "echo.httpkit.com",
+   "user-agent": "Wget/1.14 (darwin12.5.0)",
+   "accept": "*/*",
+   "cartman": "is bitch",
+   "jb": "stands for Justin Bieber"
+ },
+.....
+</code></pre>
+
+<h3>HTTP 请求</h3>
+
+<hr />
+
+<p><code>wget</code>支持自定义HTTP请求类型，可以用<code>--method=</code>去指定HTTP请求的方法，注意，比较老的版本中没有提供这项功能。</p>
+
+<pre><code class="bash">~&gt; wget --method="PUT" --header='Content-Type: application/json' --body-data="firstName=Kris&amp;lastName=Jordan" echo.httpkit.com
+{
+"method": "PUT",
+......
+"headers": {
+  "x-forwarded-for": "210.74.157.146",
+  "host": "echo.httpkit.com",
+  "user-agent": "Wget/1.16.1 (darwin14.0.0)",
+  "accept": "*/*",
+  "accept-encoding": "identity",
+  "content-type": "application/json",
+  "content-length": "30"
+},
+"body": "firstName=Kris&amp;lastName=Jordan",
+......
+}
+</code></pre>
+
+<p>如果是用POST方法则简单了许多，直接指定请求的body string就可以。</p>
+
+<pre><code class="bash">~&gt; wget --header='Content-Type: application/json' --post-data="firstName=Kris&amp;lastName=Jordan" -qO- echo.httpkit.com | cat
+{
+"method": "POST",
+......
+"headers": {
+  "x-forwarded-for": "210.74.157.146",
+  "host": "echo.httpkit.com",
+  "user-agent": "Wget/1.16.1 (darwin14.0.0)",
+  "accept": "*/*",
+  "accept-encoding": "identity",
+  "content-type": "application/json",
+  "content-length": "30"
+},
+"body": "firstName=Kris&amp;lastName=Jordan",
+......
+}
+</code></pre>
+
+<p>组装body的方式比curl要稍微简单些，但是不太直观，不是很喜欢。</p>
+
+<h3>处理cookies</h3>
+
+<hr />
+
+<p>保存cookie到本地</p>
+
+<pre><code class="bash">~&gt; wget --save-cookies cookies.txt -q www.baidu.com
+~&gt; less cookies.txt
+# HTTP cookie file.
+# Generated by Wget on 2015-02-17 16:05:04.
+# Edit at your own risk.
+
+.baidu.com      TRUE    /       FALSE   3571643951      BAIDUPSID       3603BF98B1056E609FE72D7D976C0235
+.baidu.com      TRUE    /       FALSE   3571643951      BAIDUID 3603BF98B1056E609FE72D7D976C0235:FG=1
+</code></pre>
+
+<p>请求时携带cookie</p>
+
+<pre><code class="bash">~&gt; wget --load-cookies cookies.txt  -q www.baidu.com
+</code></pre>
+
+<p>除此之外，还可以在请求时的header中添加cookie信息。</p>
+
+<pre><code class="bash">wget --no-cookies --header "Cookie: name=value"
+</code></pre>
+
+<h3>FYI</h3>
+
+<hr />
+
+<p>wget还有一些其他的黑科技，比如可以下载整个网站之类的，不过平常应该不太会用到。
+Anyway,还是觉得curl要比wget好用些-_-!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Introduction to Nagios]]></title>
+    <link href="http://iambowen.github.com/ops/2014/08/30/introduction-to-nagios"/>
+    <updated>2014-08-30T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/ops/2014/08/30/introduction-to-nagios</id>
+    <content type="html"><![CDATA[<p>最近接了张从Nagios移植到<a href="http://www.pagerduty.com/">PagerDuty</a>的卡，活都让同事干了，自己就利用这个时间，看了看文档，基本理解了Nagios的监控的原理以及配置的方法，总结成PPT，在组内做了分享，如下。</p>
+
+<script async class="speakerdeck-embed" data-id="a3f91d1011c90132ea3636ee7b6c2ab8" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+
+]]></content>
+  </entry>
+  
+</feed>

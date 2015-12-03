@@ -1,0 +1,454 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Learning Yum(2): Utils and Plugins - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/linux/2013/07/25/learning-yum2-utils-and-plugins">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Learning Yum(2): Utils and Plugins</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-07-25T00:00:00+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Yum 提供了一些列的utils以及plugins来增强自身的功能，比如yum-config-manager，fastestmirror等。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum info yum-utils
+</span><span class='line'>.......
+</span><span class='line'>Description:
+</span><span class='line'>yum-utils is a collection of utilities and examples <span class="k">for</span> the yum package manager. It includes utilities by different authors that make yum easier and more powerful to use. These tools include:
+</span><span class='line'>: debuginfo-install, find-repos-of-install, repodiff,
+</span><span class='line'>: needs-restarting, package-cleanup, repoclosure,
+</span><span class='line'>: repo-graph, repomanage, repoquery, repo-rss, reposync,
+</span><span class='line'>: repotrack, show-installed, show-changed-rco, verifytree,
+</span><span class='line'>: yum-builddep, yum-complete-transaction, yumdownloader,
+</span><span class='line'>: yum-config-manager, yum-debug-dump,
+</span><span class='line'>: yum-debug-restore and yum-groups-manager.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>它们各自的作用可以很容易从自己的命名上看的出来, 我们挑几看上去有意思的命令研究下， 比如yum-config-manager，yumdownloader，find-repos-of-install等。</p>
+
+<p>yum-config-manager: yum配置管理工具
+显示base这个repo显示的所有的配置项以及其对应的值:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum-config-manager base
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum-config-manager <span class="nv">base</span>
+</span><span class='line'><span class="o">========</span> repo: base
+</span><span class='line'><span class="o">[</span>base<span class="o">]</span>
+</span><span class='line'><span class="nv">base_persistdir</span> <span class="o">=</span> /var/lib/yum/repos/x86_64/6
+</span><span class='line'><span class="nv">baseurl</span> <span class="o">=</span> http://mirrors.163.com/centos/6/os/x86_64/
+</span><span class='line'><span class="nv">cache</span> <span class="o">=</span> 0
+</span><span class='line'><span class="nv">cachedir</span> <span class="o">=</span> /var/tmp/yum-vagrant-isJUZ8/x86_64/6/base
+</span><span class='line'><span class="nv">enabled</span> <span class="o">=</span> True
+</span><span class='line'><span class="nv">name</span> <span class="o">=</span> CentOS-6 - Base
+</span><span class='line'><span class="nv">retries</span> <span class="o">=</span> 10
+</span><span class='line'><span class="nv">timeout</span> <span class="o">=</span> 30.0
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>修改base这个repo的enabled选项为false同时保存:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo yum-config-manager base --setopt<span class="o">=</span>“base.enabled<span class="o">=</span>0” --save
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum-config-manager <span class="nv">base</span>
+</span><span class='line'><span class="o">========</span> repo: base
+</span><span class='line'><span class="o">[</span>base<span class="o">]</span>
+</span><span class='line'><span class="nv">enabled</span> <span class="o">=</span> False
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>yumdownloader: 从yum的repo下载rpm package</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yumdownloader  --destdir /tmp/  ConsoleKit-devel-0.4.1
+</span><span class='line'>ConsoleKit-devel-0.4.1-3.el6.i686.rpm      <span class="p">|</span>  <span class="m">15</span> kB     00:00
+</span><span class='line'>ConsoleKit-devel-0.4.1-3.el6.x86_64.rpm    <span class="p">|</span>  <span class="m">15</span> kB     00:00
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>find-repos-of-install: 找到已安装package的repo源</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>find-repos-of-install vim-common
+</span><span class='line'>2:vim-common-7.2.411-1.8.el6.x86_64 from repo base
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>试用了一些个utils命令，觉得没有那些是特别有用的，只是能够稍微提高下效率，比如yum-config-manager,可以直接通过这个命令修改配置。</p>
+
+<p>当你使用yum命令的时候，会提示你加载的<a href="http://yum.baseurl.org/wiki/YumUtils">plugins</a>。相比之下，yum的plugins就显得有用多了。yum有很多plugins，aliases， axelget等都是我觉得比较有用的。配置yum plugins的入口有三个地方，我们以yum-aliases这个plugin作为示例:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo yum install yum-aliases <span class="c">#安装插件</span>
+</span><span class='line'>/etc/yum.conf
+</span><span class='line'>  <span class="nv">plugins</span><span class="o">=</span>1/0                      <span class="c">#使用/不试用所有的插件</span>
+</span><span class='line'>/etc/yum/pluginconf.d/aliases.conf
+</span><span class='line'>  <span class="o">[</span>main<span class="o">]</span>
+</span><span class='line'>  <span class="nv">enabled</span><span class="o">=</span>1/0                      <span class="c">#使用/不试用aliases插件</span>
+</span><span class='line'>  <span class="c"># conffile - config. file to use</span>
+</span><span class='line'>  <span class="c"># &lt;default&gt; = /etc/yum/aliases.conf</span>
+</span><span class='line'>/etc/yum/aliases.conf
+</span><span class='line'>  FORCE --skip-broken --disableexcludes<span class="o">=</span>all
+</span><span class='line'>  up   upgrade
+</span><span class='line'>  in   install
+</span><span class='line'>  rm   remove
+</span><span class='line'>  .........
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>/etc/yum/aliases.conf中定义了yum很多命令的alias，比如 in => install, 这样我就可以用yum in package_name,少敲几个字，节省体力。alias到option的用处会更大些，比如上面的FORCE。乐意的话，我们也可以按照个人喜好自己定制这个aliases的配置文件。</p>
+
+<p>最近用过的一个比较有用的yum plugin是axelget，作用是从repo中下载package的时候支持多线程，加快下载速度。yum依赖于libcurl，默认应该是只能支持单线程的，如果网络条件一般的话，速度会比较慢。axelget 插件的用法:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> <span class="nb">echo</span> -e <span class="s2">&quot;[main]\nenabled=1\nonlyhttp=1\nenablesize=300000\ncleanOnException=1\maxconn=10&quot;</span> &gt; /etc/yum/pluginconf.d/axelget.conf
+</span><span class='line'>
+</span><span class='line'> curl -o   /usr/lib/yum-plugins/axelget.py  http://yum-axelget.googlecode.com/svn/trunk/axelget.py
+</span><span class='line'>
+</span><span class='line'> rpm -i http://pkgs.repoforge.org/axel/axel-2.4-1.el5.rf.x86_64.rpm
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>axelget.conf 文件中的maxconn意为同时下载的线程数量。在我们项目中，从build pipeline打包出来的rpm package是保存在企业数据中心的repo中，但是测试环境是亚马逊的美国EC2节点，处于不同的网络中。如果是自动化部署，对于一个70Mb左右的package来说，安装更新消耗的时间大概是11分钟左右，使用axelget插件后，消耗的时间不到2分钟，下载速度提升很明显。虽然还是有点慢，但是已经处于可接受范围了。如此，每次在测试环境部署新的package的时间就大大降低了。</p>
+
+<p>如果是想在某次的yum的transaction中禁止某个plugin的话，只需要加上 &ndash;disableplugin=plugin_name的option就好了，比如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum update --disableplugin<span class="o">=</span>aliases, refresh-pack*
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在开始下一篇关于yum的blog前，给大家介绍yum自动补齐的工具,懒人必备。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rpm -i http://pkgs.repoforge.org/bash-completion/bash-completion-20060301-1.el6.rf.noarch.rpm
+</span><span class='line'><span class="nb">source</span> /etc/bash_completion
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有了自动补齐后，就不用担心忘记命令或者费劲敲键盘了。</p>
+
+<p>关于配置和插件等，基本就是这样了，下次介绍yum基本的命令用法。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2013-07-25T00:00:00+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/linux/'>linux</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/linux/2013/07/25/learning-yum2-utils-and-plugins" data-via="boweniam" data-counturl="http://iambowen.github.com/linux/2013/07/25/learning-yum2-utils-and-plugins" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/linux/2013/07/09/learning-yum1-config-files-explained" title="Previous Post: Learning Yum(1): Config Files Explained">&laquo; Learning Yum(1): Config Files Explained</a>
+      
+      
+        <a class="basic-alignment right" href="/linux/2013/07/31/learning-yum3-basic-commands" title="Next Post: Learning Yum(3): Basic Commands">Learning Yum(3): Basic Commands &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

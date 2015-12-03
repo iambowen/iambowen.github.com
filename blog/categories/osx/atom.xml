@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Osx | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/osx/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Automately Install Dmg Package Under OSX]]></title>
+    <link href="http://iambowen.github.com/osx/2013/11/06/automately-install-dmg-package-under-osx"/>
+    <updated>2013-11-06T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/osx/2013/11/06/automately-install-dmg-package-under-osx</id>
+    <content type="html"><![CDATA[<p>The common way install a new app in osx is like:</p>
+
+<ol>
+<li>Install from AppStore;</li>
+<li>Download *.dmg file and open it then click install script;</li>
+</ol>
+
+
+<p>For the App that can only be installed from *.dmg file, there&rsquo;s a better way to automate the install process.
+The second way includes following steps:</p>
+
+<ol>
+<li>Download the package-*.dmg file;</li>
+<li>Mount *.dmg file to file system- e.g /Volumes/app_name</li>
+<li>Install app with the installer or *.pkg file</li>
+</ol>
+
+
+<p>Given we want to install <a href="www.vagrantup.com">vagrant</a>:
+For the  first step, say <code>curl -O download_link</code> for people don&rsquo;t have tools like <code>wget</code>. If you have <code>wget</code>, say installed through brew <code>brew install wget</code>, you can just use <code>wget</code>.</p>
+
+<p>For the second step, we can use <code>hdiutil</code> command to mount the dmg file to <code>/Volumes</code>.</p>
+
+<p>For the last step, the <code>installer</code> in osx perfectly solve the issue. Command like:</p>
+
+<pre><code class="bash">sudo installer -store -pkg /Volumes/Vagrant/Vagrant.pkg -target /
+</code></pre>
+
+<p>And it would use the administrator previlidge to install the package.</p>
+
+<p>For the whole install process, the only thing you need to do is type in the password. And <a href="https://raw.github.com/iambowen/vagrant_wrapper/master/install.sh">this</a> is an example for fulfilling the automation. Surely it can be improved more genericly, for I only use this for vagrant session.^_^</p>
+]]></content>
+  </entry>
+  
+</feed>

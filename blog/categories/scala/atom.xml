@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Scala | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/scala/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Learning Scala: Function]]></title>
+    <link href="http://iambowen.github.com/scala/2014/08/01/learning-scala-function"/>
+    <updated>2014-08-01T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/scala/2014/08/01/learning-scala-function</id>
+    <content type="html"><![CDATA[<p>函数在Scala中是一等公民，这意味着你可以在任何时候定义函数，而且它不需要依附于类，在Class/Object中定义的函数叫做方法。</p>
+
+<h3>语法</h3>
+
+<p>函数由函数名称，参数以及函数体组成，未声明函数返回类型的，默认返回Unit。</p>
+
+<pre><code class="java">scala&gt; def printName(name: String) = println("Hello, " + name)
+func: (name: String)Unit
+
+scala&gt; def double(num: Int):Int = num * 2
+double: (num: Int)Int
+
+
+scala&gt; def iter(num: Int) = { if(num == 0) 1 else 1 + iter(num -1) }
+&lt;console&gt;:7: error: recursive method iter needs result type
+       def iter(num: Int) = { if(num == 0) 1 else 1 + iter(num -1) }
+                                                      ^
+</code></pre>
+
+<p>对于递归函数，必须指定返回类型，否则编译无法通过。</p>
+
+<h3>默认参数和带名参数</h3>
+
+<p>可以给定函数的参数一个默认的值，调用函数时可以不用传入该参数。</p>
+
+<pre><code class="java">scala&gt; def printName(congrats:String, name: String = "default") = println(congrats + " " + name)
+printName: (name: String, congrats: String)Unit
+
+scala&gt; printName("hello")
+hello default
+</code></pre>
+
+<p>不过，如果函数有多个参数并且默认参数是第一个，只传入一个参数时，编译无法通过，应该是没有特别指明，直接被当成了第一个参数。解决的办法是通过带名参数。</p>
+
+<pre><code class="java">scala&gt; def printName(name: String = "default", congrats:String) = println(congrats + " " + name)
+printName: (name: String, congrats: String)Unit
+
+scala&gt; printName(congrats = "hello")
+hello default
+</code></pre>
+
+<p>由此我们可以看出，带名参数不需要和参数列表的顺序相同。</p>
+
+<h3>call by name / call by value</h3>
+
+<p>Scala中有两种参数替换模型，<code>call by name</code>和<code>call by value</code>，直译就是传名或者传值。对于下面的函数</p>
+
+<pre><code class="java">def f(x:Int, y:Int) = { x }
+</code></pre>
+
+<p>如果是传值的方式，那么 f(2, 2 * 2) 首先会被转换为f(2, 4),也就是说在函数体中未调用之前就已经计算好了。如果是传名的方式，那么2 * 2始终不会被计算，除非该参数被调用。Scala中支持两种传参方式，上面的例子中实际上是<code>call by name</code>。<code>call by value</code>是用下面的方式声明函数。</p>
+
+<pre><code class="java">def g(y: int) = { 2 * y}
+def f(x:Int, y:Int =&gt; Int) = { x }
+</code></pre>
+
+<p>只要传入于参数一致的签名的函数即可。</p>
+
+<h3>变长参数</h3>
+
+<p>和其他编程语言一样，Scala也可以接受变长参数。函数会将变长参数转换参数序列。</p>
+
+<pre><code class="java">scala&gt; def sum(args: Int*) = {
+        var result = 0
+        for (arg &lt;- args) result += arg
+        result
+      }
+sum: (args: Int*)Int
+
+scala&gt; sum(1 ,2, 3, 4, 5)
+res4: Int = 15
+</code></pre>
+
+<p>但是直接传入Seq会出错……，因为类型不匹配。</p>
+
+<pre><code class="java">scala&gt; val s = sum(1 to 5)
+
+
+scala&gt; sum( 1 to 5)
+&lt;console&gt;:9: error: type mismatch;
+ found   : scala.collection.immutable.Range.Inclusive
+ required: Int
+              sum( 1 to 5)
+                     ^
+</code></pre>
+
+<p>所以还是需要转换称参数序列。</p>
+
+<pre><code class="java">scala&gt; sum(1 to 5: _*)
+res1: Int = 15
+</code></pre>
+
+<h3>匿名函数</h3>
+
+<p>举个简单的栗子好了。</p>
+
+<pre><code class="java">scala&gt; List(1, 2, 3).map {(x:Int) =&gt; (x * 2)}
+res4: List[Int] = List(2, 4, 6)
+</code></pre>
+
+<h3>过程</h3>
+
+<p>过程是返回Unit的函数，利用的是函数的副作用。从语法上来说，和函数的区别就在于它没有等号。</p>
+
+<pre><code class="java">def process(job: String)  { run; println("running job" + job) }
+</code></pre>
+
+<p>当然也可以加上等号，显示的申明返回类型为Unit。</p>
+
+<pre><code class="java">def process(job: String):Unit =  { run; println("running job" + job) }
+</code></pre>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Learning Scala: Control Structure]]></title>
+    <link href="http://iambowen.github.com/scala/2014/04/01/learning-scala-control-structure"/>
+    <updated>2014-04-01T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/scala/2014/04/01/learning-scala-control-structure</id>
+    <content type="html"><![CDATA[<p>任何语言的控制结构应当都是相似的，语言处理现实世界的问题，理应和现实世界对应。Scala的控制结构以及关键字与Java没什么不同，有区别的地方在于Scala中表达式可以有返回值，比如条件表达式。</p>
+
+<h3>条件表达式(if/else)</h3>
+
+<p>Scala中典型的条件表达式如下:</p>
+
+<pre><code class="scala">scala&gt; val x = 1
+x: Int = 1
+scala&gt; if (x &gt; 0) 1 else -1
+res0: Int = 1
+
+scala&gt; val y = -1
+y: Int = -1
+scala&gt; if (y &gt; 0) 1
+res1: AnyVal = ()
+</code></pre>
+
+<p>需要注意的有如下几点:
+1. Scala中，表达式不需要分号表示结束;
+2. Scala中没有?:三元表达式;
+3. 条件表达式都有返回值;
+4. 返回值的超类是Any，if语句没有输出值时，返回值为Unit;
+5. 表达式过长或者，可以将其放在大括号中，如下:</p>
+
+<pre><code class="scala">if (n &gt; 0) {
+  n = n * n
+  n -= 1
+}
+</code></pre>
+
+<h3>循环(for/while)</h3>
+
+<p>Scala中的<em>for/while</em>循环和Java中没什么太大区别，但是Scala中没有类似Java中<em>for(initialize; condition; update variable)</em>的结构。</p>
+
+<p>for循环的例子:</p>
+
+<pre><code class="scala">for(i &lt;- 1 to 10)
+  println(i)
+
+for(c &lt;- "hello, world")  
+  println(c)
+</code></pre>
+
+<p><em>变量&lt;-表达式</em> 这样的语法被称作生成器， 变量i/c为集合元素类型，循环用其依次获得集合中的元素，并处理。</p>
+
+<p>while的例子:</p>
+
+<pre><code class="scala">var a = 10
+var b = 1
+while (a &gt; 0) {
+  b *= a
+  a -= 1
+}
+</code></pre>
+
+<p>Scala中没有<em>break</em>或者<em>continue</em>关键字，如果要中途退出循环，需要自己设置Boolean型变量或者使用Breaks对象的break方法。</p>
+
+<h3>for推导</h3>
+
+<p>for推导是包含卫语句(<em>guard clause</em>)的for表达式，比如:</p>
+
+<pre><code class="scala">for (i &lt;- 1 to 3; j &lt;- 1 to 3 if i != j) println((10 * i + j) + " ")
+</code></pre>
+
+<p>如果i 等于 j，表达式不会打印结果。</p>
+
+<h3>模式匹配</h3>
+
+<p>个人认为Scala最好用的特性之一，等理解透彻了专门写一篇，下面只是个简单的例子，可以认为是可以用来匹配类对象的<em>switch</em>。</p>
+
+<pre><code class="scala">val a = true
+
+a match {
+  case true =&gt; println("yes, PPG!")
+  case _ =&gt; println("failed!")
+}
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

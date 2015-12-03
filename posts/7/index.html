@@ -1,0 +1,839 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="Well, it&rsquo;s a fare long story.During the trainning, Aimee asked me a question about
+how the source command works under shell. Haven&rsquo;t done &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/posts/7/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/shell/2011/12/04/how-source-works-under-shell">How Source Works Under Shell</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-12-04T00:00:00+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/shell/2011/12/04/how-source-works-under-shell#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/shell/2011/12/04/how-source-works-under-shell">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><em>Well</em>, it&rsquo;s a fare long story.During the trainning, Aimee asked me a question about
+how the source command works under shell. Haven&rsquo;t done a deep search at that time
+though it does not seem like a tough question. Now, i figure out how this stuff work, but
+the trainning is over and Aimee is gone.</p>
+
+<p>It&rsquo;s really simple for the function of source. It helps the current shell reload the variables
+from script file so that they could be recongnized.In another word&ndash;read and execute
+commands from the filename argument in the current shell context. Let&rsquo;s just cut the
+crap and try some examples.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>touch test.sh
+</span><span class='line'>chmod +x test.sh
+</span><span class='line'>vi test.sh
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>And input the following content</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">A</span> <span class="o">=</span> <span class="s2">&quot;shit happens&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We just define an variable named A in the script file. ok,let&rsquo;s run this script with</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sh test.sh <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="nv">$A</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>which will show nothing even shit because it creates a new subshell and the invariables
+created in the subshell will not show in the parent shell. Then you use</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">source </span>test.sh
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$A</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>now you can see the shit by yourself.</p>
+
+<p>So? What&rsquo;s the difference between source and .?Well,basically, they are the same.
+Instead of using source, you can use . test.sh to get the same effect of using source
+even the file test.sh is not executable.It is said that use .test.sh means execute the
+hidden file, definetly not working on osx.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/python/2011/12/02/Introduction-of-virtualenv">Introduction of Virtualenv</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-12-02T00:00:00+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/python/2011/12/02/Introduction-of-virtualenv#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/python/2011/12/02/Introduction-of-virtualenv">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>什么是 <em>virtualenv</em>:
+virtualenv 是一款用来创建隔离的Python开发环境的工具，有点类似ruby下的rvm.通过virtualenv，可以为不同的python项目定制所需要的环境.</p>
+
+<p>OSX下安装的过程:
+本来想自己写，但是这位阿三哥写的太好了，就节省下体力……: &ldquo;猛击这里&rdquo;:<a href="http://blog.praveengollakota.com/47430655">http://blog.praveengollakota.com/47430655</a>
+OSX系统自带的python版本是2.6，而我们开发使用的版本是2.7，直接升级很容易，但是其中有些配置会稍微麻烦一些。
+主要的步骤:</p>
+
+<h1>安装 <em>Python 2.7</em></h1>
+
+<h1>_ 下载 <em>easy_install</em>,安装对应python2.7的 easy_install：</h1>
+
+<p>@sh setuptools-0.6c11-py2.7.egg@</p>
+
+<h1>_ 使用easy_install 安装 pip, pip是一个python下的包管理工具:</h1>
+
+<p>@easy_install pip@</p>
+
+<h1>_ 使用pip 去安装 <em>virtualenv</em> 以及 <em>virtualenvwrapper</em> :</h1>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pip install virtualenv
+</span><span class='line'>pip install virtualenvwrapper
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>_ 配置 <em>.bashrc/.bash_profile</em> 文件使得 <em>virtualenvwrapper</em> 的命令可以在bash下运行:</h1>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir ~/.virtualenv
+</span><span class='line'><span class="nb">export </span><span class="nv">WORKON_HOME</span><span class="o">=</span><span class="nv">$HOME</span>/.virtualenvs
+</span><span class='line'><span class="nb">source</span> /Library/Frameworks/Python.framework/Versions/2.7/bin/virtualenvwrapper.sh
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>之后 <code>source ~/.bash_profile</code> ，就可以在命令行中使用 <code>vritualenvwrapper</code> 中的命令了.</p>
+
+<p><em>如何使用virtualenv:</em></p>
+
+<h1>创建一个虚拟环境:</h1>
+
+<p><code>mkvirtualenv  test</code></p>
+
+<h1>_ 查看当前的虚拟环境的列表:</h1>
+
+<p><code>workon</code></p>
+
+<h1>_ 使用某一个虚拟环境:</h1>
+
+<p><code>workon test</code></p>
+
+<p>之后就回看到shell的提示符前面出现了环境的名称，这里就可以大胆的去做各种环境配置了，用pip去安装所有你需要的python包。
+想退出的话，可以直接 <code>command + d</code> 或者用 <code>deactivate</code> 命令即可.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification">Invalid Gemspec Because of the Date Format in Specification</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-11-29T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In the morning, i was writing a automation sql script for QA. And after move the source file from mac mini to my machine. It met such warning as i tried to run the file.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Invalid gemspec in <span class="o">[</span>/Users/twer/.rvm/gems/ree-1.8.7-2011.03@development/specifications/childprocess-0.2.1.gemspec<span class="o">]</span>: invalid date format in specification: <span class="s2">&quot;2011-08-11 00:00:00.000000000Z&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It&rsquo;s ok because it&rsquo;s just warning. But i am just a little bit agnoied by the message. So i decided to kill this warning message. After search in google, i found the <a href="http://stackoverflow.com/questions/5771758/invalid-gemspec-because-of-the-date-format-in-specification">answer</a>.</p>
+
+<p>And the steps should be:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>/Users/twer/.rvm/gems/ree-1.8.7-2011.03@develoment/specifications/childprocess-0.2.1.gemspec
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Find the spec that is causing the problem, search it in vi with string &ldquo;2011&rdquo; and i found that line.</li>
+<li>Change <code>s.date = %q{2011-08-11 00:00:00.000000000Z}</code> to <code>s.date = %q{2011-08-11}</code></li>
+</ul>
+
+
+<p>Cool, done, no more bothering information.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/mysql/2011/11/26/on-duplicate-key-update">Mysql--on Duplicate Key Update</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-11-26T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/mysql/2011/11/26/on-duplicate-key-update#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/mysql/2011/11/26/on-duplicate-key-update">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>On duplicate key update is to stop the duplication in unique index or primary
+key, and try to update the row with new value.And it only functions with mysql
+because it is not standard SQL grammar.</p>
+
+<p>Create database and choose it</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; create database <span class="nb">test</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">1</span> row affected <span class="o">(</span>0.00 sec<span class="o">)</span>
+</span><span class='line'>mysql&gt; use <span class="nb">test</span><span class="p">;</span>
+</span><span class='line'>Database changed
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Create a table with primary key</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; create table pet<span class="o">(</span>a CHAR<span class="o">(</span>1<span class="o">)</span>, b CHAR<span class="o">(</span>1<span class="o">)</span>, primary key<span class="o">(</span>a<span class="o">))</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">0</span> rows affected <span class="o">(</span>0.06 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And initialize a row</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; insert into pet values<span class="o">(</span><span class="s1">&#39;1&#39;</span>, <span class="s1">&#39;2&#39;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">1</span> row affected <span class="o">(</span>0.00 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>insert new value with the same primary key</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; insert into pet values<span class="o">(</span><span class="s1">&#39;1&#39;</span>, <span class="s1">&#39;3&#39;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'>ERROR <span class="m">1062</span> <span class="o">(</span>23000<span class="o">)</span>: Duplicate entry <span class="s1">&#39;1&#39;</span> <span class="k">for</span> key <span class="s1">&#39;PRIMARY&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>drop primary key property</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; alter table pet drop PRIMARY KEY<span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">1</span> row affected <span class="o">(</span>0.06 sec<span class="o">)</span>
+</span><span class='line'>Records: <span class="m">1</span>  Duplicates: <span class="m">0</span>  Warnings: 0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>insert again, cool, done</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; insert into pet values<span class="o">(</span><span class="s1">&#39;1&#39;</span>, <span class="s1">&#39;3&#39;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">1</span> row affected <span class="o">(</span>0.00 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>what we have now? values with duplicated key</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; <span class="k">select</span> * from pet<span class="p">;</span>
+</span><span class='line'>+---+------+
+</span><span class='line'><span class="p">|</span> a <span class="p">|</span> b    <span class="p">|</span>
+</span><span class='line'>+---+------+
+</span><span class='line'><span class="p">|</span> <span class="m">1</span> <span class="p">|</span> <span class="m">2</span>    <span class="p">|</span>
+</span><span class='line'><span class="p">|</span> <span class="m">1</span> <span class="p">|</span> <span class="m">3</span>    <span class="p">|</span>
+</span><span class='line'>+---+------+
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>change the primary key back</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; alter table pet add primary key<span class="o">(</span>b<span class="o">)</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">2</span> rows affected <span class="o">(</span>0.11 sec<span class="o">)</span>
+</span><span class='line'>Records: <span class="m">2</span>  Duplicates: <span class="m">0</span>  Warnings: 0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>insert the value with  on duplicate key update</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; insert into pet values<span class="o">(</span><span class="s1">&#39;4&#39;</span>, <span class="s1">&#39;3&#39;</span><span class="o">)</span> on duplicate key update <span class="nv">a</span> <span class="o">=</span> values<span class="o">(</span>a<span class="o">)</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">2</span> rows affected <span class="o">(</span>0.00 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>the result:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; <span class="k">select</span> * from pet<span class="p">;</span>
+</span><span class='line'>+---+---+
+</span><span class='line'><span class="p">|</span> a <span class="p">|</span> b <span class="p">|</span>
+</span><span class='line'>+---+---+
+</span><span class='line'><span class="p">|</span> <span class="m">1</span> <span class="p">|</span> <span class="m">2</span> <span class="p">|</span>
+</span><span class='line'><span class="p">|</span> <span class="m">4</span> <span class="p">|</span> <span class="m">3</span> <span class="p">|</span>
+</span><span class='line'>+---+---+
+</span><span class='line'><span class="m">2</span> rows in <span class="nb">set</span> <span class="o">(</span>0.00 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/tools/2011/11/09/set-up-github-pages">Set Up Github Page</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-11-09T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/tools/2011/11/09/set-up-github-pages#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/tools/2011/11/09/set-up-github-pages">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>创建一个<a href="www.github.com">github</a>账户</h1>
+
+<h1>设置好用户名，email和github的token</h1>
+
+<h1>创建一个新的repository，命名规则为username.github.com, 比如我创建的就是iambowen.github.com</h1>
+
+<h1>设置好remote的repos后在本地创建同样的repos，然后添加README和index.html文件,本地提交</h1>
+
+<h1>@git push -u origin master@,大约10分钟之后访问username.github.com,就可以看到新添加的index页面，比如<a href="http://iambowen.github.com">我的</a></h1>
+
+<h1>安装<a href="https://github.com/mojombo/jekyll/wiki/install">jekyll模版</a>, @gem install jekyll@</h1>
+
+<p>jekyll 是一个文本转换引擎(text transformation engine),
+它可以将Texttile/Markdown的标记语言转换为html的layout.通常的site基本结构如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>|-- _config.yml
+</span><span class='line'>|-- _includes
+</span><span class='line'>|-- _layouts
+</span><span class='line'>|   |-- default.html
+</span><span class='line'>|   `-- post.html
+</span><span class='line'>|-- _posts
+</span><span class='line'>|   |-- 2007-10-29-why-every-programmer-should-play-nethack.textile
+</span><span class='line'>|   `-- 2009-04-26-barcamp-boston-4-roundup.textile
+</span><span class='line'>|-- _site `-- index.html</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>_config.yml</code></p>
+
+<p>保存配置的文件.</p>
+
+<p><em>_includes</em>
+这里保存公用的patilal文件，在 <em>layouts 和 </em>posts 的文件中可以复用这些文件。</p>
+
+<p><em>_layout</em> 这里保存文章的模版文件</p>
+
+<p><em>_posts</em> 这里保存blog的文章,文件的格式通常使用YEAR-MONTH-DATE-title.MARKUP,然后github会自动的将这些文件转换.
+<em>_site</em>
+这里的文件可以由命令 @jekyll &ndash;pygments@生成之后在命令行启动 jekyll的服务器,@jekyll &ndash;server@.通过访问<a href="http://127.0.0.1/4000%E5%8E%BB%E9%A2%84%E8%A7%88post._site%E6%96%87%E4%BB%B6%E4%B8%8D%E9%9C%80%E8%A6%81push%E5%88%B0remote">http://127.0.0.1/4000%E5%8E%BB%E9%A2%84%E8%A7%88post._site%E6%96%87%E4%BB%B6%E4%B8%8D%E9%9C%80%E8%A6%81push%E5%88%B0remote</a> repos上,把它加到.gitignore文件中就可以了.</p>
+
+<p>写完一篇blog，预览后，就可以本地提交，push到远程主机上了。过几分钟，应该就能看到博文^_^了.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/git/2011/11/09/dont-panic-when-you-used-git-reset-hard">Don't Panic When You Use Git Reset --hard</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-11-09T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/git/2011/11/09/dont-panic-when-you-used-git-reset-hard#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/git/2011/11/09/dont-panic-when-you-used-git-reset-hard">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>It&rsquo;s not a problem when you use to <code>git reset --hard</code> to throw away commit. But often times, you need to first check whether there&rsquo;s still useful stuff to keeOf course, &ndash;soft is the best choice, however, what if you use <code>git reset --hard</code> without realizing that the commit you just throw is useful. And the following should be one solution to this accident.</p>
+
+<p>Given i reset the commit:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git reset --hard HEAD^@
+</span><span class='line'>
+</span><span class='line'>HEAD is now at 43856d7 modify <span class="nb">test </span>to raise conflict
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then i use ref the log:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git reflog -4@
+</span><span class='line'>
+</span><span class='line'>43856d7 HEAD@<span class="o">{</span>0<span class="o">}</span>: HEAD^: updating HEAD
+</span><span class='line'>3378cf7 HEAD@<span class="o">{</span>1<span class="o">}</span>: commit: that part is easy.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And i see 3378cf7 is the commit i just reset, i use git show to see commit
+detail</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git show 3378cf7@
+</span><span class='line'>
+</span><span class='line'>commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
+</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
+</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
+</span><span class='line'>    that part is easy.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And i check out the commit:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git checkout 3378cf7f1c8a197492796b3cdb2c79f0183c9efe@
+</span><span class='line'>
+</span><span class='line'>Note: checking out <span class="s1">&#39;3378cf7f1c8a197492796b3cdb2c79f0183c9efe&#39;</span>.
+</span><span class='line'>You are in <span class="s1">&#39;detached HEAD&#39;</span> state. You can look around, make experimental
+</span><span class='line'>changes and commit them, and you can discard any commits you make in this
+</span><span class='line'>state without impacting any branches by performing another checkout.
+</span><span class='line'>
+</span><span class='line'>If you want to create a new branch to retain commits you create, you may
+</span><span class='line'><span class="k">do</span> so <span class="o">(</span>now or later<span class="o">)</span> by using -b with the checkout <span class="nb">command </span>again. Example:
+</span><span class='line'>
+</span><span class='line'>  git checkout -b new_branch_name
+</span><span class='line'>
+</span><span class='line'>HEAD is now at 3378cf7... that part is easy.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then I follow the notification to create a new branch and check log:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>git checkout -b recover
+</span><span class='line'><span class="nv">$ </span>git log
+</span><span class='line'>
+</span><span class='line'>commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
+</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
+</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
+</span><span class='line'>
+</span><span class='line'>    that part is easy.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And i find the commit is in this branch, then i go back to master branch merge recover branch:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$git</span> co master
+</span><span class='line'><span class="nv">$git</span> merge recover
+</span><span class='line'>
+</span><span class='line'>Updating 43856d7..3378cf7
+</span><span class='line'>Fast-forward
+</span><span class='line'> README   <span class="p">|</span>    <span class="m">1</span> -
+</span><span class='line'> whatever <span class="p">|</span>    <span class="m">1</span> +
+</span><span class='line'> <span class="m">2</span> files changed, <span class="m">1</span> insertions<span class="o">(</span>+<span class="o">)</span>, <span class="m">1</span> deletions<span class="o">(</span>-<span class="o">)</span>
+</span><span class='line'> create mode <span class="m">100644</span> whatever
+</span><span class='line'>
+</span><span class='line'><span class="nv">$ </span>git log -1
+</span><span class='line'>
+</span><span class='line'>bc. commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
+</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
+</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
+</span><span class='line'>    that part is easy.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And we can see the reseted commit is coming back, that part is easy.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/posts/6">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

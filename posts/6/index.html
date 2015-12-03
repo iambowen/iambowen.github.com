@@ -1,0 +1,1634 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="最近和一个客户聊天，说到一个很有意思的事情。他认为，在产品环境使用*inx的情况下，公司给开发人员普遍
+配发Mac是不太合适的, 当然这个是见仁见智了。不过,如果对产品环境的系统熟悉的话，在遇到一些问题的时候，可以节省些时间。 想把Mac Book/Air操作系统更换成Linux代价还是略高， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/posts/6/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/10/21/set-locale-in-debian-wheezy">Set Locale in Debian Wheezy</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-10-21T00:00:00+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/10/21/set-locale-in-debian-wheezy#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/10/21/set-locale-in-debian-wheezy">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近和一个客户聊天，说到一个很有意思的事情。他认为，在产品环境使用*inx的情况下，公司给开发人员普遍
+配发Mac是不太合适的, 当然这个是见仁见智了。不过,如果对产品环境的系统熟悉的话，在遇到一些问题的时候，可以节省些时间。</p>
+
+<p>想把Mac Book/Air操作系统更换成Linux代价还是略高，所以最好的办法是用虚拟机,必须就是Vagrant了。今天在使用Debian7 Wheezy的时候，就遇到了关于Locale的简单问题。</p>
+
+<p><a href="http://gerardnico.com/wiki/application/locale">locale</a>是关于系统语言和区域选择，目的是为了表示正确的时间和数字格式。悲剧的是，下载的debian 7的virtual box默认竟然是用法语，提示信息各种看不懂。只好自己查找资料修改了。</p>
+
+<p>最初使用的方法是修改LANG/LC_ALL的环境变量:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  <span class="nb">echo</span> -e <span class="s2">&quot;export LANG=en_us.UTF-8 \nexport LC_ALL=en_us.UTF-8&quot;</span> &gt;&gt; ~/.bash_profile<span class="p">;</span>
+</span><span class='line'>  <span class="nb">source</span> ~/.bash_profile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>奇怪的是，并非是所有的输出消息都变成了英文，仍然有法语出现。于是，尝试从根上修改:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  sudo vi /etc/default/locale
+</span><span class='line'>  <span class="nv">LANG</span><span class="o">=</span>en_US.UTF-8
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>重启系统，按照常理应该已经OK，怎知还是出现警告，说设置locale失败。技穷只能求助文档，先查看了下当前
+locale中已有的语言环境:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  vagrant@vagrant-debian-wheezy:~<span class="nv">$ </span>locale -a
+</span><span class='line'>  C
+</span><span class='line'>  C.UTF-8
+</span><span class='line'>  POSIX
+</span><span class='line'>  fr_FR.utf8
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我去，只有这么几个选项，只能重头添加en_US.UTF-8了。所幸并不是很困难:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  sudo /usr/sbin/dpkg-reconfigure  locales
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在弹出的选项框中，选中en_US.UTF-8确定即可。这个时候/etc/default/locale文件也被修改成支持en_US.UTF-8，运行下 locale -a :</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant@vagrant-debian-wheezy:~<span class="nv">$ </span>locale -a
+</span><span class='line'>C
+</span><span class='line'>C.UTF-8
+</span><span class='line'>POSIX
+</span><span class='line'>en_US.utf8
+</span><span class='line'>fr_FR.utf8
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Nice.
+<a href="http://people.debian.org/~schultmc/locales.html">reference</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/07/31/learning-yum3-basic-commands">Learning Yum(3): Basic Commands</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-07-31T00:00:00+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/07/31/learning-yum3-basic-commands#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/07/31/learning-yum3-basic-commands">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>对于包管理工具来说，安装/删除/查看包信息/升级软件包/搜索查找/清除metadata, 都是必须提供的功能。yum的基本命令操作同样也可以概括为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>install/(remove|erase|downgrade)/(list|info)/(update|upgrade)/search/clean</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>安装package:</strong><br/>
+yum安装package有两种方式，一种是安装单个/多个的package，一种是安装软件组。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum install package_names
+</span><span class='line'>yum install  -y<span class="o">(</span>--ausumeyes<span class="o">)</span> package_names
+</span><span class='line'>yum install --enablerepo<span class="o">=</span>drivers nvidia-driver
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>install的时候可以指定或者不指定具体的版本号，正常安装的时候会提示是否确认安装。为了偷懒或者在自动化部署的时候，想在跳过提示，可以加上个<code>-y</code>的参数，就可以了。有些repo可能默认被disable了，只想在单次的yum install的时候enable，可以加上 <code>--enablerepo=&lt;repo name&gt;</code>.</p>
+
+<p><strong>组安装:</strong><br/>
+想知道当前repo都提供了哪些package group，可以用<code>yum -v grouplist</code>，可以知道组名及组id。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum -v grouplist kde<span class="se">\*</span>
+</span><span class='line'>Config <span class="nb">time</span>: 0.009
+</span><span class='line'>Yum Version: 3.2.29
+</span><span class='line'>Setting up Group Process
+</span><span class='line'>rpmdb <span class="nb">time</span>: 0.001
+</span><span class='line'>group <span class="nb">time</span>: 0.159
+</span><span class='line'>Available Groups:
+</span><span class='line'>   KDE Desktop <span class="o">(</span>kde-desktop<span class="o">)</span>   <span class="c"># KDE Desktop 组的id 就是(kde-desktop)</span>
+</span><span class='line'>Done
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>组安装的有几种不同形式，但是结果都是相同的，如下的几个命令都会安装KDE Desktop的groupyum groupinstall &ldquo;KDE Desktop&rdquo;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum groupinstall kde-desktop
+</span><span class='line'>yum install @kde-desktop
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>删除package:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum remove package_name
+</span><span class='line'>yum remove glibc*
+</span><span class='line'>yum erase package_name/glob expression
+</span><span class='line'>yum groupremove  <span class="c">#删除软件组</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>开始我以为remove和erase是有区别的，但是后来在fedora社区论坛上发现其实它们没什么区别，很汗啊，上次分享的时候我还信誓旦旦的说了来着，都是被apt搞混了。</p>
+
+<p><strong>查看package信息:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum info package_name   等同于rpm -q --info package_name
+</span><span class='line'>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum info vim-common
+</span><span class='line'>Installed Packages
+</span><span class='line'>Name        : vim-common
+</span><span class='line'>Arch        : x86_64
+</span><span class='line'>Epoch       : 2
+</span><span class='line'>Version     : 7.2.411
+</span><span class='line'>Release     : 1.8.el6
+</span><span class='line'>Size        : <span class="m">17</span> M
+</span><span class='line'>Repo        : installed
+</span><span class='line'>From repo   : base
+</span><span class='line'>Summary     : The common files needed by any version of the VIM editor
+</span><span class='line'>URL         : http://www.vim.org/
+</span><span class='line'>License     : Vim and GPLv2+ and BSD and LGPLv2+ and Open Publication
+</span><span class='line'>Description : VIM <span class="o">(</span>VIsual editor iMproved<span class="o">)</span> is an updated and improved version of the
+</span><span class='line'>            : vi editor.  Vi was the first real screen-based editor <span class="k">for</span> UNIX, and is........
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到package相关的所有信息，</p>
+
+<p><strong>罗列packages信息:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum list <span class="o">[</span>available<span class="p">|</span>installed<span class="p">|</span>extras<span class="p">|</span>updates<span class="p">|</span>obsoletes<span class="p">|</span>all<span class="p">|</span>recent<span class="o">]</span> <span class="o">[</span>pkgspec<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum list available 列出当前enable的repo中所有可用package
+</span><span class='line'>yum list installed 列出当前系统中已经安装的package
+</span><span class='line'>yum list extras 列出已安装的package中不在enable的repo中的package
+</span><span class='line'>yum list updates  列出当前enable的repo中可以提供更新的package
+</span><span class='line'>yum list obsoletes 列出enable的repo中或者已安装的package中被淘汰的package
+</span><span class='line'>yum list all 列出所有enable的repo中的package
+</span><span class='line'>yum list recent 列出所有enable的repo中最近一周添加的package
+</span><span class='line'>yum list installed <span class="s2">&quot;krb?-*&quot;</span> 以上所有的list命令都支持通配符，罗列相关的package信息
+</span><span class='line'>yum list package spec  为特定的package列出相关信息，比如列出glibc的信息
+</span><span class='line'><span class="o">[</span>vagrant@localhost yum.repos.d<span class="o">]</span><span class="nv">$ </span>yum list glibc
+</span><span class='line'>Installed Packages
+</span><span class='line'>glibc.x86_64                                                       2.12-1.107.el6                                                            @anaconda-CentOS-201303020151.x86_64/6.4
+</span><span class='line'>Available Packages
+</span><span class='line'>glibc.i686                                                         2.12-1.107.el6_4.2                                                        updates
+</span><span class='line'>glibc.x86_64                                                       2.12-1.107.el6_4.2                                                        updates
+</span><span class='line'>
+</span><span class='line'>yum list  <span class="se">\*</span>.i686  <span class="c">#glob expression</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>罗列组信息:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum grouplist
+</span><span class='line'>yum -v grouplist  <span class="s2">&quot;KDE*&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>查看repo信息:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum repolist
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>更新package:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum check-update  <span class="c">#检查有更新的软件，返回的值分别为可以更新的package所在repo已经最新的版本号</span>
+</span><span class='line'>yum check-update glibc*   <span class="c">#检查单一的package，支持通配符</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost yum.repos.d<span class="o">]</span><span class="nv">$ </span>yum check-update
+</span><span class='line'>glibc.x86_64                                                                            2.12-1.107.el6_4.2                                                                    updates
+</span><span class='line'>
+</span><span class='line'>yum update   <span class="c">#升级所有已安装package有更新的package</span>
+</span><span class='line'>yum update glibc <span class="c">#升级某一个package</span>
+</span><span class='line'>yum update glibc*  <span class="c">#升级某一票package</span>
+</span><span class='line'>
+</span><span class='line'>yum upgrade  <span class="c">#和update类似，但是会考虑淘汰的package</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>搜索软件包:</strong><br/>
+<code>yum search</code> yum 提供了软件包搜索的功能，可以通过关键字(package描述|package名)搜索到你想要的软件包。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant@localhost yum.repos.d<span class="o">]</span><span class="nv">$ </span>yum search <span class="nv">vim</span>
+</span><span class='line'><span class="o">===================================================================================</span> Matched: <span class="nv">vim</span> <span class="o">====================================================================================</span>
+</span><span class='line'>vim-X11.x86_64 : The VIM version of the vi editor <span class="k">for</span> the X Window System
+</span><span class='line'>vim-common.x86_64 : The common files needed by any version of the VIM editor
+</span><span class='line'>vim-enhanced.x86_64 : A version of the VIM editor which includes recent enhancements
+</span><span class='line'>vim-minimal.x86_64 : A minimal version of the VIM editor
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost yum.repos.d<span class="o">]</span><span class="nv">$ </span>yum search <span class="s2">&quot;vi editor&quot;</span> <span class="c">#只需要描述软件提供的功能，便可以查找出提供该功能的软件包</span>
+</span><span class='line'><span class="o">==============================================================================</span> N/S Matched: vi <span class="nv">editor</span> <span class="o">===============================================================================</span>
+</span><span class='line'>vim-X11.x86_64 : The VIM version of the vi editor <span class="k">for</span> the X Window System
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>清理本地cached metadata 和package:</strong><br/>
+减少占用的磁盘空间，或者处理metadata出错的情况:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum clean  <span class="c">#默认清理cached package和metadata，cache的目录是/var/cache/yum/</span>
+</span><span class='line'>yum clean packages <span class="c">#只清理cached package</span>
+</span><span class='line'>yum clean metadata <span class="c">#只清理metadata</span>
+</span><span class='line'>yum clean dbcache   <span class="c">#清理yum的sqllite数据库文件</span>
+</span><span class='line'>yum clean all     <span class="c">#清理</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>常用的yum 命令大概就有这么些，我们可以发现:<br/>
+1. yum基本的命令使用模式比较接近, 而且都是正常人的使用逻辑;<br/>
+2. yum的命令一般都会支持通配符的操作，用法比较统一；<br/>
+下一次我们将介绍一些平常不太用yum但是还有点意思的命令。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/07/25/learning-yum2-utils-and-plugins">Learning Yum(2): Utils and Plugins</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-07-25T00:00:00+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/07/25/learning-yum2-utils-and-plugins#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/07/25/learning-yum2-utils-and-plugins">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Yum 提供了一些列的utils以及plugins来增强自身的功能，比如yum-config-manager，fastestmirror等。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum info yum-utils
+</span><span class='line'>.......
+</span><span class='line'>Description:
+</span><span class='line'>yum-utils is a collection of utilities and examples <span class="k">for</span> the yum package manager. It includes utilities by different authors that make yum easier and more powerful to use. These tools include:
+</span><span class='line'>: debuginfo-install, find-repos-of-install, repodiff,
+</span><span class='line'>: needs-restarting, package-cleanup, repoclosure,
+</span><span class='line'>: repo-graph, repomanage, repoquery, repo-rss, reposync,
+</span><span class='line'>: repotrack, show-installed, show-changed-rco, verifytree,
+</span><span class='line'>: yum-builddep, yum-complete-transaction, yumdownloader,
+</span><span class='line'>: yum-config-manager, yum-debug-dump,
+</span><span class='line'>: yum-debug-restore and yum-groups-manager.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>它们各自的作用可以很容易从自己的命名上看的出来, 我们挑几看上去有意思的命令研究下， 比如yum-config-manager，yumdownloader，find-repos-of-install等。</p>
+
+<p>yum-config-manager: yum配置管理工具
+显示base这个repo显示的所有的配置项以及其对应的值:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum-config-manager base
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum-config-manager <span class="nv">base</span>
+</span><span class='line'><span class="o">========</span> repo: base
+</span><span class='line'><span class="o">[</span>base<span class="o">]</span>
+</span><span class='line'><span class="nv">base_persistdir</span> <span class="o">=</span> /var/lib/yum/repos/x86_64/6
+</span><span class='line'><span class="nv">baseurl</span> <span class="o">=</span> http://mirrors.163.com/centos/6/os/x86_64/
+</span><span class='line'><span class="nv">cache</span> <span class="o">=</span> 0
+</span><span class='line'><span class="nv">cachedir</span> <span class="o">=</span> /var/tmp/yum-vagrant-isJUZ8/x86_64/6/base
+</span><span class='line'><span class="nv">enabled</span> <span class="o">=</span> True
+</span><span class='line'><span class="nv">name</span> <span class="o">=</span> CentOS-6 - Base
+</span><span class='line'><span class="nv">retries</span> <span class="o">=</span> 10
+</span><span class='line'><span class="nv">timeout</span> <span class="o">=</span> 30.0
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>修改base这个repo的enabled选项为false同时保存:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo yum-config-manager base --setopt<span class="o">=</span>“base.enabled<span class="o">=</span>0” --save
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum-config-manager <span class="nv">base</span>
+</span><span class='line'><span class="o">========</span> repo: base
+</span><span class='line'><span class="o">[</span>base<span class="o">]</span>
+</span><span class='line'><span class="nv">enabled</span> <span class="o">=</span> False
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>yumdownloader: 从yum的repo下载rpm package</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yumdownloader  --destdir /tmp/  ConsoleKit-devel-0.4.1
+</span><span class='line'>ConsoleKit-devel-0.4.1-3.el6.i686.rpm      <span class="p">|</span>  <span class="m">15</span> kB     00:00
+</span><span class='line'>ConsoleKit-devel-0.4.1-3.el6.x86_64.rpm    <span class="p">|</span>  <span class="m">15</span> kB     00:00
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>find-repos-of-install: 找到已安装package的repo源</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>find-repos-of-install vim-common
+</span><span class='line'>2:vim-common-7.2.411-1.8.el6.x86_64 from repo base
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>试用了一些个utils命令，觉得没有那些是特别有用的，只是能够稍微提高下效率，比如yum-config-manager,可以直接通过这个命令修改配置。</p>
+
+<p>当你使用yum命令的时候，会提示你加载的<a href="http://yum.baseurl.org/wiki/YumUtils">plugins</a>。相比之下，yum的plugins就显得有用多了。yum有很多plugins，aliases， axelget等都是我觉得比较有用的。配置yum plugins的入口有三个地方，我们以yum-aliases这个plugin作为示例:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo yum install yum-aliases <span class="c">#安装插件</span>
+</span><span class='line'>/etc/yum.conf
+</span><span class='line'>  <span class="nv">plugins</span><span class="o">=</span>1/0                      <span class="c">#使用/不试用所有的插件</span>
+</span><span class='line'>/etc/yum/pluginconf.d/aliases.conf
+</span><span class='line'>  <span class="o">[</span>main<span class="o">]</span>
+</span><span class='line'>  <span class="nv">enabled</span><span class="o">=</span>1/0                      <span class="c">#使用/不试用aliases插件</span>
+</span><span class='line'>  <span class="c"># conffile - config. file to use</span>
+</span><span class='line'>  <span class="c"># &lt;default&gt; = /etc/yum/aliases.conf</span>
+</span><span class='line'>/etc/yum/aliases.conf
+</span><span class='line'>  FORCE --skip-broken --disableexcludes<span class="o">=</span>all
+</span><span class='line'>  up   upgrade
+</span><span class='line'>  in   install
+</span><span class='line'>  rm   remove
+</span><span class='line'>  .........
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>/etc/yum/aliases.conf中定义了yum很多命令的alias，比如 in => install, 这样我就可以用yum in package_name,少敲几个字，节省体力。alias到option的用处会更大些，比如上面的FORCE。乐意的话，我们也可以按照个人喜好自己定制这个aliases的配置文件。</p>
+
+<p>最近用过的一个比较有用的yum plugin是axelget，作用是从repo中下载package的时候支持多线程，加快下载速度。yum依赖于libcurl，默认应该是只能支持单线程的，如果网络条件一般的话，速度会比较慢。axelget 插件的用法:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> <span class="nb">echo</span> -e <span class="s2">&quot;[main]\nenabled=1\nonlyhttp=1\nenablesize=300000\ncleanOnException=1\maxconn=10&quot;</span> &gt; /etc/yum/pluginconf.d/axelget.conf
+</span><span class='line'>
+</span><span class='line'> curl -o   /usr/lib/yum-plugins/axelget.py  http://yum-axelget.googlecode.com/svn/trunk/axelget.py
+</span><span class='line'>
+</span><span class='line'> rpm -i http://pkgs.repoforge.org/axel/axel-2.4-1.el5.rf.x86_64.rpm
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>axelget.conf 文件中的maxconn意为同时下载的线程数量。在我们项目中，从build pipeline打包出来的rpm package是保存在企业数据中心的repo中，但是测试环境是亚马逊的美国EC2节点，处于不同的网络中。如果是自动化部署，对于一个70Mb左右的package来说，安装更新消耗的时间大概是11分钟左右，使用axelget插件后，消耗的时间不到2分钟，下载速度提升很明显。虽然还是有点慢，但是已经处于可接受范围了。如此，每次在测试环境部署新的package的时间就大大降低了。</p>
+
+<p>如果是想在某次的yum的transaction中禁止某个plugin的话，只需要加上 &ndash;disableplugin=plugin_name的option就好了，比如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum update --disableplugin<span class="o">=</span>aliases, refresh-pack*
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在开始下一篇关于yum的blog前，给大家介绍yum自动补齐的工具,懒人必备。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rpm -i http://pkgs.repoforge.org/bash-completion/bash-completion-20060301-1.el6.rf.noarch.rpm
+</span><span class='line'><span class="nb">source</span> /etc/bash_completion
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有了自动补齐后，就不用担心忘记命令或者费劲敲键盘了。</p>
+
+<p>关于配置和插件等，基本就是这样了，下次介绍yum基本的命令用法。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/07/09/learning-yum1-config-files-explained">Learning Yum(1): Config Files Explained</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-07-09T00:00:00+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/07/09/learning-yum1-config-files-explained#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/07/09/learning-yum1-config-files-explained">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified">Yum</a>是RedHat系列中(如Centos, Fedora)等软件包管理工具，全称为Yellow Dog Updater, Modified, 在RPM的基础上，它可以自动解析安装软件的依赖。最早接触Redhat的时候时的版本是Redhat9, 实在是不堪忍受各种坑爹的依赖，所以后来接触Debian/Ubuntu之后才有大喜过望的感觉。最近想多熟悉几个系统，Centos/Arch Linux都在之列(没有Fedora的原因它发布比较快，不是特别稳定)，在都使用相同内核的前提，这些发行版本的最大的不同也许就是包/软件管理器了，这就是为什么我要先开始熟悉yum了…….</p>
+
+<p>从<a href="http://www.vagrantbox.es/">这里</a>下载Centos的virtual box镜像,添加到<a href="http://vagrantup.com/">Vagrant</a>中,你就可以拥有一个Centos的环境了，然后深度接触yum。</p>
+
+<p>开始之前，得先知道 yum 相关的配置文件都在什么地方，</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>man yum.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在帮助文件的底部我们就可以看到几乎所有的yum相关的配置文件:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>FILES
+</span><span class='line'>   /etc/yum.conf
+</span><span class='line'>   /etc/yum.repos.d/
+</span><span class='line'>   /etc/yum/pluginconf.d/
+</span><span class='line'>   /etc/yum/protected.d
+</span><span class='line'>   /etc/yum/vars
+</span><span class='line'>   /etc/yum/version-groups.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>yum 主配置文件:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>/etc/yum.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如下为yum.conf的示例文件:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>main<span class="o">]</span>
+</span><span class='line'><span class="nv">cachedir</span><span class="o">=</span>/var/cache/yum/<span class="nv">$basearch</span>/<span class="nv">$releasever</span>
+</span><span class='line'><span class="nv">keepcache</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">debuglevel</span><span class="o">=</span>2
+</span><span class='line'><span class="nv">logfile</span><span class="o">=</span>/var/log/yum.log
+</span><span class='line'><span class="nv">exactarch</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">obsoletes</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">gpgcheck</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">plugins</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">installonly_limit</span><span class="o">=</span>5
+</span><span class='line'><span class="nv">bugtracker_url</span><span class="o">=</span>http://bugs.centos.org/set_project.php?project_id<span class="o">=</span>16<span class="p">&amp;</span><span class="nv">ref</span><span class="o">=</span>http://bugs.centos.org/bug_report_page.php?category<span class="o">=</span>yum
+</span><span class='line'><span class="nv">distroverpkg</span><span class="o">=</span>centos-release
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到配置文件中有大量的选项，比如选择是否在本地保存cache，cache目录在那里，log文件的位置，是否enable yum的plugin等等，详细的配置项的解释可以查看man yum.conf.
+yum repos 配置文件:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>tree /etc/yum.repos.d/
+</span><span class='line'>/etc/yum.repos.d/
+</span><span class='line'><span class="p">|</span>-- CentOS-Base.repo
+</span><span class='line'><span class="p">|</span>-- CentOS-Debuginfo.repo
+</span><span class='line'><span class="p">|</span>-- CentOS-Media.repo
+</span><span class='line'><span class="sb">`</span>-- CentOS-Vault.repo
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>配置文件中有两个section，一个是[main]，包含全局的yum配置, 一个是[repository]，包含repository的配置，定义软件仓库。 通常在主配置文件中定义main，repository定义通常放置在/etc/yum.repos.d/*.repo 文件中，扩展性非常好，如果你想添加新的软件源或者镜像，在/etc/yum.repos.d/目录下新创建一个.repo文件就好了。
+yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件的情况下，寻找一个合适的软件源是很重要的。 从<a href="http://mirror-status.centos.org/">列表</a>中找到中国的镜像，还是很多的，教育网公网服务器一半一半的样子,最奇怪的是台湾的镜像，竟然显示是台湾省，呵呵。我选择的是<a href="http://mirrors.163.com/">163的镜像</a>，步骤如下:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo cp CentOS-Base.repo Centos-163.repo
+</span><span class='line'>sudo sed -i <span class="s1">&#39;s/^mirrorlist/\#mirrorlist/g&#39;</span> Centos-163.repo
+</span><span class='line'>sudo sed -i <span class="s1">&#39;s/^\#baseurl/baseurl/g&#39;</span> Centos-163.repo
+</span><span class='line'>sudo sed -i <span class="s1">&#39;s/mirror.centos.org/mirrors.163.com/g&#39;</span> Centos-163.repo
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>之后运行yum update metadata，就可以更新metadata/index文件了。
+.repo文件中配置细节目录区别:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>base<span class="o">]</span>
+</span><span class='line'><span class="nv">name</span><span class="o">=</span>CentOS-<span class="nv">$releasever</span> - Base
+</span><span class='line'><span class="nv">mirrorlist</span><span class="o">=</span>http://mirrorlist.centos.org/?release<span class="o">=</span><span class="nv">$releasever</span><span class="p">&amp;</span><span class="nv">arch</span><span class="o">=</span><span class="nv">$basearch</span><span class="p">&amp;</span><span class="nv">repo</span><span class="o">=</span>os
+</span><span class='line'><span class="nv">baseurl</span><span class="o">=</span>http://mirrors.163.com/centos/<span class="nv">$releasever</span>/os/<span class="nv">$basearch</span>/
+</span><span class='line'>               ftp://path/to/repo
+</span><span class='line'><span class="nv">gpgcheck</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">gpgkey</span><span class="o">=</span>file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+</span><span class='line'><span class="nv">enabled</span><span class="o">=</span>1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中base为repo的名字，baseurl支持多个url、协议，指向repo的地址。gpgcheck选项表示要不要对下载的package做校验。enabled选项表示默认情况下是否使用该repo。mirrorlist为后备的repo镜像url列表。相关的配置选项还很多，比如time_out, http_caching等，可以man yum.conf查看。</p>
+
+<p>yum 的插件配置文件:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>tree /etc/yum/pluginconf.d/
+</span><span class='line'>/etc/yum/pluginconf.d/
+</span><span class='line'><span class="p">|</span>-- aliases.conf
+</span><span class='line'><span class="sb">`</span>-- fastestmirror.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>拿fastestmirror.conf作为例子看看:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>main<span class="o">]</span>
+</span><span class='line'><span class="nv">enabled</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">verbose</span><span class="o">=</span>0
+</span><span class='line'><span class="nv">always_print_best_host</span> <span class="o">=</span> <span class="nb">true</span>
+</span><span class='line'><span class="nv">socket_timeout</span><span class="o">=</span>3
+</span><span class='line'><span class="nv">hostfilepath</span><span class="o">=</span>timedhosts.txt
+</span><span class='line'><span class="nv">maxhostfileage</span><span class="o">=</span>10
+</span><span class='line'><span class="nv">maxthreads</span><span class="o">=</span>15
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中enable选项可以打开或者关闭yum的插件。</p>
+
+<p>/etc/yum/vars/*，自定义yum中可以引用的变量:
+在yum.conf或者.repo中可以看到一些yum build-in变量，这些变量包括:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$basearch</span>
+</span><span class='line'><span class="nv">$releasever</span>
+</span><span class='line'><span class="nv">$arch</span>
+</span><span class='line'><span class="nv">$YUM0</span>-9
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>$basearch读取的是yum.conf中distroverpkg的值，$arch读取的是系统的CPU的architecture, $releasever是发行版的版本号，比如Centos-6。$YUM0-9读取shell中的变量，有则取之，无则为空。如果想从系统的环境变量中fetch一些值，可以在bash中设置$YUM0-9。自定义yum变量还有一种方法是在/etc/yum/vars/下新增变量文件，比如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s2">&quot;It&#39;s not Ubuntu&quot;</span> &gt; /etc/yum/vars/declare
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在yum.conf或者.repo文件中就可以调用$declare了，</p>
+
+<p>/etc/yum/version-groups.conf: 定义软件组， 用yum version查看</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>yum<span class="o">]</span>
+</span><span class='line'><span class="c">#  These are the top level things to do with yum, we don&#39;t list Eg. libselinux</span>
+</span><span class='line'><span class="c"># even though that&#39;s require by rpm(-libs).</span>
+</span><span class='line'><span class="nv">run_with_packages</span> <span class="o">=</span> <span class="nb">true</span>
+</span><span class='line'><span class="nv">pkglist</span> <span class="o">=</span> glibc, sqlite, libcurl, nss,
+</span><span class='line'>          yum-metadata-parser,
+</span><span class='line'>          rpm, rpm-libs, rpm-python,
+</span><span class='line'>          python,
+</span><span class='line'>          python-iniparse, python-urlgrabber, python-pycurl
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>/etc/yum/protected.d: 保护某些软件不被卸载，default只有yum，可以添加新的conf文件，比如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$echo</span> <span class="s2">&quot;vim-common&quot;</span> &gt; /etc/yum/protected.d/vim.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>此时如果remove vim-common这个package，就会得到失败的信息:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo yum remove vim-common
+</span><span class='line'>Setting up Remove Process
+</span><span class='line'>Resolving Dependencies
+</span><span class='line'>--&gt; Running transaction check
+</span><span class='line'>---&gt; Package vim-common.x86_64 2:7.2.411-1.8.el6 will be erased
+</span><span class='line'>--&gt; Processing Dependency: vim-common <span class="o">=</span> 2:7.2.411-1.8.el6 <span class="k">for</span> package: 2:vim-enhanced-7.2.411-1.8.el6.x86_64
+</span><span class='line'>--&gt; Running transaction check
+</span><span class='line'>---&gt; Package vim-enhanced.x86_64 2:7.2.411-1.8.el6 will be erased
+</span><span class='line'>--&gt; Finished Dependency Resolution
+</span><span class='line'>Error: Trying to remove <span class="s2">&quot;vim-common&quot;</span>, which is protected
+</span><span class='line'> You could try using --skip-broken to work around the problem
+</span><span class='line'> You could try running: rpm -Va --nofiles --nodigest
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>关于yum config文件大概就是这些，我们下一篇介绍yum的utils以及一些有用的plugins。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/git/2013/06/19/reset-commit-author">Reset Commit Author</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-06-19T00:00:00+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/git/2013/06/19/reset-commit-author#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/git/2013/06/19/reset-commit-author">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在如下两种情况下，你需要重新配置git commit 的author。</p>
+
+<ul>
+<li>在一个新的repo上面工作;</li>
+<li>用别人的机器(或者pair machine上)提交代码，而关于你的author信息并未添加在git配置中;</li>
+</ul>
+
+
+<p>假设你global git config ~/.gitconfg 中配置信息如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
+</span><span class='line'>     name = example
+</span><span class='line'>     email = example@example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>别人的机器(或者pair机器)的repo中git 配置信息如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
+</span><span class='line'>     name = pair
+</span><span class='line'>     email = pair@pair.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而你期望的提交信息为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>name = serious
+</span><span class='line'>email = serious@serious.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在第一种情况下，当你修改完代码提交后，log中对应的author信息为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Author: example &lt;example@example.com&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在第二种情况下，当你修改完代码提交后，log中对应的author信息为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Author: pair &lt;pair@pair.com&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>两种情况下，想要修改提交中的author信息，都可以通过:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git commit --amend --author=“serious &lt;serious@serious.com&gt;”</span></code></pre></td></tr></table></div></figure>
+
+
+<p>来重新设置。</p>
+
+<p>第一种情况，如果你需要将来长期在这个repo上工作的话。首先，修改repo下的.git/config文件，添加</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
+</span><span class='line'>     name = serious
+</span><span class='line'>     email = serious@serious.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后重新设置提交的author信息:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git commit --amend -C HEAD --reset-author</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Done</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix">Ubuntu 12.04 Compile Ruby Enterprise Error Fix</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-04-23T00:00:00+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Recently I&rsquo;ve been learn to use <a href="http://vagrantup.com">Vagrant</a>. to set up a production like env under ubuntu 12.04. However, when I tried to compile REE- ruby enterprise version, I caught into the following error:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./libtool: line 983: warning: setlocale: LC_CTYPE: cannot change locale <span class="o">(</span>UTF-8<span class="o">)</span>
+</span><span class='line'>src/tcmalloc.cc:1672:54: error: conflicting declaration <span class="s1">&#39;void * (* __memalign_hook)(size_t, size_t, const void *)&#39;</span>
+</span><span class='line'>/usr/include/malloc.h:183:39: error: <span class="s2">&quot;__memalign_hook&quot;</span> has a previous declaration as <span class="s1">&#39;void * (* volatile __memalign_hook) (size_t, size_t, const void *)&#39;</span>
+</span><span class='line'>src/tcmalloc.cc: In <span class="k">function</span> <span class="s1">&#39;void PrintStats(int)&#39;</span>:
+</span><span class='line'>src/tcmalloc.cc:523:47: warning: ignoring <span class="k">return</span> value of <span class="s1">&#39;ssize_t write(int, const void *, size_t)&#39;</span>, declared with attribute warn_unused_result <span class="o">(</span>-Wunused-result<span class="o">)</span>
+</span><span class='line'>src/tcmalloc.cc: In <span class="k">function</span> <span class="s1">&#39;void {anonymous}::ReportLargeAlloc(Length, void *)&#39;</span><span class="p">;</span>
+</span><span class='line'>src/tcmalloc.cc:1010:47: warning: ignoring <span class="k">return</span> value of <span class="s1">&#39;ssize_t write(int, const void *, size_t)&#39;</span>, declared with attribute warn_unused_result <span class="o">[</span>-Wunused-result<span class="o">]</span>
+</span><span class='line'>make: *** <span class="o">(</span>libtcmalloc_minimal_la-tcmalloc.lo<span class="o">)</span> Error 1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I dig a little throught google and it turns out to be a very easy solution. Just redefine the fucntion name</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>void *<span class="o">(</span>* __memalign_hook<span class="o">)</span> <span class="o">(</span>size_t, size_t, const void *<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>to be</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>void *<span class="o">(</span>*  volatile  __memalign_hook<span class="o">)</span> <span class="o">(</span>size_t, size_t, const void *<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>in the tcmalloc.cc src file . To declare it to be volatile type function can solve that issue and keep the compiling on. Actually, I could have found the reason because as to what the log says, the issue is pretty clear. Seems like I depend on google too much&hellip;.. it&rsquo;s not good.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/go/2013/03/28/using-go-tutorial">Using Go Tutorial</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-28T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/go/2013/03/28/using-go-tutorial#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/go/2013/03/28/using-go-tutorial">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Just trying to use Go for I find it looks like C, and the cost of writing a hello world is quite small, plus the tutorial is petty easy to fetch. Just list what I&rsquo;ve done to get the tutorial and write the hello world example, which already posted thousands time in the internet.</p>
+
+<p><em>Install hg:</em></p>
+
+<p>  # brew install hg  (mac)</p>
+
+<p>  #_ apt-get install mercurial (ubuntu)</p>
+
+<p><em>Download go:</em></p>
+
+<p>  # wget <a href="https://go.googlecode.com/files/go1.0.3.darwin-amd64.tar.gz">https://go.googlecode.com/files/go1.0.3.darwin-amd64.tar.gz</a></p>
+
+<p>  #_ wget <a href="https://go.googlecode.com/files/go1.0.3.linux-amd64.tar.gz">https://go.googlecode.com/files/go1.0.3.linux-amd64.tar.gz</a></p>
+
+<p><em>Install go:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   *  tar -C /usr/local/ -zxf go1.0.3.darwin-amd64.tar.gz
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Export path:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   * <span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/usr/local/go/bin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Get go tutorial:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   * go get code.google.com/p/go-tour/gotour
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Run go tour:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   *  gotour
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After run the hello world program, you can leave this alone and declare that you can actually play with go now&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle">Using Watch to Excecute Commands in Cycle</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-25T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>项目的集成测试环境以及UAT环境都部署在亚马逊的虚拟云节点上面，早上9点之前，一个cron job会自动将这些节点启动。有时候会遇到当前可用的节点不足而导致节点创建失败, 需要不停的尝试启动节点的命令，看看什么时候运气垂青，碰到有其他节点被destroy时，可以抢到这样的“token”去启动我们的节点。
+这个effort显然过大了，作为懒人是不能接受的，同事介绍了watch这个工具，它可以周期性的执行一个命令，同时将结果输出，轻松的解决了问题。</p>
+
+<p><em>安装:</em>
+大部分的linux发行版应该都包括了这个应用，MAC下面需要自己安装，用brew也很方便。</p>
+
+<p><em>+brew install watch+</em></p>
+
+<p><em>用法介绍:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Usage: watch <span class="o">[</span>-dhntv<span class="o">]</span> <span class="o">[</span>--differences<span class="o">[=</span>cumulative<span class="o">]]</span> <span class="o">[</span>--help<span class="o">]</span> <span class="o">[</span>--interval<span class="o">=</span>&lt;n&gt;<span class="o">]</span> <span class="o">[</span>--no-title<span class="o">]</span> <span class="o">[</span>--version<span class="o">]</span> &lt;<span class="nb">command</span>&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>+-n, &ndash;interval = <seconds>+ : 设定相隔多长时间重新运行下监控的命令并输出结果
++-d, &ndash;differences[=cumulative]+ : 高亮显示监控的命令输出相比上次输出变化的区域
++-v, &ndash;version+ : 显示watch的版本号
+注: mac 下的watch版本略低，0.3.0的版本提供了更多的功能，比如彩色输出，退出响铃之类的
+<em>使用场景:</em></p>
+
+<p>watch 的帮助文档中，给出了一些使用的场景， 比如:</p>
+
+<p>   # 监控当前目录中某些用户的文件变化:   @watch -d ‘ls -l | grep root’@</p>
+
+<p>   #_ 偷窥其他用户的窗口行为:  @watch tty7@ (假设tty7有用户登陆)</p>
+
+<p>能想到的还有一个,当时还想自己实现这样的一个脚本，后来看到watch，就放弃了……:</p>
+
+<p>   #_ 正在编辑haml文件，同时想在浏览器上面看到更改后的html文件: @watch -d &lsquo;haml input.haml input.html&rsquo;@</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database">Way to Deal With "Transaction Log for Database Is Full" Issue</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-04T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Recently, the ci build has failed with the following error message:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>_ODBC::Error: <span class="m">37000</span> <span class="o">(</span>9002<span class="o">)</span> <span class="o">[</span>unixODBC<span class="o">][</span>FreeTDS<span class="o">][</span>SQL Server<span class="o">]</span>The transaction log <span class="k">for</span>
+</span><span class='line'>database <span class="s1">&#39;Warehouse&#39;</span> is full. To find out why space in the log cannot be reused,
+</span><span class='line'>see the log_reuse_wait_desc column in sys.databases <span class="o">(</span>Sequel::DatabaseError<span class="o">)</span>_*%
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The reason is, so far as I known, that firstly the database has the log recorded
+and when the volume of log increasing, it would cause the &ldquo;out of space&rdquo; error
+if it exceeds the threshold of log size limit.</p>
+
+<p>The knowledge that we should know is:</p>
+
+<p>   # Scheme of way to record transaction log is store in <em>log_reuse_wait_desc</em>
+   # column of <em>sys.databases</em>, check &ldquo;this&rdquo;:<a href="http://msdn.microsoft.com/en-us/library/ms178534.aspx,">http://msdn.microsoft.com/en-us/library/ms178534.aspx,</a> it gives all the choices of how to deal with the transaction log</p>
+
+<p>A little bit log for this document, I will just cut the cliche and show how I
+solve this issue with the knowledge I found from Internet.</p>
+
+<p><em>Given</em> our current build is using data warehouse &ldquo;Warehouse&rdquo; and such error happens</p>
+
+<p><em>First</em> thing is to connect to the data warehouse, and check whether the log is
+full by using <em>DBCC</em> tools.</p>
+
+<p>Check log spaces used:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>DBCC SQLPERF<span class="o">(</span>LOGSPACE<span class="o">)</span> //from the output information you can also see the log name of corresponding database
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then you will see the log size for <em>&ldquo;Warehouse&rdquo;</em> is 100%
+After knowing it is the right reason as the error message shows, we have two steps to go:</p>
+
+<h1>set the data warehouse into recovery mode and set the log_reuse_wait_desc using no backup for reserving logs</h1>
+
+<h1>truncate the currently logs and shrink its size</h1>
+
+<p>Way to change the database recovery mode and set backup scheme:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="n">USE</span> <span class="n">Warehouse</span>
+</span><span class='line'><span class="k">GO</span>
+</span><span class='line'><span class="k">ALTER</span> <span class="k">DATABASE</span> <span class="n">Warehouse</span> <span class="k">SET</span> <span class="n">RECOVERY</span> <span class="k">full</span>
+</span><span class='line'><span class="k">GO</span>
+</span><span class='line'><span class="k">ALTER</span> <span class="k">DATABASE</span> <span class="n">Warehouse</span> <span class="k">SET</span> <span class="n">RECOVERY</span> <span class="k">SIMPLE</span> <span class="k">WITH</span> <span class="n">NO_WAIT</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>way to shrink the log file:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="n">USE</span> <span class="n">Warehouse</span>
+</span><span class='line'><span class="n">DBCC</span> <span class="n">SHRINKFILE</span><span class="p">(</span><span class="s1">&#39;Warehouse_log&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">TRUNCATEONLY</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then you will get new log scheme with no backup and a log size less than 1MB. Of
+course, the most important thing is that the ci build won&rsquo;t fail&hellip;.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments">Simple Introduction About Vimium and Some Comments</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-02T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Vimium 是Chrome下的一个插件，可以让你用类似vim的方式用全键盘的方式浏览网页。其所有快捷键如下(web页面下按？也可以查看):</p>
+
+<p>Vimium Help</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vigating the page
+</span><span class='line'>j, &lt;c-e&gt;: Scroll down
+</span><span class='line'>k, &lt;c-y&gt;: Scroll up
+</span><span class='line'>h:the Scroll left
+</span><span class='line'>l: Scroll right
+</span><span class='line'>gg: Scroll to the top of the page
+</span><span class='line'>G:Scroll Scroll to the bottom of the page
+</span><span class='line'>zH: Scroll all the way to the left
+</span><span class='line'>zL: Scroll all the way to the right
+</span><span class='line'>d: Scroll a page down
+</span><span class='line'>u: Scroll a page up
+</span><span class='line'>r: Reload the page
+</span><span class='line'>gs: View page <span class="nb">source</span>
+</span><span class='line'>yy: Copy the current URL to the clipboard
+</span><span class='line'>yf: Copy a link URL to the clipboard
+</span><span class='line'>post: Open the clipboard<span class="s1">&#39;s URL in the current tab</span>
+</span><span class='line'><span class="s1">P: Open the clipboard&#39;</span>s URL in a new tab
+</span><span class='line'>gu: Go up the URL hierarchy
+</span><span class='line'>i: Enter insert mode
+</span><span class='line'>gi: Focus the first <span class="o">(</span>or n-th<span class="o">)</span> text box on the page
+</span><span class='line'>f: Open a link in the current tab
+</span><span class='line'>F: Open a link in a new tab
+</span><span class='line'>&lt;a-f&gt;: Open multiple links in a new tab
+</span><span class='line'>o: Open URL, bookmark, or <span class="nb">history </span>entry
+</span><span class='line'>O: Open URL, bookmark, <span class="nb">history </span>entry, in a new tab
+</span><span class='line'>T: Search through your orpen tabs
+</span><span class='line'>b: Open a bookmark
+</span><span class='line'>B: Open a bookmark in a new tab
+</span><span class='line'><span class="o">[[</span>: Follow the link labeled previous or &lt;
+</span><span class='line'><span class="o">]]</span>: Follow the link labeled next or &gt;
+</span><span class='line'>gf: Cycle forward to the next frame on the page
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查找:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>/: Enter find mode
+</span><span class='line'>n: Cycle forward to the next find match
+</span><span class='line'>N: Cycle backward to the previous find match
+</span><span class='line'>Navigating <span class="nb">history</span>
+</span><span class='line'>H: Go back in <span class="nb">history</span>
+</span><span class='line'>L: Go forward in <span class="nb">history</span>
+</span><span class='line'>Manipulating tabs
+</span><span class='line'>K, gt: Go one tab right
+</span><span class='line'>J, gT: Go one tab left
+</span><span class='line'>g0: Go to the first tab
+</span><span class='line'>g<span class="nv">$:</span> Go to the last tab
+</span><span class='line'>t: Create new tab
+</span><span class='line'>x: Close current tab
+</span><span class='line'>X: Restore closed tab
+</span><span class='line'>Miscellaneous
+</span><span class='line'>?: Show <span class="nb">help</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>觉得比较有用的几个快捷键:</p>
+
+<ul>
+<li>滚到网页底部和顶部: 和vim一样 G，gg</li>
+<li>向下(上)移一页: d/u (vim 得加 ctrl键)</li>
+<li>拷贝当前地址栏url: yy, chrome对应的快捷键是command + alt + c(- 但是最新的chrome不知道为什么和develop工具的快捷键冲突了)</li>
+<li>拷贝网页中某链接到剪贴板中:yf 之后选择你需要拷贝的链接，用 p键在当前页面打开，大P在新的tab中打开</li>
+<li>打开书签、地址或者历史记录: o/O在当前页面/新页面打开，如果只想打开书签中记录的url，可以用b/B</li>
+<li>查找模式: / 后输入搜索关键字，用n/N在搜索结果中向前或者向后查询，用的不多……，比浏览器默认的搜索稍微方便点</li>
+<li>查找tab: T，输入关键字，跳转到相关的tab，这个很方便</li>
+<li>tab间移动: K/gt 移到右边的tab， J/gT移到左边的tab。不是很方便，一般都用浏览器默认的快捷键，shift+tab或者是alt+command+方向键</li>
+<li>创建/关闭/恢复前一个关闭掉的tab: t/x/X, 用的也不多，浏览器默认的快捷键用习惯了</li>
+</ul>
+
+
+<p>使用vimium有好处也有不好的地方，我自己的使用感觉如下:</p>
+
+<p>好处:</p>
+
+<p>系统无关，在任何系统下只要是使用chrome浏览器，不需要再去记忆快捷键;
+对于键盘控来说，无疑是一个好东西，比默认的浏览器快捷键要强大，基本可以免去触摸板和鼠标操作；</p>
+
+<p>坏处:</p>
+
+<p>页面如果没有load, vimium也不会被加载，所有的快捷键也都失效了，这个时候还是需要浏览器默认的快捷键才可以继续撸键盘；
+有时候vimium的js会和某些页面的js冲突，比如googlereader页面，而且在浏览器上调试的时候如果遇到js冲突还是挺讨厌的，
+这种情况就得禁用vimium;
+Firefox下据说有更强大的工具，叫做vimoperator,听说功能更加强大，不过我基本只用，所以没怎么尝试过。Anyway，如果你只相信啪啪啪的，可以试试这个插件。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/posts/7">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/posts/5">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

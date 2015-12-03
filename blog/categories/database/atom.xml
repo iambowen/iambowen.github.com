@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Database | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/database/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Be Careful When You Playing With History Database]]></title>
+    <link href="http://iambowen.github.com/database/2013/10/26/be-careful-when-you-playing-with-history-database"/>
+    <updated>2013-10-26T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/database/2013/10/26/be-careful-when-you-playing-with-history-database</id>
+    <content type="html"><![CDATA[<p>When we talking about History database, we are generally saying the database that deposit the actions performed on other databases by application. It is freaking important for recording the critical action that performed by users in both  business and development point of view.  With the help of ChangeLog database, we can easily track that an purchased transaction has or has not happened at certain time, thus by querying this table, we will 100% sure if the user wants to confirm with the transaction.</p>
+
+<p>A typical table, say ChangeLog in History database, would have such kind of schema:</p>
+
+<pre><code class="bash">mysql&gt; show create table ChangeLog\G
+*************************** 1. row ***************************
+       Table: ChangeLog
+Create Table: CREATE TABLE `ChangeLog` (
+  `ID` bigint(40) NOT NULL AUTO_INCREMENT,
+  `TableName` varchar(40) DEFAULT NULL,
+  `ForeignKey` varchar(40) DEFAULT NULL,
+  `Who` varchar(255) DEFAULT NULL,
+  `Field` varchar(40) DEFAULT NULL,
+  `Mod` int(11) NOT NULL DEFAULT '0',
+  `OldValue` text,
+  `NewValue` text,
+  `Comments` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`ID`,`Mod`),
+  KEY `idx1` (`TableName`,`ForeignKey`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 
+</code></pre>
+
+<p>The schema shows that it would record action done on some table by someone from certain value to other value on certain time. Two columns, TableName and ForeignKey, are indexed, which would be faster if you take those two in the where clause. The thing you need to aware is that index of ForeignKey is only working when TableName is also existed in the where clause.</p>
+
+<p>History database is normally huge and rarely has replica, as we can imagine. The reason, I suspect, is the changing-write/read operation much more frequently than other tables. Normally, it has several following characters:</p>
+
+<ol>
+<li>Query/Scan/Join operation could cause performance on database for it has large bunch of data;</li>
+<li>It&rsquo;s pretty pretty important that I don’t need to talk about this twice;</li>
+<li>Things in the history database is genuine, application or log can fake but the history table does not lie;</li>
+<li>Since it’s might be the only database, clearly it’s not</li>
+</ol>
+
+
+<p>Due to the importance of History database, few people would have access. But there gonna be chance that you would talk to it. And the following are the tips I learned from a senior developer about interacting with History database:</p>
+
+<ol>
+<li>Pair with someone who are experienced and can make sure the query you write would not do harm to the database;</li>
+<li>Check the ChangeLog table schema first, attention whether it has some columns indexed;</li>
+<li>Use “&ndash;“  in the beginning to comment out your query in case if you hit enter before you complete the query;</li>
+<li>To “explain" the query you want to run firstly, to see whether the query would happen in a very large dataset, if it is, then you need to consider the consequent for running the query.</li>
+</ol>
+
+
+<pre><code class="bash">mysql&gt; Explain select * from ChangeLog where TableName = '' and ForeignKey = '';
++----+-------------+-----------+------+---------------+------+---------+-------------+------+-------------+
+| id | select_type | table     | type | possible_keys | key  | key_len | ref         | rows | Extra       |
++----+-------------+-----------+------+---------------+------+---------+-------------+------+-------------+
+|  1 | SIMPLE      | ChangeLog | ref  | idx1          | idx1 | 86      | const,const |   61 | Using where |
++----+-------------+-----------+------+---------------+------+---------+-------------+------+-------------+
+1 row in set (0.47 sec)
+</code></pre>
+
+<p>What we can see from the result of explain is that the query would happen only in 61 rows, which would barely cause performance issue on the database. Of course, good to go.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Way to Deal With "Transaction Log for Database Is Full" Issue]]></title>
+    <link href="http://iambowen.github.com/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database"/>
+    <updated>2013-03-04T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database</id>
+    <content type="html"><![CDATA[<p>Recently, the ci build has failed with the following error message:</p>
+
+<pre><code class="bash">_ODBC::Error: 37000 (9002) [unixODBC][FreeTDS][SQL Server]The transaction log for
+database 'Warehouse' is full. To find out why space in the log cannot be reused,
+see the log_reuse_wait_desc column in sys.databases (Sequel::DatabaseError)_*%
+</code></pre>
+
+<p>The reason is, so far as I known, that firstly the database has the log recorded
+and when the volume of log increasing, it would cause the &ldquo;out of space&rdquo; error
+if it exceeds the threshold of log size limit.</p>
+
+<p>The knowledge that we should know is:</p>
+
+<p>   # Scheme of way to record transaction log is store in <em>log_reuse_wait_desc</em>
+   # column of <em>sys.databases</em>, check &ldquo;this&rdquo;:<a href="http://msdn.microsoft.com/en-us/library/ms178534.aspx,">http://msdn.microsoft.com/en-us/library/ms178534.aspx,</a> it gives all the choices of how to deal with the transaction log</p>
+
+<p>A little bit log for this document, I will just cut the cliche and show how I
+solve this issue with the knowledge I found from Internet.</p>
+
+<p><em>Given</em> our current build is using data warehouse &ldquo;Warehouse&rdquo; and such error happens</p>
+
+<p><em>First</em> thing is to connect to the data warehouse, and check whether the log is
+full by using <em>DBCC</em> tools.</p>
+
+<p>Check log spaces used:</p>
+
+<pre><code class="bash">DBCC SQLPERF(LOGSPACE) //from the output information you can also see the log name of corresponding database
+</code></pre>
+
+<p>Then you will see the log size for <em>&ldquo;Warehouse&rdquo;</em> is 100%
+After knowing it is the right reason as the error message shows, we have two steps to go:</p>
+
+<h1>set the data warehouse into recovery mode and set the log_reuse_wait_desc using no backup for reserving logs</h1>
+
+<h1>truncate the currently logs and shrink its size</h1>
+
+<p>Way to change the database recovery mode and set backup scheme:</p>
+
+<pre><code class="sql">USE Warehouse
+GO  
+ALTER DATABASE Warehouse SET RECOVERY full  
+GO
+ALTER DATABASE Warehouse SET RECOVERY SIMPLE WITH NO_WAIT
+</code></pre>
+
+<p>way to shrink the log file:</p>
+
+<pre><code class="sql">USE Warehouse
+DBCC SHRINKFILE('Warehouse_log', 0, TRUNCATEONLY)
+</code></pre>
+
+<p>Then you will get new log scheme with no backup and a log size less than 1MB. Of
+course, the most important thing is that the ci build won&rsquo;t fail&hellip;.</p>
+]]></content>
+  </entry>
+  
+</feed>

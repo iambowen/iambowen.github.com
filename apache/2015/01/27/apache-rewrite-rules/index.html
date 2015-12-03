@@ -1,0 +1,430 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Apache Rewrite Rules - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="apache">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/apache/2015/01/27/apache-rewrite-rules">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Apache Rewrite Rules</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-27T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><h3>什么是Apache</h3>
+
+<hr />
+
+<p><a href="http://httpd.apache.org/">Apache</a>是一款开源的HTTP服务器，长期占据服务器市场第一名的位置。</p>
+
+<h3>什么是URL rewriting</h3>
+
+<hr />
+
+<p>有时候，为了让URL对用户友好，方便记忆，或是SEO优化，我们会使用更加简单的URL，比如<a href="http://example.com/help.html">http://example.com/help.html</a>
+但是实际开发人员命名的静态html文件名为help_2014_12_12.html,在这种情况下，就需要重写URL，让服务器
+返回正确的页面(只是个例子)，亦或是原来的页面更换了新的域名，需要告诉搜索引擎或者浏览器新的地址，都需要
+重写URL。URL重写后，会返回给浏览器重写后的链接以及3xx的返回码，然后浏览器会请求重写后链接的内容。</p>
+
+<h3>301 和 302的区别</h3>
+
+<hr />
+
+<ul>
+<li><em>301</em>: 永久性转移(Permanently Moved)</li>
+<li><em>302</em>: 暂时性转移(Temporarily Moved)</li>
+</ul>
+
+
+<p>从效果上来讲它们都会造成跳转，区别在于SEO。如果是301跳转，那么搜索引擎将A页面的Pagerank导入
+到跳转后的B页面，搜索引擎以后会忽略A页面，只在搜索结果中显示B页面。如果是302跳转，搜索引擎会保留A页面
+的PR，但是显示的内容可能B页面的。</p>
+
+<h3>Apache rewrite module</h3>
+
+<hr />
+
+<p><a href="http://httpd.apache.org/docs/current/mod/mod_rewrite.html">mod_rewrite</a>是Apache中提供得基于规则的rewriting引擎，加载模块后重启apache就可以使用了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>apachectl -t -D DUMP_MODULES <span class="p">|</span> grep rewrite
+</span><span class='line'><span class="c"># 如果没有加载</span>
+</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>a2enmod rewrite
+</span><span class='line'>Enabling module rewrite.
+</span><span class='line'>Could not create /etc/apache2/mods-enabled/rewrite.load: Permission denied
+</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>sudo a2enmod rewrite
+</span><span class='line'>Enabling module rewrite.
+</span><span class='line'>To activate the new configuration, you need to run:
+</span><span class='line'>service apache2 restart
+</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>less /etc/apache2/mods-enabled/rewrite.load
+</span><span class='line'>LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在<code>http.conf</code>文件中可以引用具体的rewrite规则文件，如下</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>RewriteEngine on
+</span><span class='line'>RewriteLog /var/log/www/server.rewrite.log
+</span><span class='line'>RewriteLogLevel 1
+</span><span class='line'>Include /web/conf/httpd/conf.d/rewrites.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>根据需求将rewrite的规则写入<code>rewrites.conf</code>中即可。</p>
+
+<h3>rewrite配置文件的写法</h3>
+
+<p>基本上来说，重写URL就是在<code>􏰭􏰆􏰖􏰉􏰃􏰏􏰆􏰓􏰊􏰕􏰌RewriteCond</code>下，执行自定义的<code>RewriteRule</code>，通过Server Variables
+以及正则等匹配的方式，返回结果以及正确的返回码。</p>
+
+<h2>域名的转换</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span>  %{HTTP_HOST}   ^www\.example\.com$  [NC]
+</span><span class='line'><span class="nb">RewriteRule</span>  ^(.*)$         http://www.example2.com/$1  [R=301,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第一行是触发URL重写的条件，Flag <code>NC</code> 表示匹配时无视大小写，第二行表示在前一个条件满足时重写URL，
+同时返回<code>301</code>, <code>L</code>表示本次重写URL的行为结束。</p>
+
+<h3>临时更改页面地址</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteRule</span> ^page.html$   new_page.html   [R=302,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>更改 Query String</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} a=something
+</span><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} b=(else1|else2)
+</span><span class='line'><span class="nb">RewriteRule</span> ^/some_query_here$ http://www.example3.com/redirect? [R=301,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在Query String匹配 &ldquo;a=something"的前提下，如果后面的Query String匹配<code>b=else1</code>或者<code>b=else2</code>
+则重写URL，<code>?</code>表示截断URL。</p>
+
+<p>最近在做一张卡的时候，要重写的URL类似</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="err">http://www</span>.<span class="err">example</span>.<span class="err">com/</span><span class="c">#category=Water Ball</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果直接将URL写在RewriteRule里面，Apache缺省会将URL中的特殊字符转义，比如会变成</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="err">http://www</span>.<span class="err">example</span>.<span class="err">com/%23category=Water%20</span><span class="nb">Ball</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>要防止Apache将其转义，可以在Flag中加<code>NE</code>，同时注意Flag之间不能有空格。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} b=something
+</span><span class='line'><span class="nb">RewriteRule</span> ^/some_query_here$ http://www.example.com/#category=Walter\ Ball? [R=301,NE,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>体会</h3>
+
+<p>Apache的URL重写规则感觉还是比较简单，而且很强大。</p>
+
+<h3>references</h3>
+
+<ol>
+<li><a href="https://www.addedbytes.com/articles/for-beginners/url-rewriting-for-beginners/">rewriting for beginners</a></li>
+<li><a href="http://www.addedbytes.com/apache/mod_rewrite-cheat-sheet/">rewrite cheat sheet</a></li>
+</ol>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-01-27T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/apache/'>apache</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/apache/2015/01/27/apache-rewrite-rules" data-via="boweniam" data-counturl="http://iambowen.github.com/apache/2015/01/27/apache-rewrite-rules" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/tests/2015/01/26/dimension-of-tests" title="Previous Post: Dimensions of Test">&laquo; Dimensions of Test</a>
+      
+      
+        <a class="basic-alignment right" href="/ops/2015/02/06/essential-wget" title="Next Post: essential wget">essential wget &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

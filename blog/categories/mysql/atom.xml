@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Mysql | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/mysql/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Mysql Access Control]]></title>
+    <link href="http://iambowen.github.com/mysql/2015/08/18/mysql-access-control"/>
+    <updated>2015-08-18T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/mysql/2015/08/18/mysql-access-control</id>
+    <content type="html"><![CDATA[<p>连接到Mysql的请求被接受或者拒绝的条件是:</p>
+
+<ol>
+<li>是否通过身份验证</li>
+<li>账号是否被锁定</li>
+</ol>
+
+
+<p>身份验证利用了<code>mysq.user</code>表中的<code>user</code>,<code>host</code>和<code>password</code>字段，账号锁定与否是用<code>account_locked</code>
+字段进行判断。身份的内容基于连接的客户端的主机和连接时使用的用户名。</p>
+
+<p>当user字段为空时，意味着它可以匹配任意用户，不为空时，只有用户名和主机名都匹配时，才能进入下一个验证
+的阶段。连接的用户名为空时，又被称为匿名用户，如果测试下本地的mysql user表，可能会发现如下的一些内容:</p>
+
+<pre><code>+------------------+--------------+---------------+
+| user             | host         | password      |
++------------------+--------------+---------------+
+|                  | localhost    |               |
+</code></pre>
+
+<p>这就是为什么我们可以用<code>mysql</code>命令直接进入mysql的控制台，因为它匹配到了来自本地的空用户名，空密码的
+这条记录。</p>
+
+<p>从这条记录也可以看到，用户的密码也可以为空，这意味着该用户登录不要指定密码。非空的密码并非明文存储，
+而是通过<code>PASSWORD()</code>函数加密。</p>
+
+<p>主机名不会为空，缺省为<code>%</code>，意为匹配任意主机。<code>144.155.166.%</code>意为匹配144.155.166的C类地址。</p>
+
+<p>mysql在验证请求时，会将现有的<code>mysql.user</code>排序，然后先按照host，再按照user，顺序匹配。如这样的
+mysql user表</p>
+
+<pre><code>+-----------+----------+-
+| Host      | User     | ...
++-----------+----------+-
+| %         | root     | ...
+| %         | jeffrey  | ...
+| localhost | root     | ...
+| localhost |          | ...
++-----------+----------+-
+</code></pre>
+
+<p>排序后就变成</p>
+
+<pre><code>+-----------+----------+-
+| Host      | User     | ...
++-----------+----------+-
+| localhost | root     | ...
+| localhost |          | ...
+| %         | jeffrey  | ...
+| %         | root     | ...
++-----------+----------+-
+</code></pre>
+
+<p>可以通过<code>CURRENT_UER()</code>函数来查看当前连接使用的用户信息。</p>
+
+<p>之所以会总结关于mysql连接验证的知识，是因为最近在配置一个新的服务的时候遇到了这样的一个问题。
+AWS Staging VPC通过Direct Connection连回数据中心，而在Staging环境的服务需要连接到数据中心
+的数据库服务器。在数据库服务器添加账号的时候，Host的信息填的是NetScaler的地址，比如"192.168.%.%&ldquo;
+但实际上应用服务器的网络属于"10.15.%.%"，导致连接出错。话说我刚觉得应用服务器配置的DB地址应该用
+NetScaler VIP的地址而不是DB服务器的地址…………，shit。</p>
+
+<hr />
+
+<h4>Reference:</h4>
+
+<ol>
+<li><a href="http://dev.mysql.com/doc/refman/5.7/en/connection-access.html">mysql connection access</a></li>
+<li><a href="http://dev.mysql.com/doc/refman/5.7/en/request-access.html">mysql request access</a></li>
+</ol>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Mysql--on Duplicate Key Update]]></title>
+    <link href="http://iambowen.github.com/mysql/2011/11/26/on-duplicate-key-update"/>
+    <updated>2011-11-26T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/mysql/2011/11/26/on-duplicate-key-update</id>
+    <content type="html"><![CDATA[<p>On duplicate key update is to stop the duplication in unique index or primary
+key, and try to update the row with new value.And it only functions with mysql
+because it is not standard SQL grammar.</p>
+
+<p>Create database and choose it</p>
+
+<pre><code class="bash">mysql&gt; create database test;
+Query OK, 1 row affected (0.00 sec)
+mysql&gt; use test;
+Database changed
+</code></pre>
+
+<p>Create a table with primary key</p>
+
+<pre><code class="bash">mysql&gt; create table pet(a CHAR(1), b CHAR(1), primary key(a));
+Query OK, 0 rows affected (0.06 sec)
+</code></pre>
+
+<p>And initialize a row</p>
+
+<pre><code class="bash">mysql&gt; insert into pet values('1', '2');
+Query OK, 1 row affected (0.00 sec)
+</code></pre>
+
+<p>insert new value with the same primary key</p>
+
+<pre><code class="bash">mysql&gt; insert into pet values('1', '3');
+ERROR 1062 (23000): Duplicate entry '1' for key 'PRIMARY'
+</code></pre>
+
+<p>drop primary key property</p>
+
+<pre><code class="bash">mysql&gt; alter table pet drop PRIMARY KEY;
+Query OK, 1 row affected (0.06 sec)
+Records: 1  Duplicates: 0  Warnings: 0
+</code></pre>
+
+<p>insert again, cool, done</p>
+
+<pre><code class="bash">mysql&gt; insert into pet values('1', '3');
+Query OK, 1 row affected (0.00 sec)
+</code></pre>
+
+<p>what we have now? values with duplicated key</p>
+
+<pre><code class="bash">mysql&gt; select * from pet;
++---+------+
+| a | b    |
++---+------+
+| 1 | 2    |
+| 1 | 3    |
++---+------+
+</code></pre>
+
+<p>change the primary key back
+<code>bash
+mysql&gt; alter table pet add primary key(b);
+Query OK, 2 rows affected (0.11 sec)
+Records: 2  Duplicates: 0  Warnings: 0
+</code></p>
+
+<p>insert the value with  on duplicate key update
+<code>bash
+mysql&gt; insert into pet values('4', '3') on duplicate key update a = values(a);
+Query OK, 2 rows affected (0.00 sec)
+</code></p>
+
+<p>the result:
+<code>bash
+mysql&gt; select * from pet;
++---+---+
+| a | b |
++---+---+
+| 1 | 2 |
+| 4 | 3 |
++---+---+
+2 rows in set (0.00 sec)
+</code></p>
+]]></content>
+  </entry>
+  
+</feed>

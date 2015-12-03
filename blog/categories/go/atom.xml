@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Go | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/go/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Using Go Tutorial]]></title>
+    <link href="http://iambowen.github.com/go/2013/03/28/using-go-tutorial"/>
+    <updated>2013-03-28T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/go/2013/03/28/using-go-tutorial</id>
+    <content type="html"><![CDATA[<p>Just trying to use Go for I find it looks like C, and the cost of writing a hello world is quite small, plus the tutorial is petty easy to fetch. Just list what I&rsquo;ve done to get the tutorial and write the hello world example, which already posted thousands time in the internet.</p>
+
+<p><em>Install hg:</em></p>
+
+<p>  # brew install hg  (mac)</p>
+
+<p>  #_ apt-get install mercurial (ubuntu)</p>
+
+<p><em>Download go:</em></p>
+
+<p>  # wget <a href="https://go.googlecode.com/files/go1.0.3.darwin-amd64.tar.gz">https://go.googlecode.com/files/go1.0.3.darwin-amd64.tar.gz</a></p>
+
+<p>  #_ wget <a href="https://go.googlecode.com/files/go1.0.3.linux-amd64.tar.gz">https://go.googlecode.com/files/go1.0.3.linux-amd64.tar.gz</a></p>
+
+<p><em>Install go:</em></p>
+
+<pre><code class="bash">   *  tar -C /usr/local/ -zxf go1.0.3.darwin-amd64.tar.gz
+</code></pre>
+
+<p><em>Export path:</em></p>
+
+<pre><code class="bash">   * export PATH=$PATH:/usr/local/go/bin
+</code></pre>
+
+<p><em>Get go tutorial:</em></p>
+
+<pre><code class="bash">   * go get code.google.com/p/go-tour/gotour
+</code></pre>
+
+<p><em>Run go tour:</em></p>
+
+<pre><code class="bash">   *  gotour
+</code></pre>
+
+<p>After run the hello world program, you can leave this alone and declare that you can actually play with go now&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;.</p>
+]]></content>
+  </entry>
+  
+</feed>

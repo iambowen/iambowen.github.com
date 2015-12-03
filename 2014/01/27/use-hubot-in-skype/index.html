@@ -1,0 +1,482 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>在Skype中使用Hubot - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/2014/01/27/use-hubot-in-skype">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">在Skype中使用Hubot</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-01-27T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="http://www.36kr.com/p/55962.html">Hubot</a> 是一个github开源的<a href="http://hubot.github.com/">机器人项目</a>，可以集成到众多的聊天工具中，如IRC, Hipchat, Skype，QQ等。你可以用它来搞笑，也可以用它来进行自动化的管理，比如自动化部署等。这几天花了点时间，在OSX和Centos上分别尝试搭了下Hubot，详细过程如下:</p>
+
+<p>安装Hubot, 有两种方式，懒人的方式就用现成的<a href="https://github.com/RafaelGorski/VagrantChefHubot">Vagarant Script</a>, 有几点要注意的是:</p>
+
+<ol>
+<li>OSX必须得安装<a href="http://xquartz.macosforge.org/downloads/SL/XQuartz-2.7.5.dmg">X11</a>支持</li>
+<li>Oracle OCI 不是必须的</li>
+</ol>
+
+
+<p>在Centos 6.4 上安装Hubot。</p>
+
+<p>环境准备, 包括桌面支持，开发工具, skype等等.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum install http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+</span><span class='line'>yum groupinstall -y <span class="s2">&quot;Desktop&quot;</span>
+</span><span class='line'>yum groupinstall -y <span class="err">&quot;</span>Development Tools”
+</span><span class='line'>yum install qtwebkit.i686 webkitgtk.i686 —y
+</span><span class='line'>yum install tigervnc-server -y   <span class="c">#for vnc connect</span>
+</span><span class='line'>yum install wget telnet -y
+</span><span class='line'>yum install sqlite-devel -y
+</span><span class='line'>yum install nodejs npm -y
+</span><span class='line'>yum install redis -y
+</span><span class='line'>yum install python-setuptools python-setuptools-devel -y
+</span><span class='line'>yum update
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装Skype:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>wget http://download.skype.com/linux/skype-4.2.0.13.tar.bz2
+</span><span class='line'>tar skype-4.2.0.13.tar.bz2 -C /opt/
+</span><span class='line'>ln -s skype-4.2.0.13 skype
+</span><span class='line'>ln -s /opt/skype/skype /usr/bin/skype
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装Skype4py: Skype api 的python wrapper</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>easy_install pip
+</span><span class='line'>pip install Skype4Py
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装coffee-script hubot:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>npm install -g coffee-script hubot
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>配置服务:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> -e <span class="s2">&quot;VNCSERVERS=&quot;</span>1:vnc<span class="s2">&quot;\n VNCSERVERARGS[1]=&quot;</span>-geometry 1024x768<span class="err">&quot;</span> &gt;&gt; /etc/sysconfig/vncservers
+</span><span class='line'>useradd vnc
+</span><span class='line'>su - vnc
+</span><span class='line'>passwd
+</span><span class='line'>
+</span><span class='line'>service iptables stop
+</span><span class='line'>service vncserver start
+</span><span class='line'>
+</span><span class='line'>chkconfig redis on    <span class="c"># auto start</span>
+</span><span class='line'>chkconfig vncserver on   <span class="c">#auto start</span>
+</span><span class='line'>service redis start
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>centos默认iptables的服务是打开的，邪恶一点的方法是直接关掉iptables服务，上进的方法就是在iptables里面添加新的规则，还是邪恶吧……，因为hubot-skype也可能存在被iptables block的情况。
+VNC到虚拟机上，启动Skype并登陆。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>skype <span class="p">&amp;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装配置hubot-skype:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir hubot <span class="o">&amp;&amp;</span> <span class="nb">cd </span>hubot
+</span><span class='line'>hubot -c .
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>自动生成如下目录结构:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>root@localhost hubot<span class="o">]</span><span class="c"># tree -L 1</span>
+</span><span class='line'>.
+</span><span class='line'><span class="p">|</span>-- bin
+</span><span class='line'><span class="p">|</span>-- external-scripts.json
+</span><span class='line'><span class="p">|</span>-- hubot-scripts.json
+</span><span class='line'><span class="p">|</span>-- node_modules
+</span><span class='line'><span class="p">|</span>-- package.json
+</span><span class='line'><span class="p">|</span>-- Procfile
+</span><span class='line'><span class="p">|</span>-- README.md
+</span><span class='line'><span class="sb">`</span>-- scripts
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>package.json</code> 里面放的hubot运行依赖的插件，<code>hubot-scripts.json</code> 里面写的是hubot的脚本。修改 <code>package.json</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'>  <span class="s2">&quot;dependencies&quot;</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="s2">&quot;hubot&quot;</span><span class="o">:</span>         <span class="s2">&quot;&gt;= 2.6.0 &lt; 3.0.0&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;hubot-scripts&quot;</span><span class="o">:</span> <span class="s2">&quot;&gt;= 2.5.0 &lt; 3.0.0&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;hubot-skype&quot;</span><span class="o">:</span> <span class="s2">&quot;0.0.2&quot;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="nx">npm</span> <span class="nx">install</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>修改<code>hubot-scripts.json</code>, 添加<code>karma.coffee</code>:</p>
+
+<p><code>["redis-brain.coffee", "shipit.coffee", "karma.coffee”]</code></p>
+
+<p>运行:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./bin/hubot  -a skype <span class="p">&amp;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Skype会弹出是否允许第三方的应用控制，勾选就可以了。</p>
+
+<p>把hubot添加到Skype对话中，就可以用命令来调戏hubot了, 下面是一些例子:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>hubot image me keyword  <span class="c">#google 搜索keyword相关的图片，随机挑选一张返回图片链接</span>
+</span><span class='line'>hubot animate me keyword  <span class="c">#google 搜索keyword相关的gif图片，随机挑选一张返回图片链接</span>
+</span><span class='line'>hubot youtube me keyword  <span class="c">#youtube 搜索keyword相关的视频，随机挑选一个返回视频链接</span>
+</span><span class='line'>rebot mustache me keyword <span class="c">#给google搜索返回的图片上加个胡子。。。。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>添加了<code>karma.coffee</code>脚本-人品计算器的话，可以用<code>user++/user—</code> 来增加和减少讨论组内成员的人品值。
+鉴于youtube国内无法访问，所以正准备扩展下脚本，提供 <code>hubot youku me</code>的命令。另外，如果把这个做成微信服务号部署到heroku上拿来玩应该也很有趣。</p>
+
+<p>最后，写了一个<a href="https://gist.github.com/iambowen/8642990">脚本</a>，配置过程中绝大多数操作都放到里面了, 不能保证100%自动化。</p>
+
+<h4>Note:</h4>
+
+<ol>
+<li>有个rails的工程<a href="https://github.com/iambowen/hubot-control">hubot-control</a>可以更加方便的进行hubot的管理， 我做了些许修改;</li>
+<li>一定要VNC到虚拟机上去启动hubot-skype，不然会报这个错误:</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  ......
+</span><span class='line'>  File <span class="s2">&quot;/usr/lib/python2.6/site-packages/Skype4Py/api/posix_x11.py&quot;</span>, line 254, in __init__
+</span><span class='line'>    raise SkypeAPIError<span class="o">(</span><span class="s1">&#39;Could not open XDisplay&#39;</span><span class="o">)</span>
+</span><span class='line'>Skype4Py.errors.SkypeAPIError: Could not open XDisplay
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>原因是X11的环境变量 DISPLAY没有设置成0，非常之烦人，下次会考虑使用dbus去运行，虽然不知道怎么弄……</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2014-01-27T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/2014/01/27/use-hubot-in-skype" data-via="boweniam" data-counturl="http://iambowen.github.com/2014/01/27/use-hubot-in-skype" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/2014/01/25/use-keepassx-to-manage-your-password" title="Previous Post: 使用KeePassX管理你的密码">&laquo; 使用KeePassX管理你的密码</a>
+      
+      
+        <a class="basic-alignment right" href="/2014/01/28/install-python-27-under-centos-64" title="Next Post: Install python 2.7 under Centos 6.4">Install python 2.7 under Centos 6.4 &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

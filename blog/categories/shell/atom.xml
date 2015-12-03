@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Shell | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/shell/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Learning Shell: Navigation File Content]]></title>
+    <link href="http://iambowen.github.com/shell/2014/08/18/learning-shell-navigation-file-content"/>
+    <updated>2014-08-18T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/shell/2014/08/18/learning-shell-navigation-file-content</id>
+    <content type="html"><![CDATA[<p>Linux系统中浏览文件的命令很多，比如<code>less</code>,<code>more</code>, <code>head</code>,<code>tail</code>, <code>cat</code>等，其中<code>less</code>命令最为丰富，对于二进制文件和压缩文件，也有对应的命令去浏览。我整理了下，在组内做了一次分享，如下为主要内容。</p>
+
+<h2>less</h2>
+
+<p>这个命令可以查看一个文件的内容，和编辑器的打开要读取整个文件的方式不一样，<code>less</code>只读取部分，因此，它占用的内存较少。如果是在产品环境下追踪问题，需要打开很大的文档，用这个命令要好过编辑器。</p>
+
+<h4>移动</h4>
+
+<ul>
+<li>Ctrl + F(orward)/U(p)/B(ackward)/D(own)  或者 space 滚动</li>
+<li>j/k   向上或者向下移动一行</li>
+<li>g/G/q   跳到文件头/尾部， 退出浏览</li>
+</ul>
+
+
+<h4>Search</h4>
+
+<ul>
+<li>?         反向搜索</li>
+<li>/         正向搜索</li>
+<li>n/N       跳到下一处/前一处匹配行</li>
+<li>&amp;pattern  只显示匹配 pattern 的行</li>
+</ul>
+
+
+<h4>有用的命令</h4>
+
+<ul>
+<li>:v         使用缺省的编辑器进入编辑模式，可以通过<code>EDITOR</code>环境变量修改</li>
+<li>:F         类似<code>tail -f</code>的效果，等待文件即时的输出，但是tail命令是不能搜索的</li>
+<li>ma         标记，使用a跳到标记处，``跳到上次浏览位置</li>
+<li>!          执行shell命令</li>
+<li>:s file    将管道中的内容保存在file中</li>
+<li>:h         显示所有快捷方式及命令</li>
+</ul>
+
+
+<h4>浏览多个文件</h4>
+
+<ul>
+<li>less file1 file2 file3</li>
+<li>:n   查看下一个文件</li>
+<li>:p   查看前一个文件</li>
+<li>:e   打开一个文件</li>
+</ul>
+
+
+<h2>cat</h2>
+
+<p>查看文件内容，每次输出全部内容。<code>tac</code>命令和<code>cat</code>命令作用相反。</p>
+
+<h4>常用参数</h4>
+
+<ul>
+<li>-T 显示文件中的tab</li>
+<li>-n 显示文件的行数</li>
+<li>-b 显示行数，不包括空行</li>
+</ul>
+
+
+<h4>重定向</h4>
+
+<ul>
+<li>清空文件:  <code>cat /dev/null &gt; empty_the_file.txt</code></li>
+<li>合并文件:  <code>cat -n file1 file2 &gt; file3</code></li>
+<li>重定向:    <code>cat ~/.ssh/id_rsa.pub | ssh root@remote “cat &gt;&gt; ~/.ssh/authorized_keys”</code></li>
+</ul>
+
+
+<h2>head/tail</h2>
+
+<p>取文件前/尾部 10(n)行内容，用法简单直接。
+  - head -n 10 file
+  - tail -f -n 10 file
+  - tail -n 10
+  - tail -r file(reversely)</p>
+
+<h2>strings</h2>
+
+<p>浏览二进制文件，<code>strings</code>命令可以抽取二进制文件中所有的字符串，在二进制文件没有提供很有效的信息的清空下，可以用这个命令获取到更多的信息，用法很简单。
+  - <code>strings filename</code></p>
+
+<h2><code>Z</code>命令</h2>
+
+<p>z系列命令特指z开头的一系列命令，包括:</p>
+
+<ul>
+<li>zcat</li>
+<li>zless/zmore</li>
+<li>zgrep</li>
+<li>zdiff(zcmp)</li>
+</ul>
+
+
+<p>这些命令可以看做是变异版的cat/less等，其针对的对象是压缩文件，如<code>tar.gz</code>结尾的文件，在不解压的情况下，浏览/查找其内容，对比文件内容等。需要注意的是，这些命令只能操作单个文件压缩后的文件，如果是整个目录那就达不到效果了。
+对于 bz2 结尾的压缩文件，也有对应的命令群，<code>bz*</code>，以此类推。</p>
+
+<h3>本次session的ppt:</h3>
+
+<script async class="speakerdeck-embed" data-id="b70bb090096e01326f7c2216803d3d2d" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How Source Works Under Shell]]></title>
+    <link href="http://iambowen.github.com/linux/shell/2011/12/04/how-source-works-under-shell"/>
+    <updated>2011-12-04T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/linux/shell/2011/12/04/how-source-works-under-shell</id>
+    <content type="html"><![CDATA[<p><em>Well</em>, it&rsquo;s a fare long story.During the trainning, Aimee asked me a question about
+how the source command works under shell. Haven&rsquo;t done a deep search at that time
+though it does not seem like a tough question. Now, i figure out how this stuff work, but
+the trainning is over and Aimee is gone.</p>
+
+<p>It&rsquo;s really simple for the function of source. It helps the current shell reload the variables
+from script file so that they could be recongnized.In another word&ndash;read and execute
+commands from the filename argument in the current shell context. Let&rsquo;s just cut the
+crap and try some examples.</p>
+
+<pre><code class="bash">touch test.sh
+chmod +x test.sh
+vi test.sh  
+</code></pre>
+
+<p><em>And input the following content</em></p>
+
+<pre><code class="bash">A = "shit happens"
+</code></pre>
+
+<p>We just define an variable named A in the script file. ok,let&rsquo;s run this script with</p>
+
+<pre><code class="bash">sh test.sh &amp;&amp; echo $A
+</code></pre>
+
+<p>which will show nothing even shit because it creates a new subshell and the invariables
+created in the subshell will not show in the parent shell. Then you use</p>
+
+<pre><code class="bash">source test.sh
+echo $A
+</code></pre>
+
+<p>now you can see the shit by yourself.</p>
+
+<p>So? What&rsquo;s the difference between source and .?Well,basically, they are the same.
+Instead of using source, you can use . test.sh to get the same effect of using source
+even the file test.sh is not executable.It is said that use .test.sh means execute the
+hidden file, definetly not working on osx.</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,2477 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="客户的程序员和Ops大都很有经验而且很聪明，很多有用的知识都是和客户程序员/Ops结对的时候学到的。我从
+其中一个客户那里，学到了一句很有意思的话叫做“bag of tricks”。 这个是什么意思呢？大意就是说，首先解决问题要有多种思路，至于你用到那种是另外一回事；其次，相对来说， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/posts/2/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2015/05/08/bag-of-tricks">Bag of Tricks</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-05-08T00:00:00+08:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>8</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2015/05/08/bag-of-tricks#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2015/05/08/bag-of-tricks">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>客户的程序员和Ops大都很有经验而且很聪明，很多有用的知识都是和客户程序员/Ops结对的时候学到的。我从
+其中一个客户那里，学到了一句很有意思的话叫做“bag of tricks”。</p>
+
+<p>这个是什么意思呢？大意就是说，首先解决问题要有多种思路，至于你用到那种是另外一回事；其次，相对来说，
+细节没有特别重要。</p>
+
+<p>这也就是为什么IT领域的人需要多学习或者了解前言技术和知识的一个原因，丰富你的技能包，可以不精通，但是
+要知道它能干吗。比如部署的工具，有Chef，Puppet，Ansible，Babushka等，这样在你做部署的方案的时候
+就更加容易些。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/puppet/2015/04/21/facter">Facter</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-04-21T00:00:00+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/puppet/2015/04/21/facter#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/puppet/2015/04/21/facter">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="https://github.com/puppetlabs/facter]">facter</a>是一个以key/value形式收集系统信息的工具。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>root@localhost ~<span class="o">]</span><span class="c"># yum provides /usr/bin/facter</span>
+</span><span class='line'>1:facter-1.6.17-1.el6.x86_64 : Ruby module <span class="k">for</span> collecting simple facts about a host operating system
+</span><span class='line'>Repo        : installed
+</span><span class='line'>Matched from:
+</span><span class='line'>Other       : Provides-match: /usr/bin/facter
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ansible和Puppet都用它来收集系统信息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[</span><span class="n">root</span><span class="vi">@localhost</span> <span class="o">~]</span><span class="c1"># facter</span>
+</span><span class='line'><span class="n">architecture</span> <span class="o">=&gt;</span> <span class="n">x86_64</span>
+</span><span class='line'><span class="n">boardproductname</span> <span class="o">=&gt;</span> <span class="no">VirtualBox</span>
+</span><span class='line'><span class="n">facterversion</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="o">.</span><span class="mi">6</span><span class="o">.</span><span class="mi">17</span>
+</span><span class='line'><span class="n">hardwareisa</span> <span class="o">=&gt;</span> <span class="n">x86_64</span>
+</span><span class='line'><span class="n">hardwaremodel</span> <span class="o">=&gt;</span> <span class="n">x86_64</span>
+</span><span class='line'><span class="n">ipaddress</span> <span class="o">=&gt;</span> <span class="mi">10</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">2</span><span class="o">.</span><span class="mi">15</span>
+</span><span class='line'><span class="n">ipaddress_eth0</span> <span class="o">=&gt;</span> <span class="mi">10</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">2</span><span class="o">.</span><span class="mi">15</span>
+</span><span class='line'><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span>
+</span><span class='line'><span class="n">operatingsystem</span> <span class="o">=&gt;</span> <span class="no">CentOS</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>facter是跨平台的，所以可以利用它来获取不同服务器的信息。
+比如Ansible中有专门的facter模块。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="o">~&gt;</span> <span class="n">ansible</span> <span class="n">vagrant</span> <span class="o">-</span><span class="n">m</span> <span class="n">facter</span> <span class="o">-</span><span class="n">i</span> <span class="n">hosts</span>
+</span><span class='line'><span class="n">vagrant</span> <span class="o">|</span> <span class="n">success</span> <span class="o">&gt;&gt;</span> <span class="p">{</span>
+</span><span class='line'>   <span class="s">&quot;architecture&quot;</span><span class="p">:</span> <span class="s">&quot;x86_64&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;augeasversion&quot;</span><span class="p">:</span> <span class="s">&quot;0.9.0&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;changed&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;domain&quot;</span><span class="p">:</span> <span class="s">&quot;localdomain&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;facterversion&quot;</span><span class="p">:</span> <span class="s">&quot;1.6.17&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;fqdn&quot;</span><span class="p">:</span> <span class="s">&quot;localhost.localdomain&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="s">&quot;hardwareisa&quot;</span><span class="p">:</span> <span class="s">&quot;x86_64&quot;</span><span class="p">,</span>
+</span><span class='line'> <span class="o">......</span>
+</span><span class='line'> <span class="sb">``</span><span class="err">`</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">在</span><span class="n">puppet</span><span class="err">中，可以如此使用</span><span class="p">:</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>puppet
+case $::operatingsystem {
+  &lsquo;CentOS&rsquo;: { include centos }
+  &lsquo;MacOS&rsquo;:  { include mac }
+}</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="err">因为</span><span class="n">facter</span><span class="err">的变量都是</span><span class="k">global</span><span class="err">的，所以直接使用</span><span class="sb">`$operatingsystem`</span><span class="err">也是可以的。</span>
+</span><span class='line'>
+</span><span class='line'><span class="err">有两种方式可以添加自定义的</span><span class="n">facter</span><span class="err">变量</span><span class="p">(</span><span class="n">fact</span><span class="p">)</span><span class="err">，其中通过环境变量的方式会比较容易，只要环境变量名是以</span><span class="sb">`FACTOR_`</span>
+</span><span class='line'><span class="err">开头，都可以通过</span><span class="n">facter</span><span class="err">读取到该变量。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>bash
+~> export FACTER_cartman_is_gay=&ldquo;true&rdquo;
+~> facter | grep cartman
+cartman_is_gay => true</p>
+
+<p>~> export FACTER_KYLE_MOM_IS_BITCH=&ldquo;true&rdquo;
+~> facter | grep kyle
+kyle_mom_is_bitch => true</p>
+
+<p>~> export FACTER_cartman_is_gay=&ldquo;false&rdquo;
+~> facter | grep cartman
+cartman_is_gay => false</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="err">可以看出，</span><span class="n">fact</span><span class="err">变量的大小写无关的，自定义的</span><span class="n">fact</span><span class="err">可以被</span><span class="n">override</span><span class="err">的，</span><span class="n">puppetlabs</span><span class="err">的文档中说系统</span><span class="n">fact</span>
+</span><span class='line'><span class="err">不能被</span><span class="n">override</span><span class="err">，但是貌似可以，不知道哪里出了问题。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>bash
+[vagrant@localhost ~]$ facter | grep operatingsystem
+operatingsystem => CentOS
+operatingsystemrelease => 6.4
+[vagrant@localhost ~]$ export FACTER_operatingsystem=&ldquo;Rock&rdquo;
+[vagrant@localhost ~]$ facter | grep operatingsystem
+operatingsystem => Rock
+operatingsystemrelease => 2.6.32-358.el6.x86_64
+```</p>
+
+<p>我们老一点的系统都部署在数据中心，所有的服务器的配置用puppet管理，基本上都是虚拟化，基于一个标准的
+镜像，标准镜像spin up的服务器中会添加一个自定义的fact，用来判断是否是自定义的系统。我其实不太喜欢
+这样的使用方式，首先这让puppet manifest的可读性降低了，找遍整个repo都不找不到在哪里定义的这个变
+量，其次，让puppet manifest对系统产生了依赖性，不够灵活。</p>
+
+<hr />
+
+<p><a href="https://puppetlabs.com/blog/facter-part-1-facter-101">1</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/puppet/2015/04/16/puppet-cron-pitfall">Puppet Cron Pitfall</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-04-16T00:00:00+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/puppet/2015/04/16/puppet-cron-pitfall#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/puppet/2015/04/16/puppet-cron-pitfall">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近完成了一个任务，内容是更新一个cron运行perl脚本的连接数据库的credential。该脚本用来清除数据库中一些
+过期的匿名用户，脚本部署在一个内网的服务器上，服务器的配置由puppet管理。脚本一直要保持运行，所以在
+脚本中会检查pid的modified time，如果小于一个小时，则进程退出。因此，在脚本第一次运行后，以后的cron
+运行的进程会自动退出。
+所以，我的计划是这样的:</p>
+
+<ol>
+<li>更新puppet管理的脚本内容中数据库连接的credential</li>
+<li>更改puppet中服务器中cron运行的时间为每两分钟运行一次，这样，下次运行时，脚本pick up新的配置</li>
+<li><code>puppet --test</code>应用配置更改</li>
+<li>停止正在运行的脚本，<code>pkill process</code></li>
+<li><code>touch -t some_old_time_stamp</code></li>
+<li>监控log，等待脚本启动</li>
+<li>监控数据库，是否有新的credential连接进程， <code>mysql -e "show full processlist;" | grep new_user</code></li>
+<li>一切运转正常，将puppet中cron的时间改回去并应用</li>
+</ol>
+
+
+<p>关于cron配置的代码原本如下,原本cron运行的时间为23:55:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">cron</span> <span class="p">{</span> <span class="na">test</span><span class="p">:</span>
+</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;some scripts&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="k">user</span> <span class="o">=&gt;</span> <span class="na">root</span><span class="p">,</span>
+</span><span class='line'>  <span class="na">hour</span> <span class="o">=&gt;</span> <span class="mi">23</span><span class="p">,</span>
+</span><span class='line'>  <span class="na">minute</span> <span class="o">=&gt;</span> <span class="mi">55</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>应用后生成的cron应该如此: <code>55 23 * * *  some scripts</code>
+更改后的puppet配置如下:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">cron</span> <span class="p">{</span> <span class="na">test</span><span class="p">:</span>
+</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;some scripts&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="k">user</span> <span class="o">=&gt;</span> <span class="na">root</span><span class="p">,</span>
+</span><span class='line'>  <span class="na">minute</span> <span class="o">=&gt;</span> <span class="s">&quot;*/2&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>期望应用后的cron应该如此: <code>*/2 * * * * some scripts</code>
+一切都非常顺利，直到step 6，等待日志输出时，发现时间过了4分钟还是没有日志，WTF!赶紧看了眼更改后的
+cron运行时间:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="o">*/</span><span class="mi">2</span> <span class="mi">22</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="na">some</span> <span class="na">scripts</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>顿时就震惊了，鉴于是产品环境，不敢担待，于是直接就顺手改了，两分钟后运行，如释重负。由此可见，puppet
+cron的这个地方是略坑的, 如果更改比较多，最好是指定完整的时间配置，如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">cron</span> <span class="p">{</span> <span class="na">test</span><span class="p">:</span>
+</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;some scripts&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="k">user</span> <span class="o">=&gt;</span> <span class="na">root</span><span class="p">,</span>
+</span><span class='line'>  <span class="na">year</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="na">month</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="na">day</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="na">hour</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="na">minute</span> <span class="o">=&gt;</span> <span class="s">&quot;*/2&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>话说这还不是最坑的地方，因为脚本还是没有顺利运行，真是日了狗了，不得不手动revert脚本，然后让脚本正常
+运行，然后再重新查看脚本，测试，查找问题在哪里。
+最后的原因实在是让人崩溃:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">die</span> <span class="s">&quot;ERROR: Missing or invalid database username &#39;$dbuser&#39;&quot;</span> <span class="k">unless</span> <span class="p">(</span><span class="nb">defined</span><span class="p">(</span><span class="nv">$dbuser</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nv">$dbuser</span> <span class="o">=~</span> <span class="sr">m/^[a-zA-Z0-9]+$/</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>新的<code>dbuser</code>名字中包含了连接线<code>-</code>，因为不能满足regex检查，所以程序直接退出了。实在是不能理解为什么
+会有这样的约束条件，我只知道mysql数据库用户的名字不能超过16个字符，但是没听说过限制数据库用户名字格式
+是个什么鬼。实在是无语，不过，我能理解，不会挖坑的程序员不是好程序员。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/ops/2015/02/16/essential-curl">Essential Curl</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-02-16T00:00:00+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/ops/2015/02/16/essential-curl#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/ops/2015/02/16/essential-curl">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>什么是curl</h3>
+
+<hr />
+
+<p><a href="http://curl.haxx.se/">curl</a>是我们在Linux下常用的下载文件或者测试web服务的工具，罗列下他们常
+用的一些场景，当做总结。curl支持多种网络协议,包括最新的HTTP/2。</p>
+
+<h3>获取网页源码</h3>
+
+<hr />
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl www.google.com
+</span><span class='line'>&lt;HTML&gt;&lt;HEAD&gt;&lt;meta http-equiv<span class="o">=</span><span class="s2">&quot;content-type&quot;</span> <span class="nv">content</span><span class="o">=</span><span class="s2">&quot;text/html;charset=utf-8&quot;</span>&gt;
+</span><span class='line'>&lt;TITLE&gt;302 Moved&lt;/TITLE&gt;&lt;/HEAD&gt;&lt;BODY&gt;
+</span><span class='line'>&lt;H1&gt;302 Moved&lt;/H1&gt;
+</span><span class='line'>The document has moved
+</span><span class='line'>&lt;A <span class="nv">HREF</span><span class="o">=</span><span class="s2">&quot;http://www.google.com.hk/url?sa=p&amp;amp;hl=zh-CN&amp;amp;pref=hkredirect&amp;amp;pval=yes&amp;amp;q=http://www.google.com.hk/%3Fgws_rd%3Dcr&amp;amp;ust=1423205620492528&amp;amp;usg=AFQjCNGJFP3kOpmF9vbNWK_cgRr7G5yffQ&quot;</span>&gt;here&lt;/A&gt;.
+</span><span class='line'>&lt;/BODY&gt;&lt;/HTML&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>文件下载</h3>
+
+<hr />
+
+<p><code>curl</code>缺省会输出文件的内容，用下面的命令可以用<code>curl</code>将文件保存到指定的目录，curl比较苦逼的地方在于，
+如果不是保存当前目录，需要自己指定要保存的文件名。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; <span class="nb">cd</span> /opt/ <span class="o">&amp;&amp;</span> curl -O http://ergonlogic.com/files/boxes/debian-current.box
+</span><span class='line'>~&gt; curl -o /opt/current.box http://ergonlogic.com/files/boxes/debian-current.box
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>多线程下载</h3>
+
+<hr />
+
+<p><code>curl</code>不支持多线程下载，我用过的一个多线程下载的工具是<a href="http://aria2.sourceforge.net/">aria2</a>，蛮好用的，而且这货还支持bt,ed2k等p2p协议下载。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; aria2c -x5 https://github.com/jose-lpa/veewee-openbsd/releases/download/v0.5.5/openbsd55.box
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>通过代理访问资源</h3>
+
+<hr />
+
+<p>有两种方式可以让<code>curl</code>使用proxy，第一种是通过设置环境变量，<code>http_proxy, https_proxy</code>等，用<code>no_proxy</code>去设置屏蔽代理的列表。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; <span class="nb">export </span><span class="nv">http_proxy</span><span class="o">=</span><span class="s2">&quot;http://proxy:3128&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>让proxy对一些地址无效。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; <span class="nb">export </span><span class="nv">no_proxy</span><span class="o">=</span><span class="s2">&quot;127.0.0.1,localhost.localdomain&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外一种是在运行命令时直接指定使用的proxy或者不使用proxy。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -x <span class="s2">&quot;http://proxy:3128&quot;</span> www.google.com
+</span><span class='line'>~&gt; curl -x <span class="s2">&quot;socks5://proxy:3128&quot;</span> www.google.com
+</span><span class='line'>~&gt; curl --noproxy * www.google.com
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>curl的<code>--noproxy</code>是需要指定一个exclude的列表。</p>
+
+<h3>花式下载和断点续传</h3>
+
+<hr />
+
+<p>对于很规则的下载url，可以通配符或者正则来处理，比如我想下载自己博客的几个图片。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -O http://iambowen.github.io/images/<span class="o">[</span>1-3<span class="o">]</span>.png
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>1/3<span class="o">]</span>: http://iambowen.github.io/images/1.png --&gt; 1.png
+</span><span class='line'>--_curl_--http://iambowen.github.io/images/1.png
+</span><span class='line'> % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+</span><span class='line'>                                Dload  Upload   Total   Spent    Left  Speed
+</span><span class='line'><span class="m">100</span>  222k  <span class="m">100</span>  222k    <span class="m">0</span>     <span class="m">0</span>  <span class="m">59816</span>      <span class="m">0</span>  0:00:03  0:00:03 --:--:-- 59808
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>2/3<span class="o">]</span>: http://iambowen.github.io/images/2.png --&gt; 2.png
+</span><span class='line'>--_curl_--http://iambowen.github.io/images/2.png
+</span><span class='line'><span class="m">100</span>  342k  <span class="m">100</span>  342k    <span class="m">0</span>     <span class="m">0</span>  <span class="m">33117</span>      <span class="m">0</span>  0:00:10  0:00:10 --:--:-- 48607
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>3/3<span class="o">]</span>: http://iambowen.github.io/images/3.png --&gt; 3.png
+</span><span class='line'>--_curl_--http://iambowen.github.io/images/3.png
+</span><span class='line'><span class="m">100</span>  208k  <span class="m">100</span>  208k    <span class="m">0</span>     <span class="m">0</span>  <span class="m">32245</span>      <span class="m">0</span>  0:00:06  0:00:06 --:--:-- 39914
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>断点续传,除了保证文件完整性，还可以检查文件是否有变动，如果有变化则更新，没有则保持文件原有状态。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -O -C http://ergonlogic.com/files/boxes/debian-current.box
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>获取headers信息</h3>
+
+<hr />
+
+<p>有时候，我们只需要看到返回的headers信息，查看cache是否命中，或者返回码。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -I www.baidu.com
+</span><span class='line'>HTTP/1.1 <span class="m">200</span> OK
+</span><span class='line'>Date: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 08:25:12 GMT
+</span><span class='line'>Content-Type: text/html<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>utf-8
+</span><span class='line'>Connection: Keep-Alive
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>传说使用<code>telnet</code>命令可能拿到更多的http headers信息，无法验证，方式如下。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; telnet <span class="m">0</span> 4000
+</span><span class='line'>Trying 0.0.0.0...
+</span><span class='line'>Connected to 0.
+</span><span class='line'>Escape character is <span class="s1">&#39;^]&#39;</span>.
+</span><span class='line'>GET / HTTP/1.1
+</span><span class='line'>HOST: 127.0.0.1:4000
+</span><span class='line'>
+</span><span class='line'>HTTP/1.1 <span class="m">200</span> OK
+</span><span class='line'>Etag: 232a2c-320c-54d9ce22
+</span><span class='line'>Content-Type: text/html
+</span><span class='line'>Content-Length: 12812
+</span><span class='line'>Last-Modified: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 09:23:46 GMT
+</span><span class='line'>Server: WEBrick/1.3.1 <span class="o">(</span>Ruby/1.9.3/2014-11-13<span class="o">)</span>
+</span><span class='line'>Date: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 09:29:24 GMT
+</span><span class='line'>Connection: Keep-Alive
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>follow redirection信息</h3>
+
+<hr />
+
+<p>有时候访问的资源，可能被临时或者永久转移，所以会有中间跳转的过程，但是直接去<code>curl</code>是拿不到完整信息的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -I www.google.com
+</span><span class='line'>HTTP/1.1 <span class="m">302</span> Found
+</span><span class='line'>Location: http://www.google.com.hk/url?sa<span class="o">=</span>p<span class="p">&amp;</span><span class="nv">hl</span><span class="o">=</span>zh-CN<span class="p">&amp;</span><span class="nv">pref</span><span class="o">=</span>hkredirect<span class="p">&amp;</span><span class="nv">pval</span><span class="o">=</span>yes<span class="p">&amp;</span><span class="nv">q</span><span class="o">=</span>http://www.google.com.hk/%3Fgws_rd%3Dcr<span class="p">&amp;</span><span class="nv">ust</span><span class="o">=</span>1423564147298386<span class="p">&amp;</span><span class="nv">usg</span><span class="o">=</span>AFQjCNHZ7kXJXOfOQyCSOQ6ZGOPjeVaIYg
+</span><span class='line'>Cache-Control: private
+</span><span class='line'>Content-Type: text/html<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>UTF-8
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过下面的方式可以拿到所有的返回信息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -LI www.google.com
+</span><span class='line'>HTTP/1.1 <span class="m">302</span> Found
+</span><span class='line'>Location: http://www.google.com.hk/url?sa<span class="o">=</span>p<span class="p">&amp;</span><span class="nv">hl</span><span class="o">=</span>zh-CN<span class="p">&amp;</span><span class="nv">pref</span><span class="o">=</span>hkredirect<span class="p">&amp;</span><span class="nv">pval</span><span class="o">=</span>yes<span class="p">&amp;</span><span class="nv">q</span><span class="o">=</span>http://www.google.com.hk/%3Fgws_rd%3Dcr<span class="p">&amp;</span><span class="nv">ust</span><span class="o">=</span>1423559822825114<span class="p">&amp;</span><span class="nv">usg</span><span class="o">=</span>AFQjCNEEY2qyq9HghaQVZ89ugMv9kvDlLA
+</span><span class='line'>......
+</span><span class='line'>
+</span><span class='line'>HTTP/1.1 <span class="m">302</span> Found
+</span><span class='line'>Location: http://www.google.com.hk/?gws_rd<span class="o">=</span>cr
+</span><span class='line'>......
+</span><span class='line'>
+</span><span class='line'>HTTP/1.1 <span class="m">200</span> OK
+</span><span class='line'>Date: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 09:16:35 GMT
+</span><span class='line'>Expires: -1
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>加入验证的请求</h3>
+
+<hr />
+
+<p>有时候在请求一些资源时，需要通过验证才能完成访问，可以用<code>username:password</code>加URL即可。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl http://user:password@echo.httpkit.com?queryString
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>伪装user agent的请求</h3>
+
+<hr />
+
+<p>有的服务器可能会限制访问的User-Agent类型，用curl测试的时候可以用相应得参数进行伪装。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl  echo.httpkit.com
+</span><span class='line'> <span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
+</span><span class='line'>   <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;curl/7.37.1&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>~&gt;  curl -A <span class="s2">&quot;Bad Ass&quot;</span>  echo.httpkit.com
+</span><span class='line'> <span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
+</span><span class='line'>   <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Bad Ass&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>
+</span><span class='line'> <span class="o">}</span>,
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>发起HTTP请求</h3>
+
+<hr />
+
+<p>用<code>-X</code>可以指定发起请求的HTTP方法, 如果用<code>POST</code>或者<code>PUT</code>等方法，可以用 <code>-d</code>指定request body，<code>-H</code>可以指定请求的一些Headers。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -X PUT -H <span class="s1">&#39;Content-Type: application/json&#39;</span> -d <span class="s1">&#39;{&quot;firstName&quot;:&quot;Kris&quot;, &quot;lastName&quot;:&quot;Jordan&quot;}&#39;</span> echo.httpkit.com
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'> <span class="s2">&quot;method&quot;</span>: <span class="s2">&quot;PUT&quot;</span>,
+</span><span class='line'> <span class="s2">&quot;uri&quot;</span>: <span class="s2">&quot;/&quot;</span>,
+</span><span class='line'> <span class="s2">&quot;path&quot;</span>: <span class="o">{</span>
+</span><span class='line'>   <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;/&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;query&quot;</span>: <span class="s2">&quot;&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;params&quot;</span>: <span class="o">{}</span>
+</span><span class='line'> <span class="o">}</span>,
+</span><span class='line'> <span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
+</span><span class='line'>   <span class="s2">&quot;x-forwarded-for&quot;</span>: <span class="s2">&quot;210.74.157.146&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;curl/7.37.1&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;content-type&quot;</span>: <span class="s2">&quot;application/json&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;content-length&quot;</span>: <span class="s2">&quot;41&quot;</span>
+</span><span class='line'> <span class="o">}</span>,
+</span><span class='line'> <span class="s2">&quot;body&quot;</span>: <span class="s2">&quot;{\&quot;firstName\&quot;:\&quot;Kris\&quot;, \&quot;lastName\&quot;:\&quot;Jordan\&quot;}&quot;</span>,
+</span><span class='line'> <span class="s2">&quot;ip&quot;</span>: <span class="s2">&quot;127.0.0.1&quot;</span>,
+</span><span class='line'> <span class="s2">&quot;powered-by&quot;</span>: <span class="s2">&quot;http://httpkit.com&quot;</span>,
+</span><span class='line'> <span class="s2">&quot;docs&quot;</span>: <span class="s2">&quot;http://httpkit.com/echo&quot;</span>
+</span><span class='line'> <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>上传文件</h3>
+
+<hr />
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl --form <span class="s2">&quot;fileupload=@filename.txt&quot;</span> http://hostname/resource
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>处理cookies</h3>
+
+<hr />
+
+<p>保存cookies到本地</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; curl -c echo.cookies  http://www.baidu.com &gt; /dev/null
+</span><span class='line'>  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+</span><span class='line'>                                 Dload  Upload   Total   Spent    Left  Speed
+</span><span class='line'><span class="m">100</span> <span class="m">88672</span>    <span class="m">0</span> <span class="m">88672</span>    <span class="m">0</span>     <span class="m">0</span>   298k      <span class="m">0</span> --:--:-- --:--:-- --:--:--  297k
+</span><span class='line'> ~&gt; less echo.cookies
+</span><span class='line'><span class="c"># Netscape HTTP Cookie File</span>
+</span><span class='line'><span class="c"># http://curl.haxx.se/docs/http-cookies.html</span>
+</span><span class='line'><span class="c"># This file was generated by libcurl! Edit at your own risk.</span>
+</span><span class='line'>
+</span><span class='line'>.baidu.com      TRUE    /       FALSE   <span class="m">3571557287</span>      BAIDUID 287BE3DB1621FDE977C39D21BD02CA45:FG<span class="o">=</span>1
+</span><span class='line'>.baidu.com      TRUE    /       FALSE   <span class="m">3571557287</span>      BAIDUPSID       287BE3DB1621FDE977C39D21BD02CA45
+</span><span class='line'>www.baidu.com   FALSE   /       FALSE   <span class="m">0</span>       BDSVRTM 0
+</span><span class='line'>www.baidu.com   FALSE   /       FALSE   <span class="m">0</span>       BD_HOME 0
+</span><span class='line'>.baidu.com      TRUE    /       FALSE   <span class="m">0</span>       H_PS_PSSID      10422_1449_11089
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用cookie 发起请求</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -b echo.cookies  http://www.baidu.com &gt; /dev/null
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>fail on error</h3>
+
+<hr />
+
+<p>对于服务器端错误，http请求没有任何输出，<code>curl</code>的返回为0，使用<code>-f</code>参数可以在遇到服务器错误是返回非0(22)。
+最近在完成一个用Bamboo host的package去部署的任务的时候用到了这个参数，一旦下载package出错，部署会中断。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -f http://iambowen.github.io/ksjdkfsjdf
+</span><span class='line'>curl: <span class="o">(</span>22<span class="o">)</span> The requested URL returned error: <span class="m">404</span> Not Found
+</span><span class='line'>~&gt; <span class="nb">echo</span> <span class="nv">$?</span>
+</span><span class='line'>22
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>从浏览器"偷取"curl的命令</h3>
+
+<hr />
+
+<p>觉得<code>curl</code>指令太难记忆，可以直接从浏览器中"偷"取， Chrome提供了这样的功能:</p>
+
+<p><img src="/images/curl.png" alt="chrome" /></p>
+
+<h3>References</h3>
+
+<hr />
+
+<p><a href="http://www.ruanyifeng.com/blog/2011/09/curl.html">1</a>
+<a href="https://gist.github.com/303182519/132568fd0e58cae57202">2</a>
+<a href="http://httpkit.com/resources/HTTP-from-the-Command-Line/">3</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/ops/2015/02/06/essential-wget">Essential Wget</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-02-06T00:00:00+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/ops/2015/02/06/essential-wget#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/ops/2015/02/06/essential-wget">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>什么wget</h3>
+
+<hr />
+
+<p><a href="https://www.gnu.org/software/wget/">wget</a>是*nix下常用的下载文件或者测试web服务的工具，
+wget支持多种网络协议，但是从介绍看，wget更像是一个文件下载工具。</p>
+
+<h3>获取网页源码</h3>
+
+<hr />
+
+<p><code>wget</code>默认会将网页或者文件直接下载保存,所以直接显示返回内容的话，可以用 <code>-q</code>关闭<code>wget</code>的输出,然后用<code>-O -</code>
+将输出重定向到标准输出，然后用<code>cat</code>将内容打印出来。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget echo.httpkit.com
+</span><span class='line'>--2015-02-10 11:01:50--  http://echo.httpkit.com/
+</span><span class='line'>Resolving echo.httpkit.com... 50.112.251.120
+</span><span class='line'>Connecting to echo.httpkit.com<span class="p">|</span>50.112.251.120<span class="p">|</span>:80... connected.
+</span><span class='line'>HTTP request sent, awaiting response... <span class="m">200</span> OK
+</span><span class='line'>Length: <span class="m">374</span> <span class="o">[</span>application/json<span class="o">]</span>
+</span><span class='line'>Saving to: ‘index.html’
+</span><span class='line'>
+</span><span class='line'>~&gt; wget -qO - echo.httpkit.com <span class="p">|</span> cat
+</span><span class='line'>......
+</span><span class='line'> <span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
+</span><span class='line'>   <span class="s2">&quot;x-forwarded-for&quot;</span>: <span class="s2">&quot;210.74.157.146&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Wget/1.14 (darwin12.5.0)&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>
+</span><span class='line'> <span class="o">}</span>,
+</span><span class='line'> ......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>文件下载</h3>
+
+<hr />
+
+<p><code>wget</code>缺省会将url中最后的文件作为文件名并且将文件保存在本地，用下面的命令可以将文件保存到指定的目录，这点比<code>curl</code>要好。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget -P /opt http://ergonlogic.com/files/boxes/debian-current.box
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>通过代理访问资源</h3>
+
+<hr />
+
+<p>有两种方式可以让<code>wget</code>时使用proxy，第一种是通过设置环境变量，<code>http_proxy, https_proxy</code>。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; <span class="nb">export </span><span class="nv">http_proxy</span><span class="o">=</span><span class="s2">&quot;http://proxy:3128&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>让proxy对一些地址无效。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; <span class="nb">export </span><span class="nv">no_proxy</span><span class="o">=</span><span class="s2">&quot;127.0.0.1,localhost.localdomain&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外一种是在运行命令时直接指定使用的proxy或者不使用proxy。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget  -e <span class="nv">http_proxy</span><span class="o">=</span>127.0.0.1:8080 www.baidu.com
+</span><span class='line'>~&gt; wget --no-proxy www.baidu.com
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>同样是不使用proxy，curl的<code>--noproxy</code>是需要指定一个exclude的列表，但是wget的<code>--no-proxy</code>就是
+针对当前访问资源，不使用proxy。</p>
+
+<h3>花式下载和断点续传</h3>
+
+<hr />
+
+<p>对于wildcard支持，wget的介绍感觉有点乱，提供的参数看上去不怎么友好，想实现和<code>curl</code>中一样的效果，可能要换个方式。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget  http://iambowen.github.io/images/<span class="o">{</span>1..3<span class="o">}</span>.png
+</span><span class='line'>--2015-02-17 14:19:35--  http://iambowen.github.io/images/1.png
+</span><span class='line'>Resolving iambowen.github.io... 103.245.222.133
+</span><span class='line'>Connecting to iambowen.github.io<span class="p">|</span>103.245.222.133<span class="p">|</span>:80... connected.
+</span><span class='line'>HTTP request sent, awaiting response... <span class="m">200</span> OK
+</span><span class='line'>Length: <span class="m">227632</span> <span class="o">(</span>222K<span class="o">)</span> <span class="o">[</span>image/png<span class="o">]</span>
+</span><span class='line'>Saving to: ‘1.png’
+</span><span class='line'>--2015-02-17 14:19:35--  http://iambowen.github.io/images/2.png
+</span><span class='line'>Reusing existing connection to iambowen.github.io:80.
+</span><span class='line'>HTTP request sent, awaiting response... <span class="m">200</span> OK
+</span><span class='line'>Length: <span class="m">350735</span> <span class="o">(</span>343K<span class="o">)</span> <span class="o">[</span>image/png<span class="o">]</span>
+</span><span class='line'>Saving to: ‘2.png’
+</span><span class='line'>.....
+</span><span class='line'>Saving to: ‘3.png’
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>获取headers信息</h3>
+
+<hr />
+
+<p>wget可以用<code>-S</code>参数来查看返回的header信息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget -qS www.baidu.com
+</span><span class='line'> HTTP/1.1 <span class="m">200</span> OK
+</span><span class='line'> Date: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 08:27:27 GMT
+</span><span class='line'> Content-Type: text/html<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>utf-8
+</span><span class='line'> Transfer-Encoding: chunked
+</span><span class='line'> Connection: Keep-Alive
+</span><span class='line'> ......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>返回redirection信息</h3>
+
+<hr />
+
+<p>不同于curl，wget缺省就是follow redirections。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget -qS www.google.com
+</span><span class='line'> HTTP/1.1 <span class="m">302</span> Found
+</span><span class='line'> Location: http://www.google.com.hk/url?sa<span class="o">=</span>p<span class="p">&amp;</span><span class="nv">hl</span><span class="o">=</span>zh-CN<span class="p">&amp;</span><span class="nv">pref</span><span class="o">=</span>hkredirect<span class="p">&amp;</span><span class="nv">pval</span><span class="o">=</span>yes<span class="p">&amp;</span><span class="nv">q</span><span class="o">=</span>http://www.google.com.hk/%3Fgws_rd%3Dcr<span class="p">&amp;</span><span class="nv">ust</span><span class="o">=</span>1423559992840904<span class="p">&amp;</span><span class="nv">usg</span><span class="o">=</span>AFQjCNFkDUqlbUFFIcVDOEXMELBQnEsZIA
+</span><span class='line'> Cache-Control: private
+</span><span class='line'> Content-Type: text/html<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>UTF-8
+</span><span class='line'> ......
+</span><span class='line'> HTTP/1.1 <span class="m">302</span> Found
+</span><span class='line'> Location: http://www.google.com.hk/?gws_rd<span class="o">=</span>cr
+</span><span class='line'> Cache-Control: private
+</span><span class='line'> ......
+</span><span class='line'> HTTP/1.1 <span class="m">200</span> OK
+</span><span class='line'> Date: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 09:19:23 GMT
+</span><span class='line'> Expires: -1
+</span><span class='line'> ......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>加入验证的请求</h3>
+
+<hr />
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget http://user:password@echo.httpkit.com?queryString
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>伪装user agent的请求</h3>
+
+<hr />
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --user-agent<span class="o">=</span><span class="s2">&quot;Mozilla: Gay&quot;</span> -qO- echo.httpkit.com <span class="p">|</span> cat
+</span><span class='line'><span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
+</span><span class='line'>  <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Mozilla: Gay&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>-U</code>的作用和<code>--user-agent</code>一样, wget的option parse是用<code>getopt</code>实现，所以可以理解<code>-U</code>的存在。</p>
+
+<h3>request with HTTP header</h3>
+
+<hr />
+
+<p>使用<code>--header=String</code>去添加header,可以在一个请求中设置多次。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --header<span class="o">=</span><span class="s2">&quot;Cartman: is bitch&quot;</span>  --header<span class="o">=</span><span class="s2">&quot;JB: stands for Justin Bieber&quot;</span> -qO- echo.httpkit.com <span class="p">|</span> cat
+</span><span class='line'>.....
+</span><span class='line'> <span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
+</span><span class='line'>   <span class="s2">&quot;x-forwarded-for&quot;</span>: <span class="s2">&quot;210.74.157.146&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Wget/1.14 (darwin12.5.0)&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;cartman&quot;</span>: <span class="s2">&quot;is bitch&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;jb&quot;</span>: <span class="s2">&quot;stands for Justin Bieber&quot;</span>
+</span><span class='line'> <span class="o">}</span>,
+</span><span class='line'>.....
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>HTTP 请求</h3>
+
+<hr />
+
+<p><code>wget</code>支持自定义HTTP请求类型，可以用<code>--method=</code>去指定HTTP请求的方法，注意，比较老的版本中没有提供这项功能。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --method<span class="o">=</span><span class="s2">&quot;PUT&quot;</span> --header<span class="o">=</span><span class="s1">&#39;Content-Type: application/json&#39;</span> --body-data<span class="o">=</span><span class="s2">&quot;firstName=Kris&amp;lastName=Jordan&quot;</span> echo.httpkit.com
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'><span class="s2">&quot;method&quot;</span>: <span class="s2">&quot;PUT&quot;</span>,
+</span><span class='line'>......
+</span><span class='line'><span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
+</span><span class='line'>  <span class="s2">&quot;x-forwarded-for&quot;</span>: <span class="s2">&quot;210.74.157.146&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Wget/1.16.1 (darwin14.0.0)&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;accept-encoding&quot;</span>: <span class="s2">&quot;identity&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;content-type&quot;</span>: <span class="s2">&quot;application/json&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;content-length&quot;</span>: <span class="s2">&quot;30&quot;</span>
+</span><span class='line'><span class="o">}</span>,
+</span><span class='line'><span class="s2">&quot;body&quot;</span>: <span class="s2">&quot;firstName=Kris&amp;lastName=Jordan&quot;</span>,
+</span><span class='line'>......
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果是用POST方法则简单了许多，直接指定请求的body string就可以。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --header<span class="o">=</span><span class="s1">&#39;Content-Type: application/json&#39;</span> --post-data<span class="o">=</span><span class="s2">&quot;firstName=Kris&amp;lastName=Jordan&quot;</span> -qO- echo.httpkit.com <span class="p">|</span> cat
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'><span class="s2">&quot;method&quot;</span>: <span class="s2">&quot;POST&quot;</span>,
+</span><span class='line'>......
+</span><span class='line'><span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
+</span><span class='line'>  <span class="s2">&quot;x-forwarded-for&quot;</span>: <span class="s2">&quot;210.74.157.146&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Wget/1.16.1 (darwin14.0.0)&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;accept-encoding&quot;</span>: <span class="s2">&quot;identity&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;content-type&quot;</span>: <span class="s2">&quot;application/json&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;content-length&quot;</span>: <span class="s2">&quot;30&quot;</span>
+</span><span class='line'><span class="o">}</span>,
+</span><span class='line'><span class="s2">&quot;body&quot;</span>: <span class="s2">&quot;firstName=Kris&amp;lastName=Jordan&quot;</span>,
+</span><span class='line'>......
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>组装body的方式比curl要稍微简单些，但是不太直观，不是很喜欢。</p>
+
+<h3>处理cookies</h3>
+
+<hr />
+
+<p>保存cookie到本地</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --save-cookies cookies.txt -q www.baidu.com
+</span><span class='line'>~&gt; less cookies.txt
+</span><span class='line'><span class="c"># HTTP cookie file.</span>
+</span><span class='line'><span class="c"># Generated by Wget on 2015-02-17 16:05:04.</span>
+</span><span class='line'><span class="c"># Edit at your own risk.</span>
+</span><span class='line'>
+</span><span class='line'>.baidu.com      TRUE    /       FALSE   <span class="m">3571643951</span>      BAIDUPSID       3603BF98B1056E609FE72D7D976C0235
+</span><span class='line'>.baidu.com      TRUE    /       FALSE   <span class="m">3571643951</span>      BAIDUID 3603BF98B1056E609FE72D7D976C0235:FG<span class="o">=</span>1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>请求时携带cookie</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --load-cookies cookies.txt  -q www.baidu.com
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>除此之外，还可以在请求时的header中添加cookie信息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>wget --no-cookies --header <span class="s2">&quot;Cookie: name=value&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>FYI</h3>
+
+<hr />
+
+<p>wget还有一些其他的黑科技，比如可以下载整个网站之类的，不过平常应该不太会用到。
+Anyway,还是觉得curl要比wget好用些-_-!</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/apache/2015/01/27/apache-rewrite-rules">Apache Rewrite Rules</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-27T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/apache/2015/01/27/apache-rewrite-rules#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/apache/2015/01/27/apache-rewrite-rules">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>什么是Apache</h3>
+
+<hr />
+
+<p><a href="http://httpd.apache.org/">Apache</a>是一款开源的HTTP服务器，长期占据服务器市场第一名的位置。</p>
+
+<h3>什么是URL rewriting</h3>
+
+<hr />
+
+<p>有时候，为了让URL对用户友好，方便记忆，或是SEO优化，我们会使用更加简单的URL，比如<a href="http://example.com/help.html">http://example.com/help.html</a>
+但是实际开发人员命名的静态html文件名为help_2014_12_12.html,在这种情况下，就需要重写URL，让服务器
+返回正确的页面(只是个例子)，亦或是原来的页面更换了新的域名，需要告诉搜索引擎或者浏览器新的地址，都需要
+重写URL。URL重写后，会返回给浏览器重写后的链接以及3xx的返回码，然后浏览器会请求重写后链接的内容。</p>
+
+<h3>301 和 302的区别</h3>
+
+<hr />
+
+<ul>
+<li><em>301</em>: 永久性转移(Permanently Moved)</li>
+<li><em>302</em>: 暂时性转移(Temporarily Moved)</li>
+</ul>
+
+
+<p>从效果上来讲它们都会造成跳转，区别在于SEO。如果是301跳转，那么搜索引擎将A页面的Pagerank导入
+到跳转后的B页面，搜索引擎以后会忽略A页面，只在搜索结果中显示B页面。如果是302跳转，搜索引擎会保留A页面
+的PR，但是显示的内容可能B页面的。</p>
+
+<h3>Apache rewrite module</h3>
+
+<hr />
+
+<p><a href="http://httpd.apache.org/docs/current/mod/mod_rewrite.html">mod_rewrite</a>是Apache中提供得基于规则的rewriting引擎，加载模块后重启apache就可以使用了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>apachectl -t -D DUMP_MODULES <span class="p">|</span> grep rewrite
+</span><span class='line'><span class="c"># 如果没有加载</span>
+</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>a2enmod rewrite
+</span><span class='line'>Enabling module rewrite.
+</span><span class='line'>Could not create /etc/apache2/mods-enabled/rewrite.load: Permission denied
+</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>sudo a2enmod rewrite
+</span><span class='line'>Enabling module rewrite.
+</span><span class='line'>To activate the new configuration, you need to run:
+</span><span class='line'>service apache2 restart
+</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>less /etc/apache2/mods-enabled/rewrite.load
+</span><span class='line'>LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在<code>http.conf</code>文件中可以引用具体的rewrite规则文件，如下</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>RewriteEngine on
+</span><span class='line'>RewriteLog /var/log/www/server.rewrite.log
+</span><span class='line'>RewriteLogLevel 1
+</span><span class='line'>Include /web/conf/httpd/conf.d/rewrites.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>根据需求将rewrite的规则写入<code>rewrites.conf</code>中即可。</p>
+
+<h3>rewrite配置文件的写法</h3>
+
+<p>基本上来说，重写URL就是在<code>􏰭􏰆􏰖􏰉􏰃􏰏􏰆􏰓􏰊􏰕􏰌RewriteCond</code>下，执行自定义的<code>RewriteRule</code>，通过Server Variables
+以及正则等匹配的方式，返回结果以及正确的返回码。</p>
+
+<h2>域名的转换</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span>  %{HTTP_HOST}   ^www\.example\.com$  [NC]
+</span><span class='line'><span class="nb">RewriteRule</span>  ^(.*)$         http://www.example2.com/$1  [R=301,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第一行是触发URL重写的条件，Flag <code>NC</code> 表示匹配时无视大小写，第二行表示在前一个条件满足时重写URL，
+同时返回<code>301</code>, <code>L</code>表示本次重写URL的行为结束。</p>
+
+<h3>临时更改页面地址</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteRule</span> ^page.html$   new_page.html   [R=302,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>更改 Query String</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} a=something
+</span><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} b=(else1|else2)
+</span><span class='line'><span class="nb">RewriteRule</span> ^/some_query_here$ http://www.example3.com/redirect? [R=301,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在Query String匹配 &ldquo;a=something"的前提下，如果后面的Query String匹配<code>b=else1</code>或者<code>b=else2</code>
+则重写URL，<code>?</code>表示截断URL。</p>
+
+<p>最近在做一张卡的时候，要重写的URL类似</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="err">http://www</span>.<span class="err">example</span>.<span class="err">com/</span><span class="c">#category=Water Ball</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果直接将URL写在RewriteRule里面，Apache缺省会将URL中的特殊字符转义，比如会变成</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="err">http://www</span>.<span class="err">example</span>.<span class="err">com/%23category=Water%20</span><span class="nb">Ball</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>要防止Apache将其转义，可以在Flag中加<code>NE</code>，同时注意Flag之间不能有空格。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} b=something
+</span><span class='line'><span class="nb">RewriteRule</span> ^/some_query_here$ http://www.example.com/#category=Walter\ Ball? [R=301,NE,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>体会</h3>
+
+<p>Apache的URL重写规则感觉还是比较简单，而且很强大。</p>
+
+<h3>references</h3>
+
+<ol>
+<li><a href="https://www.addedbytes.com/articles/for-beginners/url-rewriting-for-beginners/">rewriting for beginners</a></li>
+<li><a href="http://www.addedbytes.com/apache/mod_rewrite-cheat-sheet/">rewrite cheat sheet</a></li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/tests/2015/01/26/dimension-of-tests">Dimensions of Test</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-26T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/tests/2015/01/26/dimension-of-tests#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/tests/2015/01/26/dimension-of-tests">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>前几周给一个客户介绍了关于<a href="">持续交付</a>的内容，他们特别关注概念以及细节，当时我在介绍自动化测试的时候，
+分类比较简单，感觉回答的不是很好，于是重新整理下思路，总结成文。</p>
+
+<h3>软件测试的定义</h3>
+
+<hr />
+
+<p>对于软件测试的定义不尽相同，其经典定义是:在规定的条件下对程序进行操作，以发现程序错误，衡量软件质量，并对其是否能满足设计要求进行评估的过程。</p>
+
+<h3>软件测试的分类</h3>
+
+<hr />
+
+<p>测试的分类很多，可以按照不同的角度去划分，比如</p>
+
+<ol>
+<li>功能/非功能测试</li>
+<li>静态/动态测试(是否执行程序)</li>
+<li>白盒/黑盒/灰盒测试(是否关心软件内部结构和具体实现)</li>
+<li>按照软件开发过程划分</li>
+</ol>
+
+
+<p>我自己更倾向于按照软件开发的过程去划分，同时，将测试的范围扩大到软件的整个生命周期，不止是开发测试，还要包括部署、产品的监控以及对基础架构的测试。如此，则有以下(不限于)分类:</p>
+
+<ul>
+<li>Unit Testing</li>
+<li>Integration Testing</li>
+<li>Functional Testing</li>
+<li>Smoke Testing</li>
+<li>E2E Testing</li>
+<li>Regression Testing</li>
+<li>Acceptance Testing</li>
+<li>Exploratory Testing</li>
+<li>Performance Testing</li>
+<li>Infrastructure Testing</li>
+</ul>
+
+
+<p>以上除接受测试和探索性测试之外，都应当是自动化的。</p>
+
+<h3>Test Pyramid(软件测试金字塔)</h3>
+
+<hr />
+
+<p>测试金字塔是Mike Cohn提出的概念，意思是测试从上到下-功能性测试到单元测试，数量由少到多，呈一个金字塔形。</p>
+
+<p><img src="http://martinfowler.com/bliki/images/testPyramid/pyramid.png" alt="pyramid" /></p>
+
+<p>上图引自Martin Fowler的测试金字塔的文章，其实不用他说，写过测试的都知道，单元测试的成本最低，运行
+速度最快，但是到功能性测试，需要启动UI/浏览器去测试，成本很高，所以单元测试可以多考虑edge case，而
+功能性测试只考虑happy path。曾经参与过一个项目，基本上严格执行BDD的开发方式，用<a href="http://cukes.info/">Cucumber</a>写了大量的测试，
+但是每个产品的功能测试，运行完成都会超过一个小时，最后只能通过切分测试，多加几个Jenkins Slave去并行运行，才将构建的时间降到半个小时左右。</p>
+
+<h3>Unit Testing(单元测试)</h3>
+
+<hr />
+
+<p>对于每个开发人员来说，对于单元测试来说应该都很熟悉。在我看来，写单元测试的好处在于:</p>
+
+<ol>
+<li>可重复自动运行，验证成本很小</li>
+<li>代码为文档，测试可以帮助理解程序或者业务逻辑</li>
+<li>单元测试一般粒度较小，因此发现问题，定位会比较快</li>
+</ol>
+
+
+<p>当然，也有人反对单元测试，认为大多数的单元测试都是废柴，比如<a href="http://www.rbcs-us.com/documents/Why-Most-Unit-Testing-is-Waste.pdf">这位</a>,可能很多认为在代码或者逻辑不太改变的情况下，单元测试在运行之后就没有什么太大的用处，但是一旦代码有任何调整，有单元测试是你重构的信心来源。
+单元测试做到什么粒度，也是有争议的，我司曾经提出过功能性单元测试(Functional Level Unit Testing)，可以认为是单元测试粒度放大，针对具体的功能。
+单元测试的覆盖率应该是多少，也有争议，我当时的项目做到了后端代码100%测试覆盖率，js代码做到了70%-90%的测试覆盖率。有些人认为只针对关键功能，比如算法写单元测试就可以了，80%
+就是很不错得测试覆盖率了。不过，上次苹果的一个安全漏洞，就是一段很简单的代码，如果有一个test case覆盖到的话，应该就不会出问题了。
+单元测试的代码往往要多于产品代码，有时候维护也是个问题。</p>
+
+<h3>TDD(测试驱动开发)</h3>
+
+<hr />
+
+<p>提到单元测试就不得不说一下TDD测试驱动开发了，测试驱动开发就是在写实现代码之前先写测试，遵循下面的步骤:
+1. 写测试，运行，失败(红)
+2. 实现代码，运行测试,成功(绿)
+3. 重构，运行测试，成功(绿)</p>
+
+<p>这也就是TDD的两顶帽子，功能实现和重构，每次只能戴上其中一顶。
+上面的描述缺少了TDD实践中一个很重要的环节，tasking，也就是将story分解成粒度更小的test case，然后划定实现的步骤，小步快跑。</p>
+
+<p>从实际的项目中来看，TDD对于理清需求是有帮助的，有助于业务实现的正确性，保证了测试覆盖率，而且一旦建立
+这种节奏，稳步向前带来的自信感非常好。
+目前TDD的使用在国内外也是有争议的，我觉得很大程度上和敏捷社区如何推动这个技术实践的态度有关系，过于
+强势，“不做TDD就怎么怎么了”，很容易让人反感，说实话我也很反感这样。用不用TDD和你的业务成功与否没有
+直接的关联，加之TDD实际上降低了对程序员的要求(责任感>能力)，所以切实实践过或者是大神们认为它有缺点
+是很正常的一件事情，不过水平一般且没有实际的体会就不要附和了。</p>
+
+<p>去年这个话题炒得很热，一定程度上因为<a href="http://david.heinemeierhansson.com/">DHH</a>(Rails框架的创始人)的一篇文章<a href="http://david.heinemeierhansson.com/2014/tdd-is-dead-long-live-testing.html">TDD is Dead</a>,之后他和Uncle Bob以及我司的Martin Fowler展开了一系列的<a href="http://martinfowler.com/articles/is-tdd-dead/">论战</a>。这种论战过程有趣，结果没什么意思，因为大神都比较顽固，不容易放弃自己的想法，不过不论他们怎么说，"Long Live The Testing"，这点是要承认的。</p>
+
+<p>我个人对于TDD，觉得还是要宽容些，保持责任心和实现对功能的测试更加重要，不用纠结于是不是T-DD出来的代码。</p>
+
+<h3>Integration Testing(集成测试)</h3>
+
+<hr />
+
+<p>集成测试就是各个模块组装进行测试，比如A依赖B模块，作为单元测试可能我只需要Mock或者Stub，但是集成测试会输入合适数据，真实的让A去调用B服务，测试是否会满足期望的结果。</p>
+
+<p>现在微服务的这种架构方式很流行，一个简单的例子就是前后端分离，前端与不同的微服务交互，如此部署，维护，
+扩展都会更加容易。在这样的架构下，集成测试是一个问题，<a href="https://github.com/realestate-com-au/pact">Pact Testing</a>是一个可选的方式。Pact是基于<a href="http://martinfowler.com/articles/consumerDrivenContracts.html">CDC - Consumer driven contracts</a>的一个实现。</p>
+
+<p>我们可以将前端理解为Consumer，后端理解为Provider，完整的测试过程如下:</p>
+
+<ol>
+<li>Consumer提出要请求的Provider的API格式，传入的数据以及期望的返回，运行测试后生成pact(json)文件并将其push到Provider的repo中</li>
+<li>Provider CI运行Pact测试，因为API还没有实现，测试会失败</li>
+<li>Provider的开发人员根据Pact文件中约定的Restful API以及Input/Output数据，实现并且通过测试。</li>
+</ol>
+
+
+<p>目前Pact已经有多种语言的实现，比如<a href="https://github.com/realestate-com-au/pact">ruby</a>, <a href="https://github.com/DiUS/pact-jvm">Java/Scala</a>等。</p>
+
+<h3>Functional Testing</h3>
+
+<hr />
+
+<p>功能测试，就是对产品的功能进行验证。对于web项目来说，就是启动服务，通过浏览器访问测试。曾经做过的Ruby
+项目是使用cucumber去进行测试，其实依赖的工具是Capybara和Webdriver/Selenium。讲到这里就不得不提
+<a href="http://en.wikipedia.org/wiki/Behavior-driven_development">BDD - Behavior Driven Development</a>了</p>
+
+<h4>BDD</h4>
+
+<hr />
+
+<p>BDD更关注从业务的角度出发，用<a href="http://www.martinfowler.com/bliki/BusinessReadableDSL.html">Business Readable DSL</a>的方式去描述一种实例行为，期望应用可以满足预期。
+<a href="http://cukes.info/">Cucumber</a>是其一种实现，其测试的基本的格式如下:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='cucumber'><span class='line'><span class="k">Given </span><span class="nf">I am a super user</span>
+</span><span class='line'><span class="k">When </span><span class="nf">I log in the website</span>
+</span><span class='line'><span class="k">Then </span><span class="nf">I should see &quot;</span><span class="s">Admin</span><span class="nf">&quot; on the top right</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过在每个step中写一些Assertion，可以判断功能是否实现等。
+我的第一个项目是严格遵循BDD的流程，基本顺序如下:</p>
+
+<ol>
+<li>在接到一个需求时，按照描述，先写Cucumber测试</li>
+<li>运行测试，失败，然后编写对应的单元测试</li>
+<li>运行单元测试用例失败，实现之并让其通过</li>
+<li>运行Cucumber测试，通过</li>
+<li>重复1-4直至完全满足需求</li>
+</ol>
+
+
+<p>做的好的话，整个开发的节奏会非常流畅。BDD原本期望是让BA或者产品经理去读或者写测试描述，但是很少有BA
+或者产品经理回去阅读这些测试，写就更不可能了。程序员自己写的话，表达很难贴近正确的业务行为，加上不正确的
+添加测试(通常Cucumber测试只检查Happy Path)，导致测试越来越多，运行越来越慢，所有测试跑完的时间，远超过
+我seed一些测试数据，启动浏览器手工测试快些。
+以前的团队有很好的BA，在Story的Acceptance Criteria中，会将用例写的很清晰，这样基本上不用怎么修改就可以
+写好Cucumber测试的step，现在倡导全功能团队，BA和QA这两个Role几乎都没有了，客户也不怎么提BDD了……。</p>
+
+<h3>Smoke Testing(冒烟测试)</h3>
+
+<hr />
+
+<p>冒烟测试是确认软件的基本功能是否正常的测试。</p>
+
+<h3>E2E Testing(端到端测试)</h3>
+
+<hr />
+
+<p>端到端测试，可以理解为整个系统在现实世界中的走完一个完整流程的测试。领域不同，端到端测试的概念不尽相同。
+我们当时的端到端测试只cover了与其他系统的接入点功能的验证以及基本的流程的验证。因为要访问不同的服务，
+而这些服务的可用性不一定很高，同时在运行测试时需要保证其他的系统都使用了合适的版本，当时的E2E测试经常
+会出问题，修复也很麻烦，一定程度上得怪亚马逊EC2机器性能或者网络的问题-_-!</p>
+
+<h3>Regression Testing(回归测试)</h3>
+
+<hr />
+
+<p>回归测试，确保新加入的功能没有破坏已有的功能。讲到这里就得介绍下，在持续交付的前提下，我们通常用两种方式:</p>
+
+<ol>
+<li>Feature Toggle</li>
+<li>Feature Branch</li>
+</ol>
+
+
+<p>用来保证实现新功能同时不影响旧功能。</p>
+
+<p>Feature Toggle译为特性开关，就是通过配置文件/数据库来判断是否使用新特性的代码，其实就是读入配置文件，然后用if/else去判断用新或者是旧的代码。
+这个的好处在于你可以只在主干上开发，保证不破坏现有的功能，同时还能保证持续交付/部署。要付出的代价就是写针对toggle打开或者关闭情况下，
+两种状态不同功能的测试，如果有两个toggle，那么可能得针对四种状态写测试。在回归测试的时候会关闭所有Toggle，对应的还有Progression测试，
+既打开enable所有toggle，新功能的测试应该都通过。如此测试的数量会大大增加，流水线构建的速度也会随之减慢。</p>
+
+<p>Feature Branch就是在新的Branch上开发新功能，坏处就是与主干merge太晚，可能会出现merge hell，很难一下修复太多冲突。
+相比之下Feature Toggle要更好些，但是注意最好不要加太多Toggle。</p>
+
+<h3>Acceptance Testing(接收测试)</h3>
+
+<hr />
+
+<p>就是开发或者测试将实现好的功能，在测试环境中，给business people做show case，然后证明所有的需求都正确实现了。只有他们说OK，story卡才能认为是done了。</p>
+
+<h3>Exploratory Testing(探索性测试)</h3>
+
+<hr />
+
+<p>新产品上线前，找一群对产品完全不了解的人，让它们试用，以期发现一些诡异的bug或者使用不合理的地方。做
+过一次，还真的发现了bug。</p>
+
+<h3>Performance Testing(性能测试)</h3>
+
+<hr />
+
+<p>dark release 的时候，针对产品环境，使用典型的应用场景，进行性能测试，比如并发数等等。常用的工具有
+<code>ab</code>,<a href="http://jmeter.apache.org/">Jmeter</a>, <a href="http://gatling.io/">Gattling</a>等。Jmeter
+感觉配置比较麻烦，Gattling是基于Scala的，用起来还不错。</p>
+
+<h3>Infrastructure Test(面向基础架构的测试)</h3>
+
+<hr />
+
+<p>面向基础架构的测试是近年来提出的一种概念，应该上过我司的<a href="www.thoughtworks.com/radar/techniques">Tech Radar</a>。
+随着DevOps运动的兴起，"Infrastructure as Code"概念深入人心, 既然“基础架构即代码”，那么针对
+这些代码，我们也可以做基本的单元测试等。比如<a href="http://puppetlabs.com/">puppet</a> , <a href="https://www.chef.io/">chef</a>。甚至有<a href="http://babushka.me/">Babushka</a>这样的为sysadmin准备的TDD工具。
+除了开发环节，对线上的产品环境也做测试, 比如:</p>
+
+<ol>
+<li><a href="https://github.com/Netflix/SimianArmy">Chaos Monkey</a>是NetFlix推出的帮助测试系统
+稳定性的工具，它会随机的干掉产品环境在AWS上一些节点，如果系统的弹性很好，那么它会自动恢复这些节点。
+这是一种防御性的测试，同时通过测试的反馈，逐步的改进产品的稳定性和弹性。</li>
+<li><a href="http://www.nagios.org/">Nagios</a>是一个监控工具，它可以测试产品环境的应用的健康状况以及服务器的监控状况。</li>
+<li>用类似<a href="http://gomeznetworks.com/">Gomez</a>的工具去检测应用的可用性状况。</li>
+<li>针对第三方的平台，如CDN，通常都是得手工配置，可以通过写单独的测试来验证配置正确，如CDN服务商提供的一些特殊的Header或者返回码。</li>
+</ol>
+
+
+<h3>那么问题来了</h3>
+
+<hr />
+
+<p>如果产品环境出现一个bug，该如何处理？下面是我觉得一个不错的处理方式。</p>
+
+<ol>
+<li>定位问题</li>
+<li>根据bug的场景，写一个失败的测试</li>
+<li>修复这个测试</li>
+<li>打包/部署测试环境/接受测试/部署产品环境</li>
+</ol>
+
+
+<h3>结论</h3>
+
+<hr />
+
+<p>场景不同，测试的方式方案不尽相同，但如果能保证最大程度的自动化，那将是极好的。</p>
+
+<h3>免责申明</h3>
+
+<hr />
+
+<p>本人不是测试专精，如果有误导或者描述不准确的地方，请轻喷。</p>
+
+<h3>References</h3>
+
+<hr />
+
+<ul>
+<li><a href="http://martinfowler.com/bliki/TestPyramid.html">TestPyramid</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/nginx/2015/01/21/solve-request-entity-too-large-issue">Solve Request Entity Too Large Issue</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-21T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/nginx/2015/01/21/solve-request-entity-too-large-issue#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/nginx/2015/01/21/solve-request-entity-too-large-issue">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://www.sonatype.org/">Sonatype Nexus</a>是一个Maven的仓库管理器。它的好处在于:</p>
+
+<ol>
+<li>作为其他Maven仓库的镜像或者代理，加快本地构建速度，同时节省带宽</li>
+<li>作为私有仓库，可以保存自定义的artifacts，支持多种文件类型，jar，rpm等</li>
+</ol>
+
+
+<p>最近我们将nexus从美西的AWS数据中心迁移到了悉尼的数据中心，迁移后的Nexus架构如下:</p>
+
+<ol>
+<li>新建一个<code>t2.micro</code>的instance，挂载一个100GB大小的EBS block，并nexus工作目录放在其中</li>
+<li>新建一个ELB，指向该instance，并限制访问的IP地址来源</li>
+<li>在R53中建立域名的记录，并将其指向该ELB</li>
+</ol>
+
+
+<p>为了保证Nexus环境在遇到问题时可以快速恢复，我们做了两件事情:</p>
+
+<ol>
+<li>保证用代码可以重现整个Nexus的基础架构，这点通过CloudFormation结合AWS CLI工具实现</li>
+<li>为了保证数据的完整性，我们在Nexus上运行cron job，每天给EBS block做一次snapshot</li>
+</ol>
+
+
+<p>最近在更新了Nexus 上传artifact用户的credential之后，有其他组反馈往Nexus上publish artifact失败。
+我和同事开始以为是有人又修改了密码，重新设置后依然不行。</p>
+
+<blockquote><p>这里要说一下Nexus的用户权限管理，它的权限可以细化到能不能用网页的方式登陆，可不可以往某个
+repository中上传文件等。所以，如果发现有credential不能网页登陆Nexus，不代表这个用户不能够上传
+artifact。</p></blockquote>
+
+<p>于是我和同事登陆到了Nexus的instance上面，一边执行上传artifact的任务，一边查看log。发现Nginx的
+access log返回的是<code>413 - Request Entity Too Large</code>。原来，Nginx配置中<code>client_max_body_size</code>
+这项可以限制请求的body大小，我们要上传的jar文件大概有19Mb，远超其默认的大小，所以请求出错，难怪本地也会返回<code>java.net.SocketException</code>.
+于是，先在Nginx的配置文件的<code>http</code>部分添加:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">client_max_body_size</span> <span class="s">50M</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>保存之后，检查Nginx配置，reload:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@aws nginx <span class="c"># nginx -t</span>
+</span><span class='line'>nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+</span><span class='line'>nginx: configuration file /etc/nginx/nginx.conf <span class="nb">test </span>is successful
+</span><span class='line'>
+</span><span class='line'>root@aws nginx <span class="c"># nginx -s reload</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>再次尝试上传，果然成功了。</p>
+
+<p>之所以以前没有出现过这样的问题，是因为构建工具直接访问的是Nexus的8081端口，而其本身是没有这样的上传
+文件大小限制的。我们在做migration时用了Nginx只是为了做代理，映射80->8081。但是在有ELB的前提下，
+已经没有必要再使用Nginx了。所以下一步要做的事情就是更新cloudformation stack，让ELB的80和8081
+端口都指向Nexus instance的8081端口即可。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2015/01/18/a-pir-for-an-production-fail">A PIR for a Production Failure</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-18T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2015/01/18/a-pir-for-an-production-fail#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2015/01/18/a-pir-for-an-production-fail">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>客户这边对产品环境的事故严重性分为5级定义:</p>
+
+<ol>
+<li>Sev 1 一级事故: 服务完全不可用，并且影响到了客户;</li>
+<li>Sev 2 二级事故: 产品的主要功能对于一小部分用户不可用，或者产品的次要功能对于大多数用户不可用；</li>
+<li>Sev 3 三级事故: 不重要的功能不能使用，对外部可见，但是影响不大，不属于严重事故；</li>
+<li>Sev 4 四级事故: 没有显著的影响，错误只是内部可见；</li>
+<li>Sev 5 五级事故: 不期而至的错误，只发生在团队内部；</li>
+</ol>
+
+
+<p>举个例子来说，比如主站挂掉，这就是个一级错误，但是如果某个服务的产品数据库不能连接，造成的影响要小些，
+可能就是二级事故了。蓝绿部署时inactive环境部署失败的话，这应该算是4级事故。将团队用的CI master
+以及DB干掉，这个应该算是5级事故了。</p>
+
+<p>一般来说，产品在上线之前，都会经过build pipeline, test/staging环境的各种测试，正常情况下它都是
+应该工作的，所以出问题的情况都是非常巧合，甚至令人觉得匪夷所思。这也是这些事故有趣之所在了。</p>
+
+<p>前几天，我就引起了这么一起Sev 2事故。我们做了一次<a href="https://sysadmincasts.com/episodes/20-how-to-write-an-incident-report-postmortem">PIR</a>回顾
+了这次事故，并且提出了相应的改进办法。</p>
+
+<h3>应用的功能</h3>
+
+<hr />
+
+<p>收集用户信息的静态页面</p>
+
+<h3>技术栈</h3>
+
+<hr />
+
+<ol>
+<li>纯前端项目，用Grunt/Bower等前端工作流，Karma做JS测试框架，requirejs做模块管理，前端框架用Backbone；</li>
+<li>后端的API基于Scala，集成测试通过Pact(<a href="http://martinfowler.com/articles/consumerDrivenContracts.html">CDC</a>)的测试方式；</li>
+</ol>
+
+
+<h3>系统架构</h3>
+
+<hr />
+
+<ol>
+<li>应用部署在AWS的S3上；</li>
+<li>最前面用Akamai做CDN；</li>
+<li>通过JSON的方式对后端数据读写；</li>
+</ol>
+
+
+<h3>Build Pipline以及部署方式</h3>
+
+<hr />
+
+<ol>
+<li>本地开发，测试运行后提交代码， PR/Review/Merge</li>
+<li>CI上面运行单元测试以及Pact集成测试，并且打包生成zip文件</li>
+<li>用<code>unzip-to-s3</code>这个工具将文件上传到staging S3 bucket 和 production S3 bucket
+如果我知道这玩意直接进入production，当时说不定会去多看几眼……。</li>
+</ol>
+
+
+<h3>事故回顾</h3>
+
+<hr />
+
+<ol>
+<li>我提交footer修改的PR，客户回复<code>LGTM</code>，然后merge</li>
+<li>2天后客服人员通过Zendesk提交ticket说有几个客户抱怨产品好像不大好用了</li>
+<li>Tech Leader立刻召集产品相关的几个开发和运维人员检查，发现引用cache busting的js的script tag不知道怎么出问题了</li>
+<li>在没有确定最根本的原因时，它们尝试revert了我的代码，然后手动修改了产品环境的文件……-_-！</li>
+<li>找到了最根本的原因，是其中一个用来做cache busting的module突然升级，然后在package.json它是以<code>~0.0.10</code>的方式被引用的，如此在<code>npm install</code>的时候，它会自动升级小版本，没想到那个版本有问题，引入了一个bug。然后打包的过程在Bamboo build上，没人会去仔细看build log。</li>
+<li>拿回我的提交，将cache busting模块的版本锁定，重新部署后恢复正常</li>
+</ol>
+
+
+<h3>事故后的Action</h3>
+
+<hr />
+
+<ol>
+<li>增加相关的测试用例，部署到staging和production后添加相关smoke测试以检验一切加载正常；</li>
+<li>用到的cache busting库在github没有很多人参与，所以重新考虑换一个更加稳定，用得人多点的模块；</li>
+<li>尝试将zendesk服务和pagerduty集成，如此开发团队会更快得到来自客户的反馈会；</li>
+<li>思考下这种直接进入产品环境的持续交付的方式是不是合适的，或者如何去改进；</li>
+<li>考虑对项目中使用到的模块用专门的build做升级时检查；</li>
+<li>测试时要针对整个打包好的assets；</li>
+<li>通过语义化(sematic)工具结合pagerduty报警;</li>
+</ol>
+
+
+<hr />
+
+<p>对于纯前端的这种app，监控确实不如后端(可以用现成的工具如<a href="https://www.newrelic.com/">NewRelic</a>)好做，目前的方式是通过Nagios做Active check，检查bucket中对应
+的文件是否存在，实际的意义并不大，我觉得监控产品环境的集成页面会更有价值些，比如测试相应时间，如果响应
+时间超过某个值，比如10s，或者返回的html中没有包含必要的元素，就认为它可能会有问题。</p>
+
+<p>上面的最后一条也不错，通过API收集前端请求的次数，将数据发送到类似Graphite之类的工具，然后用<a href="https://github.com/etsy/skyline">Skyline</a>之类
+的工具进行数据分析，如果有些数据(如访问量)突然高于或者低于某个值，就可以发送警报到pagerduty。
+另外，对于产品中引用的第三方类库/模块，除了固定使用的版本之外，还有必要搭建测试最新类库集成后的功能
+完整性的build，这个叫做<a href="http://www.thoughtworks.com/radar/techniques">Canary Build</a>(金丝雀构建)，在Thoughtworks最新
+的Tech Radar中有提到。</p>
+
+<p>最后，希望我不会因为制造太多的产品事故而被炒-_-!</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/docker/2015/01/16/running-containers-in-docker">Running Containers in Docker</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-16T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/docker/2015/01/16/running-containers-in-docker#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/docker/2015/01/16/running-containers-in-docker">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>既然有了boot2docker,不妨下几个容器来玩玩。先看下本地的docker服务的信息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker info
+</span><span class='line'>Containers: 0
+</span><span class='line'>Images: 0
+</span><span class='line'>Storage Driver: aufs
+</span><span class='line'>Root Dir: /mnt/sda1/var/lib/docker/aufs
+</span><span class='line'>Dirs: 0
+</span><span class='line'>Execution Driver: native-0.2
+</span><span class='line'>Kernel Version: 3.16.7-tinycore64
+</span><span class='line'>Operating System: Boot2Docker 1.4.1 <span class="o">(</span>TCL 5.4<span class="o">)</span><span class="p">;</span> master : 86f7ec8 - Tue Dec <span class="m">16</span> 23:11:29 UTC 2014
+</span><span class='line'>CPUs: 4
+</span><span class='line'>Total Memory: 1.961 GiB
+</span><span class='line'>Name: boot2docker
+</span><span class='line'>ID: L5JR:QYWN:KEDD:FQ4O:66IY:FUE6:OXTA:SWAE:UV2R:LFCF:7H6H:PTS5
+</span><span class='line'>Debug mode <span class="o">(</span>server<span class="o">)</span>: <span class="nb">true</span>
+</span><span class='line'>Debug mode <span class="o">(</span>client<span class="o">)</span>: <span class="nb">false</span>
+</span><span class='line'>Fds: 10
+</span><span class='line'>Goroutines: 11
+</span><span class='line'>EventsListeners: 0
+</span><span class='line'>Init Path: /usr/local/bin/docker
+</span><span class='line'>Docker Root Dir: /mnt/sda1/var/lib/docker
+</span><span class='line'>
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>ps aux <span class="p">|</span> grep <span class="o">[</span>/<span class="o">]</span>usr/local/bin/docker
+</span><span class='line'><span class="m">690</span> root     /usr/local/bin/docker -d -D -g /var/lib/docker -H unix:// -H tcp://0.0.0.0:2376 --tlsverify --tlscacert<span class="o">=</span>/var/lib/boot2docker/tls/ca.pem --tlscert<span class="o">=</span>/var/lib/boot2docker/tls/server.pem --tlskey<span class="o">=</span>/var/lib/boot2docker/tls/serverkey.pem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从docker的后台进程可以看到，后台服务监听2376端口，同时支持tls加密协议。</p>
+
+<p>Docker的官方镜像的入口在<a href="https://registry.hub.docker.com/">Docker Hub Registry</a>，镜像文件放在了亚马逊AWS上，这对于国内的用户就比较悲剧了，因为要么是访问不到镜像文件，要么就是下载太慢。万幸的是，国内现在已经有了docker registry 的mirror - <a href="https://docker.cn/">docker.cn</a>。
+所以在pull或者运行容器的时候，需要在镜像前加上registry的ip或者主机名。我觉得更好的方式是可以将registry写在配置文件中，这样可以避免这个麻烦，不过目前还没有看到这样的解决方案。
+So</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker run -i -t docker.cn/docker/ubuntu /bin/bash
+</span><span class='line'>Unable to find image <span class="s1">&#39;docker.cn/docker/ubuntu:latest&#39;</span> locally
+</span><span class='line'>Pulling repository docker.cn/docker/ubuntu
+</span><span class='line'>8eaa4ff06b53: Download <span class="nb">complete</span>
+</span><span class='line'>511136ea3c5a: Download <span class="nb">complete</span>
+</span><span class='line'>3b363fd9d7da: Download <span class="nb">complete</span>
+</span><span class='line'>607c5d1cca71: Download <span class="nb">complete</span>
+</span><span class='line'>f62feddc05dc: Download <span class="nb">complete</span>
+</span><span class='line'>Status: Downloaded newer image <span class="k">for</span> docker.cn/docker/ubuntu:latest
+</span><span class='line'>root@0b8874d6f2c8:/#
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这条命令的意思是保持标准输入打开状态<code>-i</code>，并且Docker要为容器分配一个伪终端(tty)<code>-t</code>。Docker daemon首先在本地寻找名为<code>docker.cn/docker/ubuntu</code>的镜像，找不到的话，在去docker.cn下载。
+从镜像下载的方式我们大概可以判断整个镜像是分层的，像git一样有版本管理，这个就是<code>aufs</code>文件系统的作用。镜像下载完成，容器启动后执行了bash命令，可以认为是来到了容器运行的操作系统中。
+之后就可以像使用一个Ubuntu系统一样去使用这个容器了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@0b8874d6f2c8:/# ip a
+</span><span class='line'>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu <span class="m">65536</span> qdisc noqueue state UNKNOWN group default
+</span><span class='line'>link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+</span><span class='line'>inet 127.0.0.1/8 scope host lo
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span><span class='line'>inet6 ::1/128 scope host
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span><span class='line'>6: eth0: &lt;BROADCAST,UP,LOWER_UP&gt; mtu <span class="m">1500</span> qdisc noqueue state UP group default
+</span><span class='line'>link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff
+</span><span class='line'>inet 172.17.0.2/16 scope global eth0
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span><span class='line'>inet6 fe80::42:acff:fe11:2/64 scope link
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到容器有自己的eth0网络设备以及由Docker分配的一个ip地址，和host machine没太大区别。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@0b8874d6f2c8:/# vim
+</span><span class='line'>bash: vim: <span class="nb">command </span>not found
+</span><span class='line'>root@0b8874d6f2c8:/# apt-get install -y vim
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>没有vim，赶快装一个。</p>
+
+<p>随之退出控制台，容器也停止运行。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps
+</span><span class='line'>CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps -l
+</span><span class='line'>CONTAINER ID        IMAGE                           COMMAND             CREATED             STATUS                          PORTS               NAMES
+</span><span class='line'>0b8874d6f2c8        docker.cn/docker/ubuntu:14.04   <span class="s2">&quot;/bin/bash&quot;</span>         <span class="m">15</span> hours ago        Exited <span class="o">(</span>0<span class="o">)</span> About a minute ago                       naughty_darwin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用<code>docker ps</code>命令可以查看运行时的容器，对于停止的容器，可以通过 <code>docker ps -l</code> 或者 <code>docker ps -a</code>可以看到所有的容器。
+容器启动时通过<code>--name</code>选项可以指定容器的名字，缺省会随机给出一个名字，很诡异的一个设计，不能理解。
+有名字的好处就是就是容易记忆或者查看，否则如果只能按照containerid那串hash code使用，想来就有些头大。</p>
+
+<p>重新启动停止的容器</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker start 0b8874d6f2c8
+</span><span class='line'>0b8874d6f2c8
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps
+</span><span class='line'>CONTAINER ID        IMAGE                           COMMAND             CREATED             STATUS              PORTS               NAMES
+</span><span class='line'>0b8874d6f2c8        docker.cn/docker/ubuntu:14.04   <span class="s2">&quot;/bin/bash&quot;</span>         <span class="m">15</span> hours ago        Up <span class="m">3</span> seconds                            naughty_darwin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过<code>docker attach</code>命令可以重新连接到容器上。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker attach 0b8874d6f2c8
+</span><span class='line'>root@0b8874d6f2c8:/# which vim
+</span><span class='line'>/usr/bin/vim
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上次安装的vim依然在，可见docker保存了容器的状态(persistence)。
+前面所创建的容器是交互式的容器，而实际的使用当中，我们需要容器去运行程序或者服务，这种又称为daemonized container. 下面是一个简单的例子:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker run --name awesomeness -d ubuntu /bin/sh -c <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span><span class='line'>1bda4fdc3a3b869d1dc58bb4564b08e1bc0c0f24372f48afb8bcc4291cc94929
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps
+</span><span class='line'>CONTAINER ID        IMAGE               COMMAND                CREATED             STATUS              PORTS               NAMES
+</span><span class='line'>1bda4fdc3a3b        ubuntu:latest       <span class="err">&quot;</span>/bin/sh -c <span class="err">&#39;</span><span class="k">while</span> :   <span class="m">55</span> seconds ago      Up <span class="m">54</span> seconds                           awesomeness
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用<code>docker logs</code>命令可以查看容器的日志:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker logs awesomeness
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>加上<code>-t</code>选项可以输出时间戳，<code>-f</code>跟踪最新的日志:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker logs -ft awesomeness
+</span><span class='line'>2015-01-17T13:17:43.827474614Z hello
+</span><span class='line'>2015-01-17T13:17:48.842826627Z hello
+</span><span class='line'>2015-01-17T13:17:53.847642897Z hello
+</span><span class='line'>2015-01-17T13:17:58.856081585Z hello
+</span><span class='line'>2015-01-17T13:18:03.863587257Z hello
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查看容器内的进程:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker top awesomeness
+</span><span class='line'>PID                 USER                COMMAND
+</span><span class='line'><span class="m">922</span>                 root                /bin/sh -c <span class="k">while</span> :<span class="p">;</span> <span class="k">do</span> <span class="nb">echo </span>hello<span class="p">;</span> sleep 5<span class="p">;</span> <span class="k">done</span>
+</span><span class='line'><span class="m">1454</span>                root                sleep 5
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过Docker在容器内部启动新的进程，执行新的任务:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker <span class="nb">exec</span> -d awesomeness touch /tmp/testfile
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker <span class="nb">exec</span> -t -i  awesomeness  /bin/bash
+</span><span class='line'>root@1bda4fdc3a3b:/# ls -al /tmp/testfile
+</span><span class='line'>-rw-r--r-- <span class="m">1</span> root root <span class="m">0</span> Jan <span class="m">17</span> 14:03 /tmp/testfile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>不得不说docker的发展真的很快，我最开始使用的时候docker的版本大概是在0.6，当时的容器技术还是使用lxc，
+只能用<code>lxc attach</code>命令才能连接到运行的容器的控制台。现在使用这么简单，必须要点个赞。</p>
+
+<p>停止运行的容器:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker stop awesomeness   <span class="c"># 用containerid 1bda4fdc3a3b 效果相同</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在容器意外退出时，自动重启容器:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker run --restart<span class="o">=</span>always --name awesomeness -d ubuntu /bin/sh -c <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>还可以设置重启的次数，<code>--restart=on-failure:5</code>。这个功能也很不错，让容器拥有了一定的自恢复(self-healing)能力，</p>
+
+<p>查看容器的信息:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker inspect awesomeness
+</span><span class='line'><span class="o">[{</span>
+</span><span class='line'>  <span class="s2">&quot;AppArmorProfile&quot;</span>: <span class="s2">&quot;&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;Args&quot;</span>: <span class="o">[</span>
+</span><span class='line'>  <span class="s2">&quot;-c&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span><span class='line'>  <span class="o">]</span>,
+</span><span class='line'>  <span class="s2">&quot;Config&quot;</span>: <span class="o">{</span>
+</span><span class='line'>    <span class="s2">&quot;AttachStderr&quot;</span>: <span class="nb">false</span>,
+</span><span class='line'>    <span class="s2">&quot;AttachStdin&quot;</span>: <span class="nb">false</span>,
+</span><span class='line'>    <span class="s2">&quot;AttachStdout&quot;</span>: <span class="nb">false</span>,
+</span><span class='line'>    <span class="s2">&quot;Cmd&quot;</span>: <span class="o">[</span>
+</span><span class='line'>    <span class="s2">&quot;/bin/sh&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;-c&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span><span class='line'>    <span class="o">]</span>,
+</span><span class='line'>    <span class="s2">&quot;CpuShares&quot;</span>: 0,
+</span><span class='line'>    <span class="s2">&quot;Cpuset&quot;</span>: <span class="s2">&quot;&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;Domainname&quot;</span>: <span class="s2">&quot;&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;Entrypoint&quot;</span>: null,
+</span><span class='line'>........
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>inspect可以返回JSON格式的详细配置信息，不过这个信息略多，通过<code>--format</code>可以格式化输出的内容，假设我只想看到容器的IP地址:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker inspect --format <span class="s1">&#39;&#39;</span> awesomeness
+</span><span class='line'>172.17.0.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有点像调用了<code>jq</code>命令。</p>
+
+<p>删除容器的命令是<code>docker rm CONTAINER_ID or CONTAINER_NAME</code>，这个操作只能针对已经停止运行的容器。删除所有容器的命令是:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker rm <span class="sb">`</span>docker ps -a -q<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个命令会返回所有容器的ID，然后执行删除操作。实际的使用中我们可能只是删除部分的容器，可能就得结合<code>cut</code>,<code>grep</code>或者<code>awk</code>等命令来拿到要删除的容器ID/名字，然后再去执行删除操作。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/posts/3">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/index.html">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Git | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/git/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Reset Commit Author]]></title>
+    <link href="http://iambowen.github.com/git/2013/06/19/reset-commit-author"/>
+    <updated>2013-06-19T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/git/2013/06/19/reset-commit-author</id>
+    <content type="html"><![CDATA[<p>在如下两种情况下，你需要重新配置git commit 的author。</p>
+
+<ul>
+<li>在一个新的repo上面工作;</li>
+<li>用别人的机器(或者pair machine上)提交代码，而关于你的author信息并未添加在git配置中;</li>
+</ul>
+
+
+<p>假设你global git config ~/.gitconfg 中配置信息如下:</p>
+
+<pre><code>[user]
+     name = example
+     email = example@example.com
+</code></pre>
+
+<p>别人的机器(或者pair机器)的repo中git 配置信息如下:</p>
+
+<pre><code>[user]
+     name = pair
+     email = pair@pair.com
+</code></pre>
+
+<p>而你期望的提交信息为:</p>
+
+<pre><code>name = serious
+email = serious@serious.com
+</code></pre>
+
+<p>在第一种情况下，当你修改完代码提交后，log中对应的author信息为:</p>
+
+<pre><code>Author: example &lt;example@example.com&gt;
+</code></pre>
+
+<p>在第二种情况下，当你修改完代码提交后，log中对应的author信息为:</p>
+
+<pre><code>Author: pair &lt;pair@pair.com&gt;
+</code></pre>
+
+<p>两种情况下，想要修改提交中的author信息，都可以通过:</p>
+
+<pre><code>git commit --amend --author=“serious &lt;serious@serious.com&gt;”
+</code></pre>
+
+<p>来重新设置。</p>
+
+<p>第一种情况，如果你需要将来长期在这个repo上工作的话。首先，修改repo下的.git/config文件，添加</p>
+
+<pre><code>[user]
+     name = serious
+     email = serious@serious.com
+</code></pre>
+
+<p>然后重新设置提交的author信息:</p>
+
+<pre><code>git commit --amend -C HEAD --reset-author
+</code></pre>
+
+<p>Done</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Don't Panic When You Use Git Reset --hard]]></title>
+    <link href="http://iambowen.github.com/git/2011/11/09/dont-panic-when-you-used-git-reset-hard"/>
+    <updated>2011-11-09T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/git/2011/11/09/dont-panic-when-you-used-git-reset-hard</id>
+    <content type="html"><![CDATA[<p>It&rsquo;s not a problem when you use to <code>git reset --hard</code> to throw away commit. But often times, you need to first check whether there&rsquo;s still useful stuff to keeOf course, &ndash;soft is the best choice, however, what if you use <code>git reset --hard</code> without realizing that the commit you just throw is useful. And the following should be one solution to this accident.</p>
+
+<p>Given i reset the commit:</p>
+
+<pre><code class="bash">$ @git reset --hard HEAD^@
+
+HEAD is now at 43856d7 modify test to raise conflict
+</code></pre>
+
+<p>Then i use ref the log:</p>
+
+<pre><code class="bash">$ @git reflog -4@
+
+43856d7 HEAD@{0}: HEAD^: updating HEAD
+3378cf7 HEAD@{1}: commit: that part is easy.
+</code></pre>
+
+<p>And i see 3378cf7 is the commit i just reset, i use git show to see commit
+detail</p>
+
+<pre><code class="bash">$ @git show 3378cf7@
+
+commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
+Author: bowen &lt;iambowen.m@gmail.com&gt;
+Date:   Mon Oct 31 16:26:45 2011 +0800
+    that part is easy.
+</code></pre>
+
+<p>And i check out the commit:</p>
+
+<pre><code class="bash">$ @git checkout 3378cf7f1c8a197492796b3cdb2c79f0183c9efe@
+
+Note: checking out '3378cf7f1c8a197492796b3cdb2c79f0183c9efe'.
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by performing another checkout.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -b with the checkout command again. Example:
+
+  git checkout -b new_branch_name
+
+HEAD is now at 3378cf7... that part is easy.
+</code></pre>
+
+<p>Then I follow the notification to create a new branch and check log:</p>
+
+<pre><code class="bash">
+$ git checkout -b recover
+$ git log
+
+commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
+Author: bowen &lt;iambowen.m@gmail.com&gt;
+Date:   Mon Oct 31 16:26:45 2011 +0800
+
+    that part is easy.
+</code></pre>
+
+<p>And i find the commit is in this branch, then i go back to master branch merge recover branch:</p>
+
+<pre><code class="bash">$git co master
+$git merge recover
+
+Updating 43856d7..3378cf7
+Fast-forward
+ README   |    1 -
+ whatever |    1 +
+ 2 files changed, 1 insertions(+), 1 deletions(-)
+ create mode 100644 whatever
+
+$ git log -1
+
+bc. commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
+Author: bowen &lt;iambowen.m@gmail.com&gt;
+Date:   Mon Oct 31 16:26:45 2011 +0800
+    that part is easy.
+</code></pre>
+
+<p>And we can see the reseted commit is coming back, that part is easy.</p>
+]]></content>
+  </entry>
+  
+</feed>

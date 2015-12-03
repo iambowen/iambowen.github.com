@@ -1,0 +1,617 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Running Containers in Docker - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="Docker containers">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/docker/2015/01/16/running-containers-in-docker">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Running Containers in Docker</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-16T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>既然有了boot2docker,不妨下几个容器来玩玩。先看下本地的docker服务的信息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker info
+</span><span class='line'>Containers: 0
+</span><span class='line'>Images: 0
+</span><span class='line'>Storage Driver: aufs
+</span><span class='line'>Root Dir: /mnt/sda1/var/lib/docker/aufs
+</span><span class='line'>Dirs: 0
+</span><span class='line'>Execution Driver: native-0.2
+</span><span class='line'>Kernel Version: 3.16.7-tinycore64
+</span><span class='line'>Operating System: Boot2Docker 1.4.1 <span class="o">(</span>TCL 5.4<span class="o">)</span><span class="p">;</span> master : 86f7ec8 - Tue Dec <span class="m">16</span> 23:11:29 UTC 2014
+</span><span class='line'>CPUs: 4
+</span><span class='line'>Total Memory: 1.961 GiB
+</span><span class='line'>Name: boot2docker
+</span><span class='line'>ID: L5JR:QYWN:KEDD:FQ4O:66IY:FUE6:OXTA:SWAE:UV2R:LFCF:7H6H:PTS5
+</span><span class='line'>Debug mode <span class="o">(</span>server<span class="o">)</span>: <span class="nb">true</span>
+</span><span class='line'>Debug mode <span class="o">(</span>client<span class="o">)</span>: <span class="nb">false</span>
+</span><span class='line'>Fds: 10
+</span><span class='line'>Goroutines: 11
+</span><span class='line'>EventsListeners: 0
+</span><span class='line'>Init Path: /usr/local/bin/docker
+</span><span class='line'>Docker Root Dir: /mnt/sda1/var/lib/docker
+</span><span class='line'>
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>ps aux <span class="p">|</span> grep <span class="o">[</span>/<span class="o">]</span>usr/local/bin/docker
+</span><span class='line'><span class="m">690</span> root     /usr/local/bin/docker -d -D -g /var/lib/docker -H unix:// -H tcp://0.0.0.0:2376 --tlsverify --tlscacert<span class="o">=</span>/var/lib/boot2docker/tls/ca.pem --tlscert<span class="o">=</span>/var/lib/boot2docker/tls/server.pem --tlskey<span class="o">=</span>/var/lib/boot2docker/tls/serverkey.pem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从docker的后台进程可以看到，后台服务监听2376端口，同时支持tls加密协议。</p>
+
+<p>Docker的官方镜像的入口在<a href="https://registry.hub.docker.com/">Docker Hub Registry</a>，镜像文件放在了亚马逊AWS上，这对于国内的用户就比较悲剧了，因为要么是访问不到镜像文件，要么就是下载太慢。万幸的是，国内现在已经有了docker registry 的mirror - <a href="https://docker.cn/">docker.cn</a>。
+所以在pull或者运行容器的时候，需要在镜像前加上registry的ip或者主机名。我觉得更好的方式是可以将registry写在配置文件中，这样可以避免这个麻烦，不过目前还没有看到这样的解决方案。
+So</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker run -i -t docker.cn/docker/ubuntu /bin/bash
+</span><span class='line'>Unable to find image <span class="s1">&#39;docker.cn/docker/ubuntu:latest&#39;</span> locally
+</span><span class='line'>Pulling repository docker.cn/docker/ubuntu
+</span><span class='line'>8eaa4ff06b53: Download <span class="nb">complete</span>
+</span><span class='line'>511136ea3c5a: Download <span class="nb">complete</span>
+</span><span class='line'>3b363fd9d7da: Download <span class="nb">complete</span>
+</span><span class='line'>607c5d1cca71: Download <span class="nb">complete</span>
+</span><span class='line'>f62feddc05dc: Download <span class="nb">complete</span>
+</span><span class='line'>Status: Downloaded newer image <span class="k">for</span> docker.cn/docker/ubuntu:latest
+</span><span class='line'>root@0b8874d6f2c8:/#
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这条命令的意思是保持标准输入打开状态<code>-i</code>，并且Docker要为容器分配一个伪终端(tty)<code>-t</code>。Docker daemon首先在本地寻找名为<code>docker.cn/docker/ubuntu</code>的镜像，找不到的话，在去docker.cn下载。
+从镜像下载的方式我们大概可以判断整个镜像是分层的，像git一样有版本管理，这个就是<code>aufs</code>文件系统的作用。镜像下载完成，容器启动后执行了bash命令，可以认为是来到了容器运行的操作系统中。
+之后就可以像使用一个Ubuntu系统一样去使用这个容器了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@0b8874d6f2c8:/# ip a
+</span><span class='line'>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu <span class="m">65536</span> qdisc noqueue state UNKNOWN group default
+</span><span class='line'>link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+</span><span class='line'>inet 127.0.0.1/8 scope host lo
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span><span class='line'>inet6 ::1/128 scope host
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span><span class='line'>6: eth0: &lt;BROADCAST,UP,LOWER_UP&gt; mtu <span class="m">1500</span> qdisc noqueue state UP group default
+</span><span class='line'>link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff
+</span><span class='line'>inet 172.17.0.2/16 scope global eth0
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span><span class='line'>inet6 fe80::42:acff:fe11:2/64 scope link
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到容器有自己的eth0网络设备以及由Docker分配的一个ip地址，和host machine没太大区别。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@0b8874d6f2c8:/# vim
+</span><span class='line'>bash: vim: <span class="nb">command </span>not found
+</span><span class='line'>root@0b8874d6f2c8:/# apt-get install -y vim
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>没有vim，赶快装一个。</p>
+
+<p>随之退出控制台，容器也停止运行。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps
+</span><span class='line'>CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps -l
+</span><span class='line'>CONTAINER ID        IMAGE                           COMMAND             CREATED             STATUS                          PORTS               NAMES
+</span><span class='line'>0b8874d6f2c8        docker.cn/docker/ubuntu:14.04   <span class="s2">&quot;/bin/bash&quot;</span>         <span class="m">15</span> hours ago        Exited <span class="o">(</span>0<span class="o">)</span> About a minute ago                       naughty_darwin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用<code>docker ps</code>命令可以查看运行时的容器，对于停止的容器，可以通过 <code>docker ps -l</code> 或者 <code>docker ps -a</code>可以看到所有的容器。
+容器启动时通过<code>--name</code>选项可以指定容器的名字，缺省会随机给出一个名字，很诡异的一个设计，不能理解。
+有名字的好处就是就是容易记忆或者查看，否则如果只能按照containerid那串hash code使用，想来就有些头大。</p>
+
+<p>重新启动停止的容器</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker start 0b8874d6f2c8
+</span><span class='line'>0b8874d6f2c8
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps
+</span><span class='line'>CONTAINER ID        IMAGE                           COMMAND             CREATED             STATUS              PORTS               NAMES
+</span><span class='line'>0b8874d6f2c8        docker.cn/docker/ubuntu:14.04   <span class="s2">&quot;/bin/bash&quot;</span>         <span class="m">15</span> hours ago        Up <span class="m">3</span> seconds                            naughty_darwin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过<code>docker attach</code>命令可以重新连接到容器上。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker attach 0b8874d6f2c8
+</span><span class='line'>root@0b8874d6f2c8:/# which vim
+</span><span class='line'>/usr/bin/vim
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上次安装的vim依然在，可见docker保存了容器的状态(persistence)。
+前面所创建的容器是交互式的容器，而实际的使用当中，我们需要容器去运行程序或者服务，这种又称为daemonized container. 下面是一个简单的例子:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker run --name awesomeness -d ubuntu /bin/sh -c <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span><span class='line'>1bda4fdc3a3b869d1dc58bb4564b08e1bc0c0f24372f48afb8bcc4291cc94929
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps
+</span><span class='line'>CONTAINER ID        IMAGE               COMMAND                CREATED             STATUS              PORTS               NAMES
+</span><span class='line'>1bda4fdc3a3b        ubuntu:latest       <span class="err">&quot;</span>/bin/sh -c <span class="err">&#39;</span><span class="k">while</span> :   <span class="m">55</span> seconds ago      Up <span class="m">54</span> seconds                           awesomeness
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用<code>docker logs</code>命令可以查看容器的日志:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker logs awesomeness
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>加上<code>-t</code>选项可以输出时间戳，<code>-f</code>跟踪最新的日志:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker logs -ft awesomeness
+</span><span class='line'>2015-01-17T13:17:43.827474614Z hello
+</span><span class='line'>2015-01-17T13:17:48.842826627Z hello
+</span><span class='line'>2015-01-17T13:17:53.847642897Z hello
+</span><span class='line'>2015-01-17T13:17:58.856081585Z hello
+</span><span class='line'>2015-01-17T13:18:03.863587257Z hello
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查看容器内的进程:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker top awesomeness
+</span><span class='line'>PID                 USER                COMMAND
+</span><span class='line'><span class="m">922</span>                 root                /bin/sh -c <span class="k">while</span> :<span class="p">;</span> <span class="k">do</span> <span class="nb">echo </span>hello<span class="p">;</span> sleep 5<span class="p">;</span> <span class="k">done</span>
+</span><span class='line'><span class="m">1454</span>                root                sleep 5
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过Docker在容器内部启动新的进程，执行新的任务:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker <span class="nb">exec</span> -d awesomeness touch /tmp/testfile
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker <span class="nb">exec</span> -t -i  awesomeness  /bin/bash
+</span><span class='line'>root@1bda4fdc3a3b:/# ls -al /tmp/testfile
+</span><span class='line'>-rw-r--r-- <span class="m">1</span> root root <span class="m">0</span> Jan <span class="m">17</span> 14:03 /tmp/testfile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>不得不说docker的发展真的很快，我最开始使用的时候docker的版本大概是在0.6，当时的容器技术还是使用lxc，
+只能用<code>lxc attach</code>命令才能连接到运行的容器的控制台。现在使用这么简单，必须要点个赞。</p>
+
+<p>停止运行的容器:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker stop awesomeness   <span class="c"># 用containerid 1bda4fdc3a3b 效果相同</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在容器意外退出时，自动重启容器:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker run --restart<span class="o">=</span>always --name awesomeness -d ubuntu /bin/sh -c <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>还可以设置重启的次数，<code>--restart=on-failure:5</code>。这个功能也很不错，让容器拥有了一定的自恢复(self-healing)能力，</p>
+
+<p>查看容器的信息:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker inspect awesomeness
+</span><span class='line'><span class="o">[{</span>
+</span><span class='line'>  <span class="s2">&quot;AppArmorProfile&quot;</span>: <span class="s2">&quot;&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;Args&quot;</span>: <span class="o">[</span>
+</span><span class='line'>  <span class="s2">&quot;-c&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span><span class='line'>  <span class="o">]</span>,
+</span><span class='line'>  <span class="s2">&quot;Config&quot;</span>: <span class="o">{</span>
+</span><span class='line'>    <span class="s2">&quot;AttachStderr&quot;</span>: <span class="nb">false</span>,
+</span><span class='line'>    <span class="s2">&quot;AttachStdin&quot;</span>: <span class="nb">false</span>,
+</span><span class='line'>    <span class="s2">&quot;AttachStdout&quot;</span>: <span class="nb">false</span>,
+</span><span class='line'>    <span class="s2">&quot;Cmd&quot;</span>: <span class="o">[</span>
+</span><span class='line'>    <span class="s2">&quot;/bin/sh&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;-c&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span><span class='line'>    <span class="o">]</span>,
+</span><span class='line'>    <span class="s2">&quot;CpuShares&quot;</span>: 0,
+</span><span class='line'>    <span class="s2">&quot;Cpuset&quot;</span>: <span class="s2">&quot;&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;Domainname&quot;</span>: <span class="s2">&quot;&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;Entrypoint&quot;</span>: null,
+</span><span class='line'>........
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>inspect可以返回JSON格式的详细配置信息，不过这个信息略多，通过<code>--format</code>可以格式化输出的内容，假设我只想看到容器的IP地址:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker inspect --format <span class="s1">&#39;&#39;</span> awesomeness
+</span><span class='line'>172.17.0.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有点像调用了<code>jq</code>命令。</p>
+
+<p>删除容器的命令是<code>docker rm CONTAINER_ID or CONTAINER_NAME</code>，这个操作只能针对已经停止运行的容器。删除所有容器的命令是:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker rm <span class="sb">`</span>docker ps -a -q<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个命令会返回所有容器的ID，然后执行删除操作。实际的使用中我们可能只是删除部分的容器，可能就得结合<code>cut</code>,<code>grep</code>或者<code>awk</code>等命令来拿到要删除的容器ID/名字，然后再去执行删除操作。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-01-16T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/docker/'>docker</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/docker/2015/01/16/running-containers-in-docker" data-via="boweniam" data-counturl="http://iambowen.github.com/docker/2015/01/16/running-containers-in-docker" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/2015/01/14/tech-radar-walkthrough" title="Previous Post: Tech Radar Walkthrough">&laquo; Tech Radar Walkthrough</a>
+      
+      
+        <a class="basic-alignment right" href="/2015/01/18/a-pir-for-an-production-fail" title="Next Post: A PIR for a production failure">A PIR for a production failure &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

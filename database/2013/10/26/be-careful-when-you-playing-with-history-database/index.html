@@ -1,0 +1,362 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Be Careful When You Playing With History Database - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/database/2013/10/26/be-careful-when-you-playing-with-history-database">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Be Careful When You Playing With History Database</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-10-26T00:00:00+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>When we talking about History database, we are generally saying the database that deposit the actions performed on other databases by application. It is freaking important for recording the critical action that performed by users in both  business and development point of view.  With the help of ChangeLog database, we can easily track that an purchased transaction has or has not happened at certain time, thus by querying this table, we will 100% sure if the user wants to confirm with the transaction.</p>
+
+<p>A typical table, say ChangeLog in History database, would have such kind of schema:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; show create table ChangeLog<span class="se">\G</span>
+</span><span class='line'>*************************** 1. row ***************************
+</span><span class='line'>       Table: ChangeLog
+</span><span class='line'>Create Table: CREATE TABLE <span class="sb">`</span>ChangeLog<span class="sb">`</span> <span class="o">(</span>
+</span><span class='line'>  <span class="sb">`</span>ID<span class="sb">`</span> bigint<span class="o">(</span>40<span class="o">)</span> NOT NULL AUTO_INCREMENT,
+</span><span class='line'>  <span class="sb">`</span>TableName<span class="sb">`</span> varchar<span class="o">(</span>40<span class="o">)</span> DEFAULT NULL,
+</span><span class='line'>  <span class="sb">`</span>ForeignKey<span class="sb">`</span> varchar<span class="o">(</span>40<span class="o">)</span> DEFAULT NULL,
+</span><span class='line'>  <span class="sb">`</span>Who<span class="sb">`</span> varchar<span class="o">(</span>255<span class="o">)</span> DEFAULT NULL,
+</span><span class='line'>  <span class="sb">`</span>Field<span class="sb">`</span> varchar<span class="o">(</span>40<span class="o">)</span> DEFAULT NULL,
+</span><span class='line'>  <span class="sb">`</span>Mod<span class="sb">`</span> int<span class="o">(</span>11<span class="o">)</span> NOT NULL DEFAULT <span class="s1">&#39;0&#39;</span>,
+</span><span class='line'>  <span class="sb">`</span>OldValue<span class="sb">`</span> text,
+</span><span class='line'>  <span class="sb">`</span>NewValue<span class="sb">`</span> text,
+</span><span class='line'>  <span class="sb">`</span>Comments<span class="sb">`</span> varchar<span class="o">(</span>200<span class="o">)</span> DEFAULT NULL,
+</span><span class='line'>  PRIMARY KEY <span class="o">(</span><span class="sb">`</span>ID<span class="sb">`</span>,<span class="sb">`</span>Mod<span class="sb">`</span><span class="o">)</span>,
+</span><span class='line'>  KEY <span class="sb">`</span>idx1<span class="sb">`</span> <span class="o">(</span><span class="sb">`</span>TableName<span class="sb">`</span>,<span class="sb">`</span>ForeignKey<span class="sb">`</span><span class="o">)</span>
+</span><span class='line'><span class="o">)</span> <span class="nv">ENGINE</span><span class="o">=</span>InnoDB DEFAULT <span class="nv">CHARSET</span><span class="o">=</span>latin1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The schema shows that it would record action done on some table by someone from certain value to other value on certain time. Two columns, TableName and ForeignKey, are indexed, which would be faster if you take those two in the where clause. The thing you need to aware is that index of ForeignKey is only working when TableName is also existed in the where clause.</p>
+
+<p>History database is normally huge and rarely has replica, as we can imagine. The reason, I suspect, is the changing-write/read operation much more frequently than other tables. Normally, it has several following characters:</p>
+
+<ol>
+<li>Query/Scan/Join operation could cause performance on database for it has large bunch of data;</li>
+<li>It&rsquo;s pretty pretty important that I don’t need to talk about this twice;</li>
+<li>Things in the history database is genuine, application or log can fake but the history table does not lie;</li>
+<li>Since it’s might be the only database, clearly it’s not</li>
+</ol>
+
+
+<p>Due to the importance of History database, few people would have access. But there gonna be chance that you would talk to it. And the following are the tips I learned from a senior developer about interacting with History database:</p>
+
+<ol>
+<li>Pair with someone who are experienced and can make sure the query you write would not do harm to the database;</li>
+<li>Check the ChangeLog table schema first, attention whether it has some columns indexed;</li>
+<li>Use “&ndash;“  in the beginning to comment out your query in case if you hit enter before you complete the query;</li>
+<li>To “explain" the query you want to run firstly, to see whether the query would happen in a very large dataset, if it is, then you need to consider the consequent for running the query.</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; Explain <span class="k">select</span> * from ChangeLog where <span class="nv">TableName</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> and <span class="nv">ForeignKey</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
+</span><span class='line'>+----+-------------+-----------+------+---------------+------+---------+-------------+------+-------------+
+</span><span class='line'><span class="p">|</span> id <span class="p">|</span> select_type <span class="p">|</span> table     <span class="p">|</span> <span class="nb">type</span> <span class="p">|</span> possible_keys <span class="p">|</span> key  <span class="p">|</span> key_len <span class="p">|</span> ref         <span class="p">|</span> rows <span class="p">|</span> Extra       <span class="p">|</span>
+</span><span class='line'>+----+-------------+-----------+------+---------------+------+---------+-------------+------+-------------+
+</span><span class='line'><span class="p">|</span>  <span class="m">1</span> <span class="p">|</span> SIMPLE      <span class="p">|</span> ChangeLog <span class="p">|</span> ref  <span class="p">|</span> idx1          <span class="p">|</span> idx1 <span class="p">|</span> <span class="m">86</span>      <span class="p">|</span> const,const <span class="p">|</span>   <span class="m">61</span> <span class="p">|</span> Using where <span class="p">|</span>
+</span><span class='line'>+----+-------------+-----------+------+---------------+------+---------+-------------+------+-------------+
+</span><span class='line'><span class="m">1</span> row in <span class="nb">set</span> <span class="o">(</span>0.47 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What we can see from the result of explain is that the query would happen only in 61 rows, which would barely cause performance issue on the database. Of course, good to go.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2013-10-26T00:00:00+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/database/'>database</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/database/2013/10/26/be-careful-when-you-playing-with-history-database" data-via="boweniam" data-counturl="http://iambowen.github.com/database/2013/10/26/be-careful-when-you-playing-with-history-database" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/linux/2013/10/21/set-locale-in-debian-wheezy" title="Previous Post: Set locale in Debian Wheezy">&laquo; Set locale in Debian Wheezy</a>
+      
+      
+        <a class="basic-alignment right" href="/linux/2013/10/29/learning-centos-yum4-advanced-commands--etc" title="Next Post: Learning Centos: yum(4) advanced commands & etc">Learning Centos: yum(4) advanced commands & etc &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

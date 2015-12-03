@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Puppet,ops | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/puppet-ops/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Introduction to Puppet]]></title>
+    <link href="http://iambowen.github.com/puppet,ops/2014/09/29/introduction-to-puppet"/>
+    <updated>2014-09-29T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/puppet,ops/2014/09/29/introduction-to-puppet</id>
+    <content type="html"><![CDATA[<p>最近做数据中心应用运维的工作比较多，接触到了puppet这个工具。看了下官方文档，了解了基本语法，原理。直观的感觉puppet是一个使用起来比较简单的配置管理工具，跨平台方面做的也挺好的，还支持osx，比起chef来，概念要少一些。
+PPT如下:</p>
+
+<script async class="speakerdeck-embed" data-id="1b0421b029f201329590166834114127" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+
+]]></content>
+  </entry>
+  
+</feed>

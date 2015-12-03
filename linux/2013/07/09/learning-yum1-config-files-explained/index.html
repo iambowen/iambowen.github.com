@@ -1,0 +1,524 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Learning Yum(1): Config Files Explained - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/linux/2013/07/09/learning-yum1-config-files-explained">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Learning Yum(1): Config Files Explained</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-07-09T00:00:00+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="http://en.wikipedia.org/wiki/Yellowdog_Updater,_Modified">Yum</a>是RedHat系列中(如Centos, Fedora)等软件包管理工具，全称为Yellow Dog Updater, Modified, 在RPM的基础上，它可以自动解析安装软件的依赖。最早接触Redhat的时候时的版本是Redhat9, 实在是不堪忍受各种坑爹的依赖，所以后来接触Debian/Ubuntu之后才有大喜过望的感觉。最近想多熟悉几个系统，Centos/Arch Linux都在之列(没有Fedora的原因它发布比较快，不是特别稳定)，在都使用相同内核的前提，这些发行版本的最大的不同也许就是包/软件管理器了，这就是为什么我要先开始熟悉yum了…….</p>
+
+<p>从<a href="http://www.vagrantbox.es/">这里</a>下载Centos的virtual box镜像,添加到<a href="http://vagrantup.com/">Vagrant</a>中,你就可以拥有一个Centos的环境了，然后深度接触yum。</p>
+
+<p>开始之前，得先知道 yum 相关的配置文件都在什么地方，</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>man yum.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在帮助文件的底部我们就可以看到几乎所有的yum相关的配置文件:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>FILES
+</span><span class='line'>   /etc/yum.conf
+</span><span class='line'>   /etc/yum.repos.d/
+</span><span class='line'>   /etc/yum/pluginconf.d/
+</span><span class='line'>   /etc/yum/protected.d
+</span><span class='line'>   /etc/yum/vars
+</span><span class='line'>   /etc/yum/version-groups.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>yum 主配置文件:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>/etc/yum.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如下为yum.conf的示例文件:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>main<span class="o">]</span>
+</span><span class='line'><span class="nv">cachedir</span><span class="o">=</span>/var/cache/yum/<span class="nv">$basearch</span>/<span class="nv">$releasever</span>
+</span><span class='line'><span class="nv">keepcache</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">debuglevel</span><span class="o">=</span>2
+</span><span class='line'><span class="nv">logfile</span><span class="o">=</span>/var/log/yum.log
+</span><span class='line'><span class="nv">exactarch</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">obsoletes</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">gpgcheck</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">plugins</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">installonly_limit</span><span class="o">=</span>5
+</span><span class='line'><span class="nv">bugtracker_url</span><span class="o">=</span>http://bugs.centos.org/set_project.php?project_id<span class="o">=</span>16<span class="p">&amp;</span><span class="nv">ref</span><span class="o">=</span>http://bugs.centos.org/bug_report_page.php?category<span class="o">=</span>yum
+</span><span class='line'><span class="nv">distroverpkg</span><span class="o">=</span>centos-release
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到配置文件中有大量的选项，比如选择是否在本地保存cache，cache目录在那里，log文件的位置，是否enable yum的plugin等等，详细的配置项的解释可以查看man yum.conf.
+yum repos 配置文件:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>tree /etc/yum.repos.d/
+</span><span class='line'>/etc/yum.repos.d/
+</span><span class='line'><span class="p">|</span>-- CentOS-Base.repo
+</span><span class='line'><span class="p">|</span>-- CentOS-Debuginfo.repo
+</span><span class='line'><span class="p">|</span>-- CentOS-Media.repo
+</span><span class='line'><span class="sb">`</span>-- CentOS-Vault.repo
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>配置文件中有两个section，一个是[main]，包含全局的yum配置, 一个是[repository]，包含repository的配置，定义软件仓库。 通常在主配置文件中定义main，repository定义通常放置在/etc/yum.repos.d/*.repo 文件中，扩展性非常好，如果你想添加新的软件源或者镜像，在/etc/yum.repos.d/目录下新创建一个.repo文件就好了。
+yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件的情况下，寻找一个合适的软件源是很重要的。 从<a href="http://mirror-status.centos.org/">列表</a>中找到中国的镜像，还是很多的，教育网公网服务器一半一半的样子,最奇怪的是台湾的镜像，竟然显示是台湾省，呵呵。我选择的是<a href="http://mirrors.163.com/">163的镜像</a>，步骤如下:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo cp CentOS-Base.repo Centos-163.repo
+</span><span class='line'>sudo sed -i <span class="s1">&#39;s/^mirrorlist/\#mirrorlist/g&#39;</span> Centos-163.repo
+</span><span class='line'>sudo sed -i <span class="s1">&#39;s/^\#baseurl/baseurl/g&#39;</span> Centos-163.repo
+</span><span class='line'>sudo sed -i <span class="s1">&#39;s/mirror.centos.org/mirrors.163.com/g&#39;</span> Centos-163.repo
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>之后运行yum update metadata，就可以更新metadata/index文件了。
+.repo文件中配置细节目录区别:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>base<span class="o">]</span>
+</span><span class='line'><span class="nv">name</span><span class="o">=</span>CentOS-<span class="nv">$releasever</span> - Base
+</span><span class='line'><span class="nv">mirrorlist</span><span class="o">=</span>http://mirrorlist.centos.org/?release<span class="o">=</span><span class="nv">$releasever</span><span class="p">&amp;</span><span class="nv">arch</span><span class="o">=</span><span class="nv">$basearch</span><span class="p">&amp;</span><span class="nv">repo</span><span class="o">=</span>os
+</span><span class='line'><span class="nv">baseurl</span><span class="o">=</span>http://mirrors.163.com/centos/<span class="nv">$releasever</span>/os/<span class="nv">$basearch</span>/
+</span><span class='line'>               ftp://path/to/repo
+</span><span class='line'><span class="nv">gpgcheck</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">gpgkey</span><span class="o">=</span>file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+</span><span class='line'><span class="nv">enabled</span><span class="o">=</span>1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中base为repo的名字，baseurl支持多个url、协议，指向repo的地址。gpgcheck选项表示要不要对下载的package做校验。enabled选项表示默认情况下是否使用该repo。mirrorlist为后备的repo镜像url列表。相关的配置选项还很多，比如time_out, http_caching等，可以man yum.conf查看。</p>
+
+<p>yum 的插件配置文件:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>tree /etc/yum/pluginconf.d/
+</span><span class='line'>/etc/yum/pluginconf.d/
+</span><span class='line'><span class="p">|</span>-- aliases.conf
+</span><span class='line'><span class="sb">`</span>-- fastestmirror.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>拿fastestmirror.conf作为例子看看:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>main<span class="o">]</span>
+</span><span class='line'><span class="nv">enabled</span><span class="o">=</span>1
+</span><span class='line'><span class="nv">verbose</span><span class="o">=</span>0
+</span><span class='line'><span class="nv">always_print_best_host</span> <span class="o">=</span> <span class="nb">true</span>
+</span><span class='line'><span class="nv">socket_timeout</span><span class="o">=</span>3
+</span><span class='line'><span class="nv">hostfilepath</span><span class="o">=</span>timedhosts.txt
+</span><span class='line'><span class="nv">maxhostfileage</span><span class="o">=</span>10
+</span><span class='line'><span class="nv">maxthreads</span><span class="o">=</span>15
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>其中enable选项可以打开或者关闭yum的插件。</p>
+
+<p>/etc/yum/vars/*，自定义yum中可以引用的变量:
+在yum.conf或者.repo中可以看到一些yum build-in变量，这些变量包括:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$basearch</span>
+</span><span class='line'><span class="nv">$releasever</span>
+</span><span class='line'><span class="nv">$arch</span>
+</span><span class='line'><span class="nv">$YUM0</span>-9
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>$basearch读取的是yum.conf中distroverpkg的值，$arch读取的是系统的CPU的architecture, $releasever是发行版的版本号，比如Centos-6。$YUM0-9读取shell中的变量，有则取之，无则为空。如果想从系统的环境变量中fetch一些值，可以在bash中设置$YUM0-9。自定义yum变量还有一种方法是在/etc/yum/vars/下新增变量文件，比如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s2">&quot;It&#39;s not Ubuntu&quot;</span> &gt; /etc/yum/vars/declare
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在yum.conf或者.repo文件中就可以调用$declare了，</p>
+
+<p>/etc/yum/version-groups.conf: 定义软件组， 用yum version查看</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>yum<span class="o">]</span>
+</span><span class='line'><span class="c">#  These are the top level things to do with yum, we don&#39;t list Eg. libselinux</span>
+</span><span class='line'><span class="c"># even though that&#39;s require by rpm(-libs).</span>
+</span><span class='line'><span class="nv">run_with_packages</span> <span class="o">=</span> <span class="nb">true</span>
+</span><span class='line'><span class="nv">pkglist</span> <span class="o">=</span> glibc, sqlite, libcurl, nss,
+</span><span class='line'>          yum-metadata-parser,
+</span><span class='line'>          rpm, rpm-libs, rpm-python,
+</span><span class='line'>          python,
+</span><span class='line'>          python-iniparse, python-urlgrabber, python-pycurl
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>/etc/yum/protected.d: 保护某些软件不被卸载，default只有yum，可以添加新的conf文件，比如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$echo</span> <span class="s2">&quot;vim-common&quot;</span> &gt; /etc/yum/protected.d/vim.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>此时如果remove vim-common这个package，就会得到失败的信息:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo yum remove vim-common
+</span><span class='line'>Setting up Remove Process
+</span><span class='line'>Resolving Dependencies
+</span><span class='line'>--&gt; Running transaction check
+</span><span class='line'>---&gt; Package vim-common.x86_64 2:7.2.411-1.8.el6 will be erased
+</span><span class='line'>--&gt; Processing Dependency: vim-common <span class="o">=</span> 2:7.2.411-1.8.el6 <span class="k">for</span> package: 2:vim-enhanced-7.2.411-1.8.el6.x86_64
+</span><span class='line'>--&gt; Running transaction check
+</span><span class='line'>---&gt; Package vim-enhanced.x86_64 2:7.2.411-1.8.el6 will be erased
+</span><span class='line'>--&gt; Finished Dependency Resolution
+</span><span class='line'>Error: Trying to remove <span class="s2">&quot;vim-common&quot;</span>, which is protected
+</span><span class='line'> You could try using --skip-broken to work around the problem
+</span><span class='line'> You could try running: rpm -Va --nofiles --nodigest
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>关于yum config文件大概就是这些，我们下一篇介绍yum的utils以及一些有用的plugins。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2013-07-09T00:00:00+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/linux/'>linux</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/linux/2013/07/09/learning-yum1-config-files-explained" data-via="boweniam" data-counturl="http://iambowen.github.com/linux/2013/07/09/learning-yum1-config-files-explained" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/git/2013/06/19/reset-commit-author" title="Previous Post: reset commit author">&laquo; reset commit author</a>
+      
+      
+        <a class="basic-alignment right" href="/linux/2013/07/25/learning-yum2-utils-and-plugins" title="Next Post: Learning Yum(2): Utils and Plugins">Learning Yum(2): Utils and Plugins &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

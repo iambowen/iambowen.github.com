@@ -1,0 +1,523 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Learning Yum(3): Basic Commands - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/linux/2013/07/31/learning-yum3-basic-commands">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Learning Yum(3): Basic Commands</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-07-31T00:00:00+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>对于包管理工具来说，安装/删除/查看包信息/升级软件包/搜索查找/清除metadata, 都是必须提供的功能。yum的基本命令操作同样也可以概括为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>install/(remove|erase|downgrade)/(list|info)/(update|upgrade)/search/clean</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>安装package:</strong><br/>
+yum安装package有两种方式，一种是安装单个/多个的package，一种是安装软件组。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum install package_names
+</span><span class='line'>yum install  -y<span class="o">(</span>--ausumeyes<span class="o">)</span> package_names
+</span><span class='line'>yum install --enablerepo<span class="o">=</span>drivers nvidia-driver
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>install的时候可以指定或者不指定具体的版本号，正常安装的时候会提示是否确认安装。为了偷懒或者在自动化部署的时候，想在跳过提示，可以加上个<code>-y</code>的参数，就可以了。有些repo可能默认被disable了，只想在单次的yum install的时候enable，可以加上 <code>--enablerepo=&lt;repo name&gt;</code>.</p>
+
+<p><strong>组安装:</strong><br/>
+想知道当前repo都提供了哪些package group，可以用<code>yum -v grouplist</code>，可以知道组名及组id。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum -v grouplist kde<span class="se">\*</span>
+</span><span class='line'>Config <span class="nb">time</span>: 0.009
+</span><span class='line'>Yum Version: 3.2.29
+</span><span class='line'>Setting up Group Process
+</span><span class='line'>rpmdb <span class="nb">time</span>: 0.001
+</span><span class='line'>group <span class="nb">time</span>: 0.159
+</span><span class='line'>Available Groups:
+</span><span class='line'>   KDE Desktop <span class="o">(</span>kde-desktop<span class="o">)</span>   <span class="c"># KDE Desktop 组的id 就是(kde-desktop)</span>
+</span><span class='line'>Done
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>组安装的有几种不同形式，但是结果都是相同的，如下的几个命令都会安装KDE Desktop的groupyum groupinstall &ldquo;KDE Desktop&rdquo;</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum groupinstall kde-desktop
+</span><span class='line'>yum install @kde-desktop
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>删除package:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum remove package_name
+</span><span class='line'>yum remove glibc*
+</span><span class='line'>yum erase package_name/glob expression
+</span><span class='line'>yum groupremove  <span class="c">#删除软件组</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>开始我以为remove和erase是有区别的，但是后来在fedora社区论坛上发现其实它们没什么区别，很汗啊，上次分享的时候我还信誓旦旦的说了来着，都是被apt搞混了。</p>
+
+<p><strong>查看package信息:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum info package_name   等同于rpm -q --info package_name
+</span><span class='line'>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum info vim-common
+</span><span class='line'>Installed Packages
+</span><span class='line'>Name        : vim-common
+</span><span class='line'>Arch        : x86_64
+</span><span class='line'>Epoch       : 2
+</span><span class='line'>Version     : 7.2.411
+</span><span class='line'>Release     : 1.8.el6
+</span><span class='line'>Size        : <span class="m">17</span> M
+</span><span class='line'>Repo        : installed
+</span><span class='line'>From repo   : base
+</span><span class='line'>Summary     : The common files needed by any version of the VIM editor
+</span><span class='line'>URL         : http://www.vim.org/
+</span><span class='line'>License     : Vim and GPLv2+ and BSD and LGPLv2+ and Open Publication
+</span><span class='line'>Description : VIM <span class="o">(</span>VIsual editor iMproved<span class="o">)</span> is an updated and improved version of the
+</span><span class='line'>            : vi editor.  Vi was the first real screen-based editor <span class="k">for</span> UNIX, and is........
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到package相关的所有信息，</p>
+
+<p><strong>罗列packages信息:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum list <span class="o">[</span>available<span class="p">|</span>installed<span class="p">|</span>extras<span class="p">|</span>updates<span class="p">|</span>obsoletes<span class="p">|</span>all<span class="p">|</span>recent<span class="o">]</span> <span class="o">[</span>pkgspec<span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum list available 列出当前enable的repo中所有可用package
+</span><span class='line'>yum list installed 列出当前系统中已经安装的package
+</span><span class='line'>yum list extras 列出已安装的package中不在enable的repo中的package
+</span><span class='line'>yum list updates  列出当前enable的repo中可以提供更新的package
+</span><span class='line'>yum list obsoletes 列出enable的repo中或者已安装的package中被淘汰的package
+</span><span class='line'>yum list all 列出所有enable的repo中的package
+</span><span class='line'>yum list recent 列出所有enable的repo中最近一周添加的package
+</span><span class='line'>yum list installed <span class="s2">&quot;krb?-*&quot;</span> 以上所有的list命令都支持通配符，罗列相关的package信息
+</span><span class='line'>yum list package spec  为特定的package列出相关信息，比如列出glibc的信息
+</span><span class='line'><span class="o">[</span>vagrant@localhost yum.repos.d<span class="o">]</span><span class="nv">$ </span>yum list glibc
+</span><span class='line'>Installed Packages
+</span><span class='line'>glibc.x86_64                                                       2.12-1.107.el6                                                            @anaconda-CentOS-201303020151.x86_64/6.4
+</span><span class='line'>Available Packages
+</span><span class='line'>glibc.i686                                                         2.12-1.107.el6_4.2                                                        updates
+</span><span class='line'>glibc.x86_64                                                       2.12-1.107.el6_4.2                                                        updates
+</span><span class='line'>
+</span><span class='line'>yum list  <span class="se">\*</span>.i686  <span class="c">#glob expression</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>罗列组信息:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum grouplist
+</span><span class='line'>yum -v grouplist  <span class="s2">&quot;KDE*&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>查看repo信息:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum repolist
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>更新package:</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum check-update  <span class="c">#检查有更新的软件，返回的值分别为可以更新的package所在repo已经最新的版本号</span>
+</span><span class='line'>yum check-update glibc*   <span class="c">#检查单一的package，支持通配符</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost yum.repos.d<span class="o">]</span><span class="nv">$ </span>yum check-update
+</span><span class='line'>glibc.x86_64                                                                            2.12-1.107.el6_4.2                                                                    updates
+</span><span class='line'>
+</span><span class='line'>yum update   <span class="c">#升级所有已安装package有更新的package</span>
+</span><span class='line'>yum update glibc <span class="c">#升级某一个package</span>
+</span><span class='line'>yum update glibc*  <span class="c">#升级某一票package</span>
+</span><span class='line'>
+</span><span class='line'>yum upgrade  <span class="c">#和update类似，但是会考虑淘汰的package</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>搜索软件包:</strong><br/>
+<code>yum search</code> yum 提供了软件包搜索的功能，可以通过关键字(package描述|package名)搜索到你想要的软件包。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant@localhost yum.repos.d<span class="o">]</span><span class="nv">$ </span>yum search <span class="nv">vim</span>
+</span><span class='line'><span class="o">===================================================================================</span> Matched: <span class="nv">vim</span> <span class="o">====================================================================================</span>
+</span><span class='line'>vim-X11.x86_64 : The VIM version of the vi editor <span class="k">for</span> the X Window System
+</span><span class='line'>vim-common.x86_64 : The common files needed by any version of the VIM editor
+</span><span class='line'>vim-enhanced.x86_64 : A version of the VIM editor which includes recent enhancements
+</span><span class='line'>vim-minimal.x86_64 : A minimal version of the VIM editor
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost yum.repos.d<span class="o">]</span><span class="nv">$ </span>yum search <span class="s2">&quot;vi editor&quot;</span> <span class="c">#只需要描述软件提供的功能，便可以查找出提供该功能的软件包</span>
+</span><span class='line'><span class="o">==============================================================================</span> N/S Matched: vi <span class="nv">editor</span> <span class="o">===============================================================================</span>
+</span><span class='line'>vim-X11.x86_64 : The VIM version of the vi editor <span class="k">for</span> the X Window System
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>清理本地cached metadata 和package:</strong><br/>
+减少占用的磁盘空间，或者处理metadata出错的情况:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum clean  <span class="c">#默认清理cached package和metadata，cache的目录是/var/cache/yum/</span>
+</span><span class='line'>yum clean packages <span class="c">#只清理cached package</span>
+</span><span class='line'>yum clean metadata <span class="c">#只清理metadata</span>
+</span><span class='line'>yum clean dbcache   <span class="c">#清理yum的sqllite数据库文件</span>
+</span><span class='line'>yum clean all     <span class="c">#清理</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>常用的yum 命令大概就有这么些，我们可以发现:<br/>
+1. yum基本的命令使用模式比较接近, 而且都是正常人的使用逻辑;<br/>
+2. yum的命令一般都会支持通配符的操作，用法比较统一；<br/>
+下一次我们将介绍一些平常不太用yum但是还有点意思的命令。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2013-07-31T00:00:00+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/linux/'>linux</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/linux/2013/07/31/learning-yum3-basic-commands" data-via="boweniam" data-counturl="http://iambowen.github.com/linux/2013/07/31/learning-yum3-basic-commands" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/linux/2013/07/25/learning-yum2-utils-and-plugins" title="Previous Post: Learning Yum(2): Utils and Plugins">&laquo; Learning Yum(2): Utils and Plugins</a>
+      
+      
+        <a class="basic-alignment right" href="/linux/2013/10/21/set-locale-in-debian-wheezy" title="Next Post: Set locale in Debian Wheezy">Set locale in Debian Wheezy &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

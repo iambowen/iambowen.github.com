@@ -1,0 +1,384 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Learning Shell: Navigation File Content - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="shell commands">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/shell/2014/08/18/learning-shell-navigation-file-content">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Learning Shell: Navigation File Content</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-08-18T00:00:00+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Linux系统中浏览文件的命令很多，比如<code>less</code>,<code>more</code>, <code>head</code>,<code>tail</code>, <code>cat</code>等，其中<code>less</code>命令最为丰富，对于二进制文件和压缩文件，也有对应的命令去浏览。我整理了下，在组内做了一次分享，如下为主要内容。</p>
+
+<h2>less</h2>
+
+<p>这个命令可以查看一个文件的内容，和编辑器的打开要读取整个文件的方式不一样，<code>less</code>只读取部分，因此，它占用的内存较少。如果是在产品环境下追踪问题，需要打开很大的文档，用这个命令要好过编辑器。</p>
+
+<h4>移动</h4>
+
+<ul>
+<li>Ctrl + F(orward)/U(p)/B(ackward)/D(own)  或者 space 滚动</li>
+<li>j/k   向上或者向下移动一行</li>
+<li>g/G/q   跳到文件头/尾部， 退出浏览</li>
+</ul>
+
+
+<h4>Search</h4>
+
+<ul>
+<li>?         反向搜索</li>
+<li>/         正向搜索</li>
+<li>n/N       跳到下一处/前一处匹配行</li>
+<li>&amp;pattern  只显示匹配 pattern 的行</li>
+</ul>
+
+
+<h4>有用的命令</h4>
+
+<ul>
+<li>:v         使用缺省的编辑器进入编辑模式，可以通过<code>EDITOR</code>环境变量修改</li>
+<li>:F         类似<code>tail -f</code>的效果，等待文件即时的输出，但是tail命令是不能搜索的</li>
+<li>ma         标记，使用a跳到标记处，``跳到上次浏览位置</li>
+<li>!          执行shell命令</li>
+<li>:s file    将管道中的内容保存在file中</li>
+<li>:h         显示所有快捷方式及命令</li>
+</ul>
+
+
+<h4>浏览多个文件</h4>
+
+<ul>
+<li>less file1 file2 file3</li>
+<li>:n   查看下一个文件</li>
+<li>:p   查看前一个文件</li>
+<li>:e   打开一个文件</li>
+</ul>
+
+
+<h2>cat</h2>
+
+<p>查看文件内容，每次输出全部内容。<code>tac</code>命令和<code>cat</code>命令作用相反。</p>
+
+<h4>常用参数</h4>
+
+<ul>
+<li>-T 显示文件中的tab</li>
+<li>-n 显示文件的行数</li>
+<li>-b 显示行数，不包括空行</li>
+</ul>
+
+
+<h4>重定向</h4>
+
+<ul>
+<li>清空文件:  <code>cat /dev/null &gt; empty_the_file.txt</code></li>
+<li>合并文件:  <code>cat -n file1 file2 &gt; file3</code></li>
+<li>重定向:    <code>cat ~/.ssh/id_rsa.pub | ssh root@remote “cat &gt;&gt; ~/.ssh/authorized_keys”</code></li>
+</ul>
+
+
+<h2>head/tail</h2>
+
+<p>取文件前/尾部 10(n)行内容，用法简单直接。
+  - head -n 10 file
+  - tail -f -n 10 file
+  - tail -n 10
+  - tail -r file(reversely)</p>
+
+<h2>strings</h2>
+
+<p>浏览二进制文件，<code>strings</code>命令可以抽取二进制文件中所有的字符串，在二进制文件没有提供很有效的信息的清空下，可以用这个命令获取到更多的信息，用法很简单。
+  - <code>strings filename</code></p>
+
+<h2><code>Z</code>命令</h2>
+
+<p>z系列命令特指z开头的一系列命令，包括:</p>
+
+<ul>
+<li>zcat</li>
+<li>zless/zmore</li>
+<li>zgrep</li>
+<li>zdiff(zcmp)</li>
+</ul>
+
+
+<p>这些命令可以看做是变异版的cat/less等，其针对的对象是压缩文件，如<code>tar.gz</code>结尾的文件，在不解压的情况下，浏览/查找其内容，对比文件内容等。需要注意的是，这些命令只能操作单个文件压缩后的文件，如果是整个目录那就达不到效果了。
+对于 bz2 结尾的压缩文件，也有对应的命令群，<code>bz*</code>，以此类推。</p>
+
+<h3>本次session的ppt:</h3>
+
+<script async class="speakerdeck-embed" data-id="b70bb090096e01326f7c2216803d3d2d" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2014-08-18T00:00:00+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/shell/'>shell</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/shell/2014/08/18/learning-shell-navigation-file-content" data-via="boweniam" data-counturl="http://iambowen.github.com/shell/2014/08/18/learning-shell-navigation-file-content" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/scala/2014/08/01/learning-scala-function" title="Previous Post: Learning Scala: Function">&laquo; Learning Scala: Function</a>
+      
+      
+        <a class="basic-alignment right" href="/linux/2014/08/21/compressing-and-uncompressing-files-under-linux" title="Next Post: compressing and uncompressing files under linux">compressing and uncompressing files under linux &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

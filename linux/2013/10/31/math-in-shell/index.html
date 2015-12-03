@@ -1,0 +1,559 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Math in Shell - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/linux/2013/10/31/math-in-shell">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Math in Shell</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-10-31T00:00:00+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>最近半年的所作的项目中，接触了些Ops的工作，自动化工具如Chef/Puppet都用过些。这些工具都很不错，但是过程当中会遇到一些问题，需要你基础的系统/shell知识，从而认识到了其重要性，开始系统学习，目前阅读的书为: <linux shell scripting cookbook version> 以及浏览china-unix论坛。</p>
+
+<p>Shell的强大是毋庸置疑的，所以进行数学运算也就是理所应当具有的功能。Shell可以用<code>declare/let/(( ))/[]</code>进行一些简单的数学运算。
+Shell 支持的运算:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ARITHMETIC EVALUATION
+</span><span class='line'>       The  shell  allows arithmetic expressions to be evaluated, under certain circumstances <span class="o">(</span>see the <span class="nb">let </span>and <span class="nb">declare builtin </span>commands and Arithmetic Expansion<span class="o">)</span>.
+</span><span class='line'>       Evaluation is <span class="k">done</span> in fixed-width integers with no check <span class="k">for</span> overflow, though division by <span class="m">0</span> is trapped and flagged as an error.  The  operators  and  their
+</span><span class='line'>       precedence, associativity, and values are the same as in the C language.  The following list of operators is grouped into levels of equal-precedence opera-
+</span><span class='line'>       tors.  The levels are listed in order of decreasing precedence.
+</span><span class='line'>
+</span><span class='line'>       id++ id--
+</span><span class='line'>              variable post-increment and post-decrement
+</span><span class='line'>       ++id --id
+</span><span class='line'>              variable pre-increment and pre-decrement
+</span><span class='line'>       - +    unary minus and plus
+</span><span class='line'>       ! ~    logical and bitwise negation
+</span><span class='line'>       **     exponentiation
+</span><span class='line'>       * / %  multiplication, division, remainder
+</span><span class='line'>       + -    addition, subtraction
+</span><span class='line'>       &lt;&lt; &gt;&gt;  left and right bitwise shifts
+</span><span class='line'>       &lt;<span class="o">=</span> &gt;<span class="o">=</span> &lt; &gt;
+</span><span class='line'>              <span class="nv">comparison</span>
+</span><span class='line'>       <span class="o">==</span> !<span class="o">=</span>  equality and inequality
+</span><span class='line'>       <span class="p">&amp;</span>      bitwise AND
+</span><span class='line'>       ^      bitwise exclusive OR
+</span><span class='line'>       <span class="p">|</span>      bitwise OR
+</span><span class='line'>       <span class="o">&amp;&amp;</span>     logical AND
+</span><span class='line'>       <span class="o">||</span>     logical OR
+</span><span class='line'>       expr?expr:expr
+</span><span class='line'>              conditional <span class="nv">operator</span>
+</span><span class='line'>       <span class="o">=</span> *<span class="o">=</span> /<span class="o">=</span> %<span class="o">=</span> +<span class="o">=</span> -<span class="o">=</span> &lt;&lt;<span class="o">=</span> &gt;&gt;<span class="o">=</span> <span class="p">&amp;</span><span class="o">=</span> ^<span class="o">=</span> <span class="p">|</span><span class="o">=</span>
+</span><span class='line'>              assignment
+</span><span class='line'>       expr1 , expr2
+</span><span class='line'>              comma
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到涵盖了通用的编程语言中的数学运算方式，那么在shell中可以通过那些命令来进行计算呢？</p>
+
+<p><code>declare</code>: 声明变量同时定义其属性。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/bash</span>
+</span><span class='line'><span class="nv">n</span><span class="o">=</span>1*2*9/3
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$n</span>
+</span><span class='line'><span class="nb">declare</span> -i n
+</span><span class='line'><span class="nv">n</span><span class="o">=</span>1*2*9/3
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$n</span>
+</span><span class='line'>
+</span><span class='line'>result:
+</span><span class='line'>1*2*9/3
+</span><span class='line'>
+</span><span class='line'>6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面的例子可以看出，只有将变量声明为整数，shell才会认为你是在尝试进行数学运算而不是单纯的字符串变量。</p>
+
+<p><code>expr</code>: 数学表达式运算</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">z</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">5</span> + 1<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$z</span>
+</span><span class='line'><span class="nv">a</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">7</span> % 2<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$a</span>
+</span><span class='line'><span class="nv">d</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">1</span> <span class="se">\&amp;</span> 0<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$d</span>
+</span><span class='line'><span class="c">#error</span>
+</span><span class='line'><span class="nv">b</span><span class="o">=</span><span class="sb">`</span>expr 7*2<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$b</span>
+</span><span class='line'>
+</span><span class='line'>result:
+</span><span class='line'>6
+</span><span class='line'>1
+</span><span class='line'>0
+</span><span class='line'>7*2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>expr后所带的表达式运算符必须以空格分开，不然会被当做字符串，不会进行运算，一些meta字符比如&amp; %等，必须转义才可以执行。</p>
+
+<p><code>let</code>:  后面跟随数学表达式并进行运算</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ a</span><span class="o">=</span>2
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ b</span><span class="o">=</span>2
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span><span class="nv">result</span><span class="o">=</span>a+b
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>4
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span>result++
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>5
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span>result--
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>4
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>同样，在计算的时候需要用空格分隔。</p>
+
+<p><code>(( ))</code> 和<code>[]</code>也可以起到类似的作用。参加如下的例子:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ a</span><span class="o">=</span>1
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ b</span><span class="o">=</span>2
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="nv">$[</span> a + b <span class="o">]</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>3
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="nv">$[</span> <span class="nv">$a</span> + b <span class="o">]</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>3
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="k">$((</span><span class="nv">$a</span> <span class="o">+</span> <span class="m">50</span><span class="k">))</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>51
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="k">$((</span><span class="nv">$a</span> <span class="o">-</span> <span class="m">50</span><span class="k">))</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>-49
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="k">$((</span><span class="m">16#2</span>a<span class="k">))</span>  <span class="c">#进制转换,将16进制的”2a”转换为十进制的数字, 相当酷帅吊炸天</span>
+</span><span class='line'><span class="m">42</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="k">$((</span><span class="m">2#1111</span><span class="k">))</span>
+</span><span class='line'>15
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>(())</code>或者<code>[]</code>中的变量也可以加或者不加$符号从表达式外获取。以上这些命令只能处理整数运算，如果想要进行浮点数运算，就得求助<code>bc</code>命令了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;5 * 0.86&quot;</span> <span class="p">|</span> bc
+</span><span class='line'>4.30
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ n</span><span class="o">=</span>40
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span> <span class="nb">echo</span> <span class="s2">&quot;$n * 0.86&quot;</span> <span class="p">|</span> bc
+</span><span class='line'>34.40
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;scale=3;4/7&quot;</span> <span class="p">|</span> bc   <span class="c">#指定十进制浮点运算的精度</span>
+</span><span class='line'>.571
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">umask</span>
+</span><span class='line'>0002
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;obase=8;$(( 8#666 &amp; (8#777 ^ 8#$(umask)) ))&quot;</span> <span class="p">|</span> bc
+</span><span class='line'>664
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ no</span><span class="o">=</span>100
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;obase=2;$no&quot;</span> <span class="p">|</span> bc   <span class="c">#进制转换, 10进制-&gt; 2进制</span>
+</span><span class='line'>1100100
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;sqrt(100)&quot;</span> <span class="p">|</span> bc <span class="c">#开方</span>
+</span><span class='line'>10
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;10^10&quot;</span> <span class="p">|</span> bc   <span class="c">#次方计算</span>
+</span><span class='line'>10000000000
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>bc</code>的功能远超上面所列举的例子，想仔细研究的话就 <code>man bc</code>…., enjoy。</p>
+
+<p>references:<a href="http://www.sal.ksu.edu/faculty/tim/unix_sg/bash/math.html">1</a>, <a href="http://bbs.chinaunix.net/forum.php?mod=viewthread&amp;tid=218853&amp;page=7#pid1617953">2</a>, <a href="http://www.amazon.com/Linux-Scripting-Cookbook-Second-Edition/dp/1782162747">3</a></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2013-10-31T00:00:00+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/linux/'>linux</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/linux/2013/10/31/math-in-shell" data-via="boweniam" data-counturl="http://iambowen.github.com/linux/2013/10/31/math-in-shell" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/linux/2013/10/29/learning-centos-yum4-advanced-commands--etc" title="Previous Post: Learning Centos: yum(4) advanced commands & etc">&laquo; Learning Centos: yum(4) advanced commands & etc</a>
+      
+      
+        <a class="basic-alignment right" href="/linux/2013/11/04/record-and-play-back-terminal-session" title="Next Post: Record and Play Back Terminal Session">Record and Play Back Terminal Session &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

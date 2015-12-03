@@ -1,0 +1,379 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>A PIR for a Production Failure - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="PIR">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/2015/01/18/a-pir-for-an-production-fail">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">A PIR for a Production Failure</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-18T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>客户这边对产品环境的事故严重性分为5级定义:</p>
+
+<ol>
+<li>Sev 1 一级事故: 服务完全不可用，并且影响到了客户;</li>
+<li>Sev 2 二级事故: 产品的主要功能对于一小部分用户不可用，或者产品的次要功能对于大多数用户不可用；</li>
+<li>Sev 3 三级事故: 不重要的功能不能使用，对外部可见，但是影响不大，不属于严重事故；</li>
+<li>Sev 4 四级事故: 没有显著的影响，错误只是内部可见；</li>
+<li>Sev 5 五级事故: 不期而至的错误，只发生在团队内部；</li>
+</ol>
+
+
+<p>举个例子来说，比如主站挂掉，这就是个一级错误，但是如果某个服务的产品数据库不能连接，造成的影响要小些，
+可能就是二级事故了。蓝绿部署时inactive环境部署失败的话，这应该算是4级事故。将团队用的CI master
+以及DB干掉，这个应该算是5级事故了。</p>
+
+<p>一般来说，产品在上线之前，都会经过build pipeline, test/staging环境的各种测试，正常情况下它都是
+应该工作的，所以出问题的情况都是非常巧合，甚至令人觉得匪夷所思。这也是这些事故有趣之所在了。</p>
+
+<p>前几天，我就引起了这么一起Sev 2事故。我们做了一次<a href="https://sysadmincasts.com/episodes/20-how-to-write-an-incident-report-postmortem">PIR</a>回顾
+了这次事故，并且提出了相应的改进办法。</p>
+
+<h3>应用的功能</h3>
+
+<hr />
+
+<p>收集用户信息的静态页面</p>
+
+<h3>技术栈</h3>
+
+<hr />
+
+<ol>
+<li>纯前端项目，用Grunt/Bower等前端工作流，Karma做JS测试框架，requirejs做模块管理，前端框架用Backbone；</li>
+<li>后端的API基于Scala，集成测试通过Pact(<a href="http://martinfowler.com/articles/consumerDrivenContracts.html">CDC</a>)的测试方式；</li>
+</ol>
+
+
+<h3>系统架构</h3>
+
+<hr />
+
+<ol>
+<li>应用部署在AWS的S3上；</li>
+<li>最前面用Akamai做CDN；</li>
+<li>通过JSON的方式对后端数据读写；</li>
+</ol>
+
+
+<h3>Build Pipline以及部署方式</h3>
+
+<hr />
+
+<ol>
+<li>本地开发，测试运行后提交代码， PR/Review/Merge</li>
+<li>CI上面运行单元测试以及Pact集成测试，并且打包生成zip文件</li>
+<li>用<code>unzip-to-s3</code>这个工具将文件上传到staging S3 bucket 和 production S3 bucket
+如果我知道这玩意直接进入production，当时说不定会去多看几眼……。</li>
+</ol>
+
+
+<h3>事故回顾</h3>
+
+<hr />
+
+<ol>
+<li>我提交footer修改的PR，客户回复<code>LGTM</code>，然后merge</li>
+<li>2天后客服人员通过Zendesk提交ticket说有几个客户抱怨产品好像不大好用了</li>
+<li>Tech Leader立刻召集产品相关的几个开发和运维人员检查，发现引用cache busting的js的script tag不知道怎么出问题了</li>
+<li>在没有确定最根本的原因时，它们尝试revert了我的代码，然后手动修改了产品环境的文件……-_-！</li>
+<li>找到了最根本的原因，是其中一个用来做cache busting的module突然升级，然后在package.json它是以<code>~0.0.10</code>的方式被引用的，如此在<code>npm install</code>的时候，它会自动升级小版本，没想到那个版本有问题，引入了一个bug。然后打包的过程在Bamboo build上，没人会去仔细看build log。</li>
+<li>拿回我的提交，将cache busting模块的版本锁定，重新部署后恢复正常</li>
+</ol>
+
+
+<h3>事故后的Action</h3>
+
+<hr />
+
+<ol>
+<li>增加相关的测试用例，部署到staging和production后添加相关smoke测试以检验一切加载正常；</li>
+<li>用到的cache busting库在github没有很多人参与，所以重新考虑换一个更加稳定，用得人多点的模块；</li>
+<li>尝试将zendesk服务和pagerduty集成，如此开发团队会更快得到来自客户的反馈会；</li>
+<li>思考下这种直接进入产品环境的持续交付的方式是不是合适的，或者如何去改进；</li>
+<li>考虑对项目中使用到的模块用专门的build做升级时检查；</li>
+<li>测试时要针对整个打包好的assets；</li>
+<li>通过语义化(sematic)工具结合pagerduty报警;</li>
+</ol>
+
+
+<hr />
+
+<p>对于纯前端的这种app，监控确实不如后端(可以用现成的工具如<a href="https://www.newrelic.com/">NewRelic</a>)好做，目前的方式是通过Nagios做Active check，检查bucket中对应
+的文件是否存在，实际的意义并不大，我觉得监控产品环境的集成页面会更有价值些，比如测试相应时间，如果响应
+时间超过某个值，比如10s，或者返回的html中没有包含必要的元素，就认为它可能会有问题。</p>
+
+<p>上面的最后一条也不错，通过API收集前端请求的次数，将数据发送到类似Graphite之类的工具，然后用<a href="https://github.com/etsy/skyline">Skyline</a>之类
+的工具进行数据分析，如果有些数据(如访问量)突然高于或者低于某个值，就可以发送警报到pagerduty。
+另外，对于产品中引用的第三方类库/模块，除了固定使用的版本之外，还有必要搭建测试最新类库集成后的功能
+完整性的build，这个叫做<a href="http://www.thoughtworks.com/radar/techniques">Canary Build</a>(金丝雀构建)，在Thoughtworks最新
+的Tech Radar中有提到。</p>
+
+<p>最后，希望我不会因为制造太多的产品事故而被炒-_-!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-01-18T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/2015/01/18/a-pir-for-an-production-fail" data-via="boweniam" data-counturl="http://iambowen.github.com/2015/01/18/a-pir-for-an-production-fail" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/docker/2015/01/16/running-containers-in-docker" title="Previous Post: running containers in Docker">&laquo; running containers in Docker</a>
+      
+      
+        <a class="basic-alignment right" href="/nginx/2015/01/21/solve-request-entity-too-large-issue" title="Next Post: Solve Request Entity Too Large Issue">Solve Request Entity Too Large Issue &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

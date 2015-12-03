@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Python | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/python/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Introduction of Virtualenv]]></title>
+    <link href="http://iambowen.github.com/python/2011/12/02/Introduction-of-virtualenv"/>
+    <updated>2011-12-02T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/python/2011/12/02/Introduction-of-virtualenv</id>
+    <content type="html"><![CDATA[<p>什么是 <em>virtualenv</em>:
+virtualenv 是一款用来创建隔离的Python开发环境的工具，有点类似ruby下的rvm.通过virtualenv，可以为不同的python项目定制所需要的环境.</p>
+
+<p>OSX下安装的过程:
+本来想自己写，但是这位阿三哥写的太好了，就节省下体力……: &ldquo;猛击这里&rdquo;:<a href="http://blog.praveengollakota.com/47430655">http://blog.praveengollakota.com/47430655</a>
+OSX系统自带的python版本是2.6，而我们开发使用的版本是2.7，直接升级很容易，但是其中有些配置会稍微麻烦一些。
+主要的步骤:</p>
+
+<h1>安装 <em>Python 2.7</em></h1>
+
+<h1>_ 下载 <em>easy_install</em>,安装对应python2.7的 easy_install：</h1>
+
+<p>@sh setuptools-0.6c11-py2.7.egg@</p>
+
+<h1>_ 使用easy_install 安装 pip, pip是一个python下的包管理工具:</h1>
+
+<p>@easy_install pip@</p>
+
+<h1>_ 使用pip 去安装 <em>virtualenv</em> 以及 <em>virtualenvwrapper</em> :</h1>
+
+<pre><code class="bash">pip install virtualenv
+pip install virtualenvwrapper
+</code></pre>
+
+<h1>_ 配置 <em>.bashrc/.bash_profile</em> 文件使得 <em>virtualenvwrapper</em> 的命令可以在bash下运行:</h1>
+
+<pre><code class="bash">mkdir ~/.virtualenv
+export WORKON_HOME=$HOME/.virtualenvs
+source /Library/Frameworks/Python.framework/Versions/2.7/bin/virtualenvwrapper.sh
+</code></pre>
+
+<p>之后 <code>source ~/.bash_profile</code> ，就可以在命令行中使用 <code>vritualenvwrapper</code> 中的命令了.</p>
+
+<p><em>如何使用virtualenv:</em></p>
+
+<h1>创建一个虚拟环境:</h1>
+
+<p><code>mkvirtualenv  test</code></p>
+
+<h1>_ 查看当前的虚拟环境的列表:</h1>
+
+<p><code>workon</code></p>
+
+<h1>_ 使用某一个虚拟环境:</h1>
+
+<p><code>workon test</code></p>
+
+<p>之后就回看到shell的提示符前面出现了环境的名称，这里就可以大胆的去做各种环境配置了，用pip去安装所有你需要的python包。
+想退出的话，可以直接 <code>command + d</code> 或者用 <code>deactivate</code> 命令即可.</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,441 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Simple Introduction About Vimium and Some Comments - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="Vimium 是Chrome下的一个插件，可以让你用类似vim的方式用全键盘的方式浏览网页。其所有快捷键如下(web页面下按？也可以查看): Vimium Help 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25 &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Simple Introduction About Vimium and Some Comments</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-02T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Vimium 是Chrome下的一个插件，可以让你用类似vim的方式用全键盘的方式浏览网页。其所有快捷键如下(web页面下按？也可以查看):</p>
+
+<p>Vimium Help</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vigating the page
+</span><span class='line'>j, &lt;c-e&gt;: Scroll down
+</span><span class='line'>k, &lt;c-y&gt;: Scroll up
+</span><span class='line'>h:the Scroll left
+</span><span class='line'>l: Scroll right
+</span><span class='line'>gg: Scroll to the top of the page
+</span><span class='line'>G:Scroll Scroll to the bottom of the page
+</span><span class='line'>zH: Scroll all the way to the left
+</span><span class='line'>zL: Scroll all the way to the right
+</span><span class='line'>d: Scroll a page down
+</span><span class='line'>u: Scroll a page up
+</span><span class='line'>r: Reload the page
+</span><span class='line'>gs: View page <span class="nb">source</span>
+</span><span class='line'>yy: Copy the current URL to the clipboard
+</span><span class='line'>yf: Copy a link URL to the clipboard
+</span><span class='line'>post: Open the clipboard<span class="s1">&#39;s URL in the current tab</span>
+</span><span class='line'><span class="s1">P: Open the clipboard&#39;</span>s URL in a new tab
+</span><span class='line'>gu: Go up the URL hierarchy
+</span><span class='line'>i: Enter insert mode
+</span><span class='line'>gi: Focus the first <span class="o">(</span>or n-th<span class="o">)</span> text box on the page
+</span><span class='line'>f: Open a link in the current tab
+</span><span class='line'>F: Open a link in a new tab
+</span><span class='line'>&lt;a-f&gt;: Open multiple links in a new tab
+</span><span class='line'>o: Open URL, bookmark, or <span class="nb">history </span>entry
+</span><span class='line'>O: Open URL, bookmark, <span class="nb">history </span>entry, in a new tab
+</span><span class='line'>T: Search through your orpen tabs
+</span><span class='line'>b: Open a bookmark
+</span><span class='line'>B: Open a bookmark in a new tab
+</span><span class='line'><span class="o">[[</span>: Follow the link labeled previous or &lt;
+</span><span class='line'><span class="o">]]</span>: Follow the link labeled next or &gt;
+</span><span class='line'>gf: Cycle forward to the next frame on the page
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查找:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>/: Enter find mode
+</span><span class='line'>n: Cycle forward to the next find match
+</span><span class='line'>N: Cycle backward to the previous find match
+</span><span class='line'>Navigating <span class="nb">history</span>
+</span><span class='line'>H: Go back in <span class="nb">history</span>
+</span><span class='line'>L: Go forward in <span class="nb">history</span>
+</span><span class='line'>Manipulating tabs
+</span><span class='line'>K, gt: Go one tab right
+</span><span class='line'>J, gT: Go one tab left
+</span><span class='line'>g0: Go to the first tab
+</span><span class='line'>g<span class="nv">$:</span> Go to the last tab
+</span><span class='line'>t: Create new tab
+</span><span class='line'>x: Close current tab
+</span><span class='line'>X: Restore closed tab
+</span><span class='line'>Miscellaneous
+</span><span class='line'>?: Show <span class="nb">help</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>觉得比较有用的几个快捷键:</p>
+
+<ul>
+<li>滚到网页底部和顶部: 和vim一样 G，gg</li>
+<li>向下(上)移一页: d/u (vim 得加 ctrl键)</li>
+<li>拷贝当前地址栏url: yy, chrome对应的快捷键是command + alt + c(- 但是最新的chrome不知道为什么和develop工具的快捷键冲突了)</li>
+<li>拷贝网页中某链接到剪贴板中:yf 之后选择你需要拷贝的链接，用 p键在当前页面打开，大P在新的tab中打开</li>
+<li>打开书签、地址或者历史记录: o/O在当前页面/新页面打开，如果只想打开书签中记录的url，可以用b/B</li>
+<li>查找模式: / 后输入搜索关键字，用n/N在搜索结果中向前或者向后查询，用的不多……，比浏览器默认的搜索稍微方便点</li>
+<li>查找tab: T，输入关键字，跳转到相关的tab，这个很方便</li>
+<li>tab间移动: K/gt 移到右边的tab， J/gT移到左边的tab。不是很方便，一般都用浏览器默认的快捷键，shift+tab或者是alt+command+方向键</li>
+<li>创建/关闭/恢复前一个关闭掉的tab: t/x/X, 用的也不多，浏览器默认的快捷键用习惯了</li>
+</ul>
+
+
+<p>使用vimium有好处也有不好的地方，我自己的使用感觉如下:</p>
+
+<p>好处:</p>
+
+<p>系统无关，在任何系统下只要是使用chrome浏览器，不需要再去记忆快捷键;
+对于键盘控来说，无疑是一个好东西，比默认的浏览器快捷键要强大，基本可以免去触摸板和鼠标操作；</p>
+
+<p>坏处:</p>
+
+<p>页面如果没有load, vimium也不会被加载，所有的快捷键也都失效了，这个时候还是需要浏览器默认的快捷键才可以继续撸键盘；
+有时候vimium的js会和某些页面的js冲突，比如googlereader页面，而且在浏览器上调试的时候如果遇到js冲突还是挺讨厌的，
+这种情况就得禁用vimium;
+Firefox下据说有更强大的工具，叫做vimoperator,听说功能更加强大，不过我基本只用，所以没怎么尝试过。Anyway，如果你只相信啪啪啪的，可以试试这个插件。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2013-03-02T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/productivity/'>productivity</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments" data-via="boweniam" data-counturl="http://iambowen.github.com/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/linux/shell/2011/12/04/how-source-works-under-shell" title="Previous Post: how source works under shell">&laquo; how source works under shell</a>
+      
+      
+        <a class="basic-alignment right" href="/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database" title="Next Post: way to deal with "transaction log for database is full" issue">way to deal with "transaction log for database is full" issue &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
+      </li>
+    
+      <li class="post">
+        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

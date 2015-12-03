@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Puppet | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/puppet/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2015-12-03T10:31:38+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Facter]]></title>
+    <link href="http://iambowen.github.com/puppet/2015/04/21/facter"/>
+    <updated>2015-04-21T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/puppet/2015/04/21/facter</id>
+    <content type="html"><![CDATA[<p><a href="https://github.com/puppetlabs/facter]">facter</a>是一个以key/value形式收集系统信息的工具。</p>
+
+<pre><code class="bash">[root@localhost ~]# yum provides /usr/bin/facter
+1:facter-1.6.17-1.el6.x86_64 : Ruby module for collecting simple facts about a host operating system
+Repo        : installed
+Matched from:
+Other       : Provides-match: /usr/bin/facter
+</code></pre>
+
+<p>Ansible和Puppet都用它来收集系统信息。</p>
+
+<pre><code class="ruby">[root@localhost ~]# facter
+architecture =&gt; x86_64
+boardproductname =&gt; VirtualBox
+facterversion =&gt; 1.6.17
+hardwareisa =&gt; x86_64
+hardwaremodel =&gt; x86_64
+ipaddress =&gt; 10.0.2.15
+ipaddress_eth0 =&gt; 10.0.2.15
+.......
+operatingsystem =&gt; CentOS
+</code></pre>
+
+<p>facter是跨平台的，所以可以利用它来获取不同服务器的信息。
+比如Ansible中有专门的facter模块。</p>
+
+<pre><code class="python">~&gt; ansible vagrant -m facter -i hosts
+vagrant | success &gt;&gt; {
+   "architecture": "x86_64",
+   "augeasversion": "0.9.0",
+   "changed": false,
+   "domain": "localdomain",
+   "facterversion": "1.6.17",
+   "fqdn": "localhost.localdomain",
+   "hardwareisa": "x86_64",
+ ......
+</code></pre>
+
+<p>在puppet中，可以如此使用:</p>
+
+<pre><code class="puppet">case $::operatingsystem {
+  'CentOS': { include centos }
+  'MacOS':  { include mac }
+}
+</code></pre>
+
+<p>因为facter的变量都是global的，所以直接使用<code>$operatingsystem</code>也是可以的。</p>
+
+<p>有两种方式可以添加自定义的facter变量(fact)，其中通过环境变量的方式会比较容易，只要环境变量名是以<code>FACTOR_</code>
+开头，都可以通过facter读取到该变量。</p>
+
+<pre><code class="bash">~&gt; export FACTER_cartman_is_gay="true"
+~&gt; facter | grep cartman
+cartman_is_gay =&gt; true
+
+~&gt; export FACTER_KYLE_MOM_IS_BITCH="true"
+~&gt; facter | grep kyle
+kyle_mom_is_bitch =&gt; true
+
+~&gt; export FACTER_cartman_is_gay="false"
+~&gt; facter | grep cartman
+cartman_is_gay =&gt; false
+</code></pre>
+
+<p>可以看出，fact变量的大小写无关的，自定义的fact可以被override的，puppetlabs的文档中说系统fact
+不能被override，但是貌似可以，不知道哪里出了问题。</p>
+
+<pre><code class="bash">[vagrant@localhost ~]$ facter | grep operatingsystem
+operatingsystem =&gt; CentOS
+operatingsystemrelease =&gt; 6.4
+[vagrant@localhost ~]$ export FACTER_operatingsystem="Rock"
+[vagrant@localhost ~]$ facter | grep operatingsystem
+operatingsystem =&gt; Rock
+operatingsystemrelease =&gt; 2.6.32-358.el6.x86_64
+</code></pre>
+
+<p>我们老一点的系统都部署在数据中心，所有的服务器的配置用puppet管理，基本上都是虚拟化，基于一个标准的
+镜像，标准镜像spin up的服务器中会添加一个自定义的fact，用来判断是否是自定义的系统。我其实不太喜欢
+这样的使用方式，首先这让puppet manifest的可读性降低了，找遍整个repo都不找不到在哪里定义的这个变
+量，其次，让puppet manifest对系统产生了依赖性，不够灵活。</p>
+
+<hr />
+
+<p><a href="https://puppetlabs.com/blog/facter-part-1-facter-101">1</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Puppet Cron Pitfall]]></title>
+    <link href="http://iambowen.github.com/puppet/2015/04/16/puppet-cron-pitfall"/>
+    <updated>2015-04-16T00:00:00+08:00</updated>
+    <id>http://iambowen.github.com/puppet/2015/04/16/puppet-cron-pitfall</id>
+    <content type="html"><![CDATA[<p>最近完成了一个任务，内容是更新一个cron运行perl脚本的连接数据库的credential。该脚本用来清除数据库中一些
+过期的匿名用户，脚本部署在一个内网的服务器上，服务器的配置由puppet管理。脚本一直要保持运行，所以在
+脚本中会检查pid的modified time，如果小于一个小时，则进程退出。因此，在脚本第一次运行后，以后的cron
+运行的进程会自动退出。
+所以，我的计划是这样的:</p>
+
+<ol>
+<li>更新puppet管理的脚本内容中数据库连接的credential</li>
+<li>更改puppet中服务器中cron运行的时间为每两分钟运行一次，这样，下次运行时，脚本pick up新的配置</li>
+<li><code>puppet --test</code>应用配置更改</li>
+<li>停止正在运行的脚本，<code>pkill process</code></li>
+<li><code>touch -t some_old_time_stamp</code></li>
+<li>监控log，等待脚本启动</li>
+<li>监控数据库，是否有新的credential连接进程， <code>mysql -e "show full processlist;" | grep new_user</code></li>
+<li>一切运转正常，将puppet中cron的时间改回去并应用</li>
+</ol>
+
+
+<p>关于cron配置的代码原本如下,原本cron运行的时间为23:55:</p>
+
+<pre><code class="puppet">cron { test:
+  source =&gt; "some scripts",
+  user =&gt; root,
+  hour =&gt; 23,
+  minute =&gt; 55
+}
+</code></pre>
+
+<p>应用后生成的cron应该如此: <code>55 23 * * *  some scripts</code>
+更改后的puppet配置如下:</p>
+
+<pre><code class="puppet">cron { test:
+  source =&gt; "some scripts",
+  user =&gt; root,
+  minute =&gt; "*/2"
+}
+</code></pre>
+
+<p>期望应用后的cron应该如此: <code>*/2 * * * * some scripts</code>
+一切都非常顺利，直到step 6，等待日志输出时，发现时间过了4分钟还是没有日志，WTF!赶紧看了眼更改后的
+cron运行时间:</p>
+
+<pre><code>*/2 22 * * * some scripts
+</code></pre>
+
+<p>顿时就震惊了，鉴于是产品环境，不敢担待，于是直接就顺手改了，两分钟后运行，如释重负。由此可见，puppet
+cron的这个地方是略坑的, 如果更改比较多，最好是指定完整的时间配置，如:</p>
+
+<pre><code class="puppet">cron { test:
+  source =&gt; "some scripts",
+  user =&gt; root,
+  year =&gt; "*",
+  month =&gt; "*",
+  day =&gt; "*",
+  hour =&gt; "*",
+  minute =&gt; "*/2"
+}
+</code></pre>
+
+<p>话说这还不是最坑的地方，因为脚本还是没有顺利运行，真是日了狗了，不得不手动revert脚本，然后让脚本正常
+运行，然后再重新查看脚本，测试，查找问题在哪里。
+最后的原因实在是让人崩溃:</p>
+
+<pre><code class="perl">die "ERROR: Missing or invalid database username '$dbuser'" unless (defined($dbuser) &amp;&amp; $dbuser =~ m/^[a-zA-Z0-9]+$/);
+</code></pre>
+
+<p>新的<code>dbuser</code>名字中包含了连接线<code>-</code>，因为不能满足regex检查，所以程序直接退出了。实在是不能理解为什么
+会有这样的约束条件，我只知道mysql数据库用户的名字不能超过16个字符，但是没听说过限制数据库用户名字格式
+是个什么鬼。实在是无语，不过，我能理解，不会挖坑的程序员不是好程序员。</p>
+]]></content>
+  </entry>
+  
+</feed>
