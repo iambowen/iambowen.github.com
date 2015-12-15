@@ -1,0 +1,364 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Make Everything Production Like - (2/2) - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="开发环境出问题的时候，影响到只是自己，如果持续集成环境或者其相关的基础设施出了问题，那影响到的就
+是所有人以及整个开发的进展，我们曾经遇到一次这样的事故，整个 Bamboo(CI)环境的Master和Database都被干掉了，出乎意料的是AWS RDS的自动镜像同时也被删除, &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Make Everything Production Like - (2/2)</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-12-06T17:12:21+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:12 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="http://iambowen.github.io/2015/07/05/make-everything-production-like/">开发环境出问题的时候，影响到只是自己</a>，如果持续集成环境或者其相关的基础设施出了问题，那影响到的就
+是所有人以及整个开发的进展，我们曾经遇到一次这样的事故，整个 <a href="https://www.atlassian.com/software/bamboo">Bamboo</a>(CI)环境的Master和Database都被干掉了，出乎意料的是AWS RDS的自动镜像同时也被删除,于是所有的人花了一个礼拜才重新建好了全部的流水线。</p>
+
+<p>除此之外，一些基础设施，比如企业私有的Repository(如Nexus, Koji, rubygems服务器等)出现问题，也会影响到整个开发和持续交付的时间。</p>
+
+<p>如何解决这个问题？很简单，提高这些环境的可用性，把他们当做产品环境一样看待，提高出错的响应速度，
+减少平均恢复时间等。</p>
+
+<p>先举一个CI环境当做产品环境来对待的例子。
+一些简单的背景:</p>
+
+<ol>
+<li>客户使用的持续集成工具是<a href="https://www.atlassian.com/software/bamboo">Bamboo</a></li>
+<li>CI Master，Agent以及数据库服务都采用了AWS的服务，如EC2、RDS、R53等</li>
+<li>用CloudFormation去管理整个CI服务的基础设施，同时用Rake task去简化管理的难度。</li>
+</ol>
+
+
+<p>其具体的结构图如下:
+<img src="http://7xp2qy.com1.z0.glb.clouddn.com/bamboo_arch.png" alt="arch" /></p>
+
+<p>该结构详细解释如下:</p>
+
+<ol>
+<li>Bamboo Agent和 Bamboo Master的依赖及其配置打包成RPM，部署的EC2 instance基于Centos定制过的AMI</li>
+<li>Bamboo Master/Agent/DB 都用CloudFormation管理</li>
+<li>在Bamboo Agent Stack的LaunchConfiguration中的Metadata中，安装在Agent中运行各种build的依赖，
+比如不同的Ruby版本等，同时定义<code>cfn-hup</code>服务，监听Agent的Stack变化，如果有Metadata的变化，
+比如，更新了Agent上支持的Java版本，则在Agent上更新该配置</li>
+<li>Bamboo Agent由一个AutoScalingGroup管理，除了自动Scale，还可以每天定时启动或者停止Agent
+Instance，节省成本</li>
+<li>Bamboo Master的Stack中做的事情类似</li>
+<li>Bamboo Master的SecurityGroup只接受来自Bamboo Agent的SecurityGroup的访问，Bamboo
+Master DB的SecurityGroup只接受来自Bamboo Master SecurityGroup的请求</li>
+<li>Bamboo Master DB使用RDS服务</li>
+<li>Bamboo Master服务器上运行的Cron Job每天会定时备份文件系统的Snapshot</li>
+<li>Bamboo 服务器上的一个Plan每天会运行定时的任务，创建Master DB的Snapshot,RDS可以设置自动
+生成snapshot，不过一旦Master DB被干掉，snapshot也会被一起干掉。所以，安全期间，还是manual
+snapshot比较好。</li>
+</ol>
+
+
+<p>回顾这套结构，如果某个Agent挂掉，AutoScalingGroup会重新spin up一个新的Agent Instance。
+如果Bamboo Master或者Master DB挂掉，也可以通过CloudFormation Stack以及备份的Snapshot
+在1-2个小时以内恢复，时间的开销相对较少。</p>
+
+<p>仔细的同学可能会注意到，为了满足运行build的各种条件，需要安装各种依赖，比如不同的Ruby版本，
+不同的Java版本等，重新创建一个Agent Instance到配置完成注册成为Bamboo服务，时间会比较长。而且
+如果Metadata的更新导致环境失败，会迅速影响到所有的Agent。</p>
+
+<p>相信很多人会想到更好的解决方案，比如将每个build任务都在Docker容器中运行，如此作为整个CI环境
+的维护者，只需要保证每个Agent上面有docker deamon运行，整个Agent挂掉的几率大大降低，同时维护
+的责任分散到每个团队内，减轻了维护的压力。</p>
+
+<p>下面介绍如何提高企业内部的私有Repository，如Nexus的可用性和稳定性以及快速恢复能力。
+我们的Nexus服务器的结构图，如下:
+<img src="http://7xp2qy.com1.z0.glb.clouddn.com/nexus_arch.png" alt="nexus arch" /></p>
+
+<p>详细解释如下:</p>
+
+<ol>
+<li>Nexus服务运行在ELB后的一个EC2 Instance上</li>
+<li>其部署基于安装有Nexus服务的Base AMI以及CloudFormation stack</li>
+<li>Nexus的artifact目录挂载在一个EBS volume下，Instance在初始化时配置了InstanceProfile，
+在crontab添加脚本，可以用InstanceProfile中的role去创建EBS volume的daily snapshot，以防止artifact数据丢失</li>
+<li>监控方面，如果ELB下面的健康的Instance数量少于1或者Instance上的EBS Volume没有正确的挂载，都会触发Cloudwatch Alarm，并通过SNS通知Pagerduty，然后Pagerduty再将警报发给维护Nexus的Ops</li>
+</ol>
+
+
+<p>对于上面的Nexus结构，由于有足够的备份，不论是Volume挂载失败需要恢复或者是Instance当机，处理的
+时间成本都会比较低，在半个小时以内。</p>
+
+<p>开发/测试依赖的环境可能还有很多，更多的把它们当做产品环境对待，会大大增加持续交付的流畅度，减轻环境维护方面的痛楚。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-12-06T17:12:21+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:12 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/practice/'>practice</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/practice/aws/2015/12/06/make-everything-production-like-2-slash-2" data-via="boweniam" data-counturl="http://iambowen.github.com/practice/aws/2015/12/06/make-everything-production-like-2-slash-2" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/aws/practice/2015/12/04/stop-making-wheels" title="Previous Post: stop making wheels, dude">&laquo; stop making wheels, dude</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/aws/practice/2015/12/04/stop-making-wheels">Stop Making Wheels, Dude</a>
+      </li>
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://iambowen.github.com/practice/aws/2015/12/06/make-everything-production-like-2-slash-2';
+        var disqus_url = 'http://iambowen.github.com/practice/aws/2015/12/06/make-everything-production-like-2-slash-2';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

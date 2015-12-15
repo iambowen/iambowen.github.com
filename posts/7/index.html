@@ -9,8 +9,10 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="Well, it&rsquo;s a fare long story.During the trainning, Aimee asked me a question about
-how the source command works under shell. Haven&rsquo;t done &hellip;">
+  <meta name="description" content="Recently, the ci build has failed with the following error message: 1
+2
+3
+_ODBC::Error: 37000 (9002) [unixODBC][FreeTDS][SQL Server]The transaction &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +82,270 @@ how the source command works under shell. Haven&rsquo;t done &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database">Way to Deal With "Transaction Log for Database Is Full" Issue</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-04T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Recently, the ci build has failed with the following error message:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>_ODBC::Error: <span class="m">37000</span> <span class="o">(</span>9002<span class="o">)</span> <span class="o">[</span>unixODBC<span class="o">][</span>FreeTDS<span class="o">][</span>SQL Server<span class="o">]</span>The transaction log <span class="k">for</span>
+</span><span class='line'>database <span class="s1">&#39;Warehouse&#39;</span> is full. To find out why space in the log cannot be reused,
+</span><span class='line'>see the log_reuse_wait_desc column in sys.databases <span class="o">(</span>Sequel::DatabaseError<span class="o">)</span>_*%
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The reason is, so far as I known, that firstly the database has the log recorded
+and when the volume of log increasing, it would cause the &ldquo;out of space&rdquo; error
+if it exceeds the threshold of log size limit.</p>
+
+<p>The knowledge that we should know is:</p>
+
+<p>   # Scheme of way to record transaction log is store in <em>log_reuse_wait_desc</em>
+   # column of <em>sys.databases</em>, check &ldquo;this&rdquo;:<a href="http://msdn.microsoft.com/en-us/library/ms178534.aspx,">http://msdn.microsoft.com/en-us/library/ms178534.aspx,</a> it gives all the choices of how to deal with the transaction log</p>
+
+<p>A little bit log for this document, I will just cut the cliche and show how I
+solve this issue with the knowledge I found from Internet.</p>
+
+<p><em>Given</em> our current build is using data warehouse &ldquo;Warehouse&rdquo; and such error happens</p>
+
+<p><em>First</em> thing is to connect to the data warehouse, and check whether the log is
+full by using <em>DBCC</em> tools.</p>
+
+<p>Check log spaces used:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>DBCC SQLPERF<span class="o">(</span>LOGSPACE<span class="o">)</span> //from the output information you can also see the log name of corresponding database
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then you will see the log size for <em>&ldquo;Warehouse&rdquo;</em> is 100%
+After knowing it is the right reason as the error message shows, we have two steps to go:</p>
+
+<h1>set the data warehouse into recovery mode and set the log_reuse_wait_desc using no backup for reserving logs</h1>
+
+<h1>truncate the currently logs and shrink its size</h1>
+
+<p>Way to change the database recovery mode and set backup scheme:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="n">USE</span> <span class="n">Warehouse</span>
+</span><span class='line'><span class="k">GO</span>
+</span><span class='line'><span class="k">ALTER</span> <span class="k">DATABASE</span> <span class="n">Warehouse</span> <span class="k">SET</span> <span class="n">RECOVERY</span> <span class="k">full</span>
+</span><span class='line'><span class="k">GO</span>
+</span><span class='line'><span class="k">ALTER</span> <span class="k">DATABASE</span> <span class="n">Warehouse</span> <span class="k">SET</span> <span class="n">RECOVERY</span> <span class="k">SIMPLE</span> <span class="k">WITH</span> <span class="n">NO_WAIT</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>way to shrink the log file:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="n">USE</span> <span class="n">Warehouse</span>
+</span><span class='line'><span class="n">DBCC</span> <span class="n">SHRINKFILE</span><span class="p">(</span><span class="s1">&#39;Warehouse_log&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">TRUNCATEONLY</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then you will get new log scheme with no backup and a log size less than 1MB. Of
+course, the most important thing is that the ci build won&rsquo;t fail&hellip;.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments">Simple Introduction About Vimium and Some Comments</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-02T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Vimium 是Chrome下的一个插件，可以让你用类似vim的方式用全键盘的方式浏览网页。其所有快捷键如下(web页面下按？也可以查看):</p>
+
+<p>Vimium Help</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vigating the page
+</span><span class='line'>j, &lt;c-e&gt;: Scroll down
+</span><span class='line'>k, &lt;c-y&gt;: Scroll up
+</span><span class='line'>h:the Scroll left
+</span><span class='line'>l: Scroll right
+</span><span class='line'>gg: Scroll to the top of the page
+</span><span class='line'>G:Scroll Scroll to the bottom of the page
+</span><span class='line'>zH: Scroll all the way to the left
+</span><span class='line'>zL: Scroll all the way to the right
+</span><span class='line'>d: Scroll a page down
+</span><span class='line'>u: Scroll a page up
+</span><span class='line'>r: Reload the page
+</span><span class='line'>gs: View page <span class="nb">source</span>
+</span><span class='line'>yy: Copy the current URL to the clipboard
+</span><span class='line'>yf: Copy a link URL to the clipboard
+</span><span class='line'>post: Open the clipboard<span class="s1">&#39;s URL in the current tab</span>
+</span><span class='line'><span class="s1">P: Open the clipboard&#39;</span>s URL in a new tab
+</span><span class='line'>gu: Go up the URL hierarchy
+</span><span class='line'>i: Enter insert mode
+</span><span class='line'>gi: Focus the first <span class="o">(</span>or n-th<span class="o">)</span> text box on the page
+</span><span class='line'>f: Open a link in the current tab
+</span><span class='line'>F: Open a link in a new tab
+</span><span class='line'>&lt;a-f&gt;: Open multiple links in a new tab
+</span><span class='line'>o: Open URL, bookmark, or <span class="nb">history </span>entry
+</span><span class='line'>O: Open URL, bookmark, <span class="nb">history </span>entry, in a new tab
+</span><span class='line'>T: Search through your orpen tabs
+</span><span class='line'>b: Open a bookmark
+</span><span class='line'>B: Open a bookmark in a new tab
+</span><span class='line'><span class="o">[[</span>: Follow the link labeled previous or &lt;
+</span><span class='line'><span class="o">]]</span>: Follow the link labeled next or &gt;
+</span><span class='line'>gf: Cycle forward to the next frame on the page
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查找:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>/: Enter find mode
+</span><span class='line'>n: Cycle forward to the next find match
+</span><span class='line'>N: Cycle backward to the previous find match
+</span><span class='line'>Navigating <span class="nb">history</span>
+</span><span class='line'>H: Go back in <span class="nb">history</span>
+</span><span class='line'>L: Go forward in <span class="nb">history</span>
+</span><span class='line'>Manipulating tabs
+</span><span class='line'>K, gt: Go one tab right
+</span><span class='line'>J, gT: Go one tab left
+</span><span class='line'>g0: Go to the first tab
+</span><span class='line'>g<span class="nv">$:</span> Go to the last tab
+</span><span class='line'>t: Create new tab
+</span><span class='line'>x: Close current tab
+</span><span class='line'>X: Restore closed tab
+</span><span class='line'>Miscellaneous
+</span><span class='line'>?: Show <span class="nb">help</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>觉得比较有用的几个快捷键:</p>
+
+<ul>
+<li>滚到网页底部和顶部: 和vim一样 G，gg</li>
+<li>向下(上)移一页: d/u (vim 得加 ctrl键)</li>
+<li>拷贝当前地址栏url: yy, chrome对应的快捷键是command + alt + c(- 但是最新的chrome不知道为什么和develop工具的快捷键冲突了)</li>
+<li>拷贝网页中某链接到剪贴板中:yf 之后选择你需要拷贝的链接，用 p键在当前页面打开，大P在新的tab中打开</li>
+<li>打开书签、地址或者历史记录: o/O在当前页面/新页面打开，如果只想打开书签中记录的url，可以用b/B</li>
+<li>查找模式: / 后输入搜索关键字，用n/N在搜索结果中向前或者向后查询，用的不多……，比浏览器默认的搜索稍微方便点</li>
+<li>查找tab: T，输入关键字，跳转到相关的tab，这个很方便</li>
+<li>tab间移动: K/gt 移到右边的tab， J/gT移到左边的tab。不是很方便，一般都用浏览器默认的快捷键，shift+tab或者是alt+command+方向键</li>
+<li>创建/关闭/恢复前一个关闭掉的tab: t/x/X, 用的也不多，浏览器默认的快捷键用习惯了</li>
+</ul>
+
+
+<p>使用vimium有好处也有不好的地方，我自己的使用感觉如下:</p>
+
+<p>好处:</p>
+
+<p>系统无关，在任何系统下只要是使用chrome浏览器，不需要再去记忆快捷键;
+对于键盘控来说，无疑是一个好东西，比默认的浏览器快捷键要强大，基本可以免去触摸板和鼠标操作；</p>
+
+<p>坏处:</p>
+
+<p>页面如果没有load, vimium也不会被加载，所有的快捷键也都失效了，这个时候还是需要浏览器默认的快捷键才可以继续撸键盘；
+有时候vimium的js会和某些页面的js冲突，比如googlereader页面，而且在浏览器上调试的时候如果遇到js冲突还是挺讨厌的，
+这种情况就得禁用vimium;
+Firefox下据说有更强大的工具，叫做vimoperator,听说功能更加强大，不过我基本只用，所以没怎么尝试过。Anyway，如果你只相信啪啪啪的，可以试试这个插件。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -716,6 +982,14 @@ detail</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/aws/practice/2015/12/04/stop-making-wheels">Stop Making Wheels, Dude</a>
+      </li>
+    
+      <li class="post">
         <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
       </li>
     
@@ -725,14 +999,6 @@ detail</p>
     
       <li class="post">
         <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
-      </li>
-    
-      <li class="post">
-        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
       </li>
     
   </ul>

@@ -9,8 +9,18 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="处于安全的考虑，不允许Javascript跨站调用其他网站的服务。对于开放的API服务来说，允许跨站调用又是必须的。为了“解除”这个限制，需要在服务返回的header中添加Access-Control-Allow-Origin字段。
-在Apache的配置中，&lt;Directory&gt;, & &hellip;">
+  <meta name="description" content="函数在Scala中是一等公民，这意味着你可以在任何时候定义函数，而且它不需要依附于类，在Class/Object中定义的函数叫做方法。 语法 函数由函数名称，参数以及函数体组成，未声明函数返回类型的，默认返回Unit。 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+scala&gt; def &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +90,352 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/scala/2014/08/01/learning-scala-function">Learning Scala: Function</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-08-01T00:00:00+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/scala/2014/08/01/learning-scala-function#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/scala/2014/08/01/learning-scala-function">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>函数在Scala中是一等公民，这意味着你可以在任何时候定义函数，而且它不需要依附于类，在Class/Object中定义的函数叫做方法。</p>
+
+<h3>语法</h3>
+
+<p>函数由函数名称，参数以及函数体组成，未声明函数返回类型的，默认返回Unit。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">printName</span><span class="o">(</span><span class="nl">name:</span> <span class="n">String</span><span class="o">)</span> <span class="o">=</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Hello, &quot;</span> <span class="o">+</span> <span class="n">name</span><span class="o">)</span>
+</span><span class='line'><span class="nl">func:</span> <span class="o">(</span><span class="nl">name:</span> <span class="n">String</span><span class="o">)</span><span class="n">Unit</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">double</span><span class="o">(</span><span class="nl">num:</span> <span class="n">Int</span><span class="o">):</span><span class="n">Int</span> <span class="o">=</span> <span class="n">num</span> <span class="o">*</span> <span class="mi">2</span>
+</span><span class='line'><span class="kt">double</span><span class="o">:</span> <span class="o">(</span><span class="nl">num:</span> <span class="n">Int</span><span class="o">)</span><span class="n">Int</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">iter</span><span class="o">(</span><span class="nl">num:</span> <span class="n">Int</span><span class="o">)</span> <span class="o">=</span> <span class="o">{</span> <span class="k">if</span><span class="o">(</span><span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">iter</span><span class="o">(</span><span class="n">num</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">console</span><span class="o">&gt;:</span><span class="mi">7</span><span class="o">:</span> <span class="nl">error:</span> <span class="n">recursive</span> <span class="n">method</span> <span class="n">iter</span> <span class="n">needs</span> <span class="n">result</span> <span class="n">type</span>
+</span><span class='line'>       <span class="n">def</span> <span class="nf">iter</span><span class="o">(</span><span class="nl">num:</span> <span class="n">Int</span><span class="o">)</span> <span class="o">=</span> <span class="o">{</span> <span class="k">if</span><span class="o">(</span><span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">iter</span><span class="o">(</span><span class="n">num</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">}</span>
+</span><span class='line'>                                                      <span class="o">^</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对于递归函数，必须指定返回类型，否则编译无法通过。</p>
+
+<h3>默认参数和带名参数</h3>
+
+<p>可以给定函数的参数一个默认的值，调用函数时可以不用传入该参数。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">printName</span><span class="o">(</span><span class="nl">congrats:</span><span class="n">String</span><span class="o">,</span> <span class="nl">name:</span> <span class="n">String</span> <span class="o">=</span> <span class="s">&quot;default&quot;</span><span class="o">)</span> <span class="o">=</span> <span class="n">println</span><span class="o">(</span><span class="n">congrats</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">name</span><span class="o">)</span>
+</span><span class='line'><span class="nl">printName:</span> <span class="o">(</span><span class="nl">name:</span> <span class="n">String</span><span class="o">,</span> <span class="nl">congrats:</span> <span class="n">String</span><span class="o">)</span><span class="n">Unit</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">printName</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="n">hello</span> <span class="k">default</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>不过，如果函数有多个参数并且默认参数是第一个，只传入一个参数时，编译无法通过，应该是没有特别指明，直接被当成了第一个参数。解决的办法是通过带名参数。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">printName</span><span class="o">(</span><span class="nl">name:</span> <span class="n">String</span> <span class="o">=</span> <span class="s">&quot;default&quot;</span><span class="o">,</span> <span class="nl">congrats:</span><span class="n">String</span><span class="o">)</span> <span class="o">=</span> <span class="n">println</span><span class="o">(</span><span class="n">congrats</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">name</span><span class="o">)</span>
+</span><span class='line'><span class="nl">printName:</span> <span class="o">(</span><span class="nl">name:</span> <span class="n">String</span><span class="o">,</span> <span class="nl">congrats:</span> <span class="n">String</span><span class="o">)</span><span class="n">Unit</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">printName</span><span class="o">(</span><span class="n">congrats</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="n">hello</span> <span class="k">default</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>由此我们可以看出，带名参数不需要和参数列表的顺序相同。</p>
+
+<h3>call by name / call by value</h3>
+
+<p>Scala中有两种参数替换模型，<code>call by name</code>和<code>call by value</code>，直译就是传名或者传值。对于下面的函数</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">def</span> <span class="nf">f</span><span class="o">(</span><span class="nl">x:</span><span class="n">Int</span><span class="o">,</span> <span class="nl">y:</span><span class="n">Int</span><span class="o">)</span> <span class="o">=</span> <span class="o">{</span> <span class="n">x</span> <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果是传值的方式，那么 f(2, 2 * 2) 首先会被转换为f(2, 4),也就是说在函数体中未调用之前就已经计算好了。如果是传名的方式，那么2 * 2始终不会被计算，除非该参数被调用。Scala中支持两种传参方式，上面的例子中实际上是<code>call by name</code>。<code>call by value</code>是用下面的方式声明函数。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">def</span> <span class="nf">g</span><span class="o">(</span><span class="nl">y:</span> <span class="kt">int</span><span class="o">)</span> <span class="o">=</span> <span class="o">{</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">y</span><span class="o">}</span>
+</span><span class='line'><span class="n">def</span> <span class="nf">f</span><span class="o">(</span><span class="nl">x:</span><span class="n">Int</span><span class="o">,</span> <span class="nl">y:</span><span class="n">Int</span> <span class="o">=&gt;</span> <span class="n">Int</span><span class="o">)</span> <span class="o">=</span> <span class="o">{</span> <span class="n">x</span> <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>只要传入于参数一致的签名的函数即可。</p>
+
+<h3>变长参数</h3>
+
+<p>和其他编程语言一样，Scala也可以接受变长参数。函数会将变长参数转换参数序列。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">sum</span><span class="o">(</span><span class="nl">args:</span> <span class="n">Int</span><span class="o">*)</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>        <span class="n">var</span> <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="n">arg</span> <span class="o">&lt;-</span> <span class="n">args</span><span class="o">)</span> <span class="n">result</span> <span class="o">+=</span> <span class="n">arg</span>
+</span><span class='line'>        <span class="n">result</span>
+</span><span class='line'>      <span class="o">}</span>
+</span><span class='line'><span class="nl">sum:</span> <span class="o">(</span><span class="nl">args:</span> <span class="n">Int</span><span class="o">*)</span><span class="n">Int</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">sum</span><span class="o">(</span><span class="mi">1</span> <span class="o">,</span><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">)</span>
+</span><span class='line'><span class="nl">res4:</span> <span class="n">Int</span> <span class="o">=</span> <span class="mi">15</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>但是直接传入Seq会出错……，因为类型不匹配。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">val</span> <span class="n">s</span> <span class="o">=</span> <span class="n">sum</span><span class="o">(</span><span class="mi">1</span> <span class="n">to</span> <span class="mi">5</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">sum</span><span class="o">(</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">5</span><span class="o">)</span>
+</span><span class='line'><span class="o">&lt;</span><span class="n">console</span><span class="o">&gt;:</span><span class="mi">9</span><span class="o">:</span> <span class="nl">error:</span> <span class="n">type</span> <span class="n">mismatch</span><span class="o">;</span>
+</span><span class='line'> <span class="n">found</span>   <span class="o">:</span> <span class="n">scala</span><span class="o">.</span><span class="na">collection</span><span class="o">.</span><span class="na">immutable</span><span class="o">.</span><span class="na">Range</span><span class="o">.</span><span class="na">Inclusive</span>
+</span><span class='line'> <span class="nl">required:</span> <span class="n">Int</span>
+</span><span class='line'>              <span class="nf">sum</span><span class="o">(</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">5</span><span class="o">)</span>
+</span><span class='line'>                     <span class="o">^</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>所以还是需要转换称参数序列。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">sum</span><span class="o">(</span><span class="mi">1</span> <span class="n">to</span> <span class="mi">5</span><span class="o">:</span> <span class="n">_</span><span class="o">*)</span>
+</span><span class='line'><span class="nl">res1:</span> <span class="n">Int</span> <span class="o">=</span> <span class="mi">15</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>匿名函数</h3>
+
+<p>举个简单的栗子好了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">List</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">).</span><span class="na">map</span> <span class="o">{(</span><span class="nl">x:</span><span class="n">Int</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="o">(</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)}</span>
+</span><span class='line'><span class="nl">res4:</span> <span class="n">List</span><span class="o">[</span><span class="n">Int</span><span class="o">]</span> <span class="o">=</span> <span class="n">List</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">6</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>过程</h3>
+
+<p>过程是返回Unit的函数，利用的是函数的副作用。从语法上来说，和函数的区别就在于它没有等号。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">def</span> <span class="nf">process</span><span class="o">(</span><span class="nl">job:</span> <span class="n">String</span><span class="o">)</span>  <span class="o">{</span> <span class="n">run</span><span class="o">;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;running job&quot;</span> <span class="o">+</span> <span class="n">job</span><span class="o">)</span> <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当然也可以加上等号，显示的申明返回类型为Unit。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">def</span> <span class="nf">process</span><span class="o">(</span><span class="nl">job:</span> <span class="n">String</span><span class="o">):</span><span class="n">Unit</span> <span class="o">=</span>  <span class="o">{</span> <span class="n">run</span><span class="o">;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;running job&quot;</span> <span class="o">+</span> <span class="n">job</span><span class="o">)</span> <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/scala/2014/04/01/learning-scala-control-structure">Learning Scala: Control Structure</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-04-01T00:00:00+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/scala/2014/04/01/learning-scala-control-structure#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/scala/2014/04/01/learning-scala-control-structure">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>任何语言的控制结构应当都是相似的，语言处理现实世界的问题，理应和现实世界对应。Scala的控制结构以及关键字与Java没什么不同，有区别的地方在于Scala中表达式可以有返回值，比如条件表达式。</p>
+
+<h3>条件表达式(if/else)</h3>
+
+<p>Scala中典型的条件表达式如下:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">x</span> <span class="k">=</span> <span class="mi">1</span>
+</span><span class='line'><span class="n">x</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="k">if</span> <span class="o">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="mi">1</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+</span><span class='line'><span class="n">res0</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">y</span> <span class="k">=</span> <span class="o">-</span><span class="mi">1</span>
+</span><span class='line'><span class="n">y</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="k">if</span> <span class="o">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="mi">1</span>
+</span><span class='line'><span class="n">res1</span><span class="k">:</span> <span class="kt">AnyVal</span> <span class="o">=</span> <span class="o">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>需要注意的有如下几点:
+1. Scala中，表达式不需要分号表示结束;
+2. Scala中没有?:三元表达式;
+3. 条件表达式都有返回值;
+4. 返回值的超类是Any，if语句没有输出值时，返回值为Unit;
+5. 表达式过长或者，可以将其放在大括号中，如下:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>  <span class="n">n</span> <span class="k">=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">n</span>
+</span><span class='line'>  <span class="n">n</span> <span class="o">-=</span> <span class="mi">1</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>循环(for/while)</h3>
+
+<p>Scala中的<em>for/while</em>循环和Java中没什么太大区别，但是Scala中没有类似Java中<em>for(initialize; condition; update variable)</em>的结构。</p>
+
+<p>for循环的例子:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">for</span><span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">10</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">println</span><span class="o">(</span><span class="n">i</span><span class="o">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">for</span><span class="o">(</span><span class="n">c</span> <span class="k">&lt;-</span> <span class="s">&quot;hello, world&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="n">println</span><span class="o">(</span><span class="n">c</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>变量&lt;-表达式</em> 这样的语法被称作生成器， 变量i/c为集合元素类型，循环用其依次获得集合中的元素，并处理。</p>
+
+<p>while的例子:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">var</span> <span class="n">a</span> <span class="k">=</span> <span class="mi">10</span>
+</span><span class='line'><span class="k">var</span> <span class="n">b</span> <span class="k">=</span> <span class="mi">1</span>
+</span><span class='line'><span class="k">while</span> <span class="o">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+</span><span class='line'>  <span class="n">b</span> <span class="o">*=</span> <span class="n">a</span>
+</span><span class='line'>  <span class="n">a</span> <span class="o">-=</span> <span class="mi">1</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Scala中没有<em>break</em>或者<em>continue</em>关键字，如果要中途退出循环，需要自己设置Boolean型变量或者使用Breaks对象的break方法。</p>
+
+<h3>for推导</h3>
+
+<p>for推导是包含卫语句(<em>guard clause</em>)的for表达式，比如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">for</span> <span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">3</span><span class="o">;</span> <span class="n">j</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">3</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="o">)</span> <span class="n">println</span><span class="o">((</span><span class="mi">10</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="o">)</span> <span class="o">+</span> <span class="s">&quot; &quot;</span><span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果i 等于 j，表达式不会打印结果。</p>
+
+<h3>模式匹配</h3>
+
+<p>个人认为Scala最好用的特性之一，等理解透彻了专门写一篇，下面只是个简单的例子，可以认为是可以用来匹配类对象的<em>switch</em>。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">val</span> <span class="n">a</span> <span class="k">=</span> <span class="kc">true</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">a</span> <span class="k">match</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">case</span> <span class="kc">true</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;yes, PPG!&quot;</span><span class="o">)</span>
+</span><span class='line'>  <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;failed!&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1164,127 +1520,6 @@ VNC到虚拟机上，启动Skype并登陆。</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2014/01/25/use-keepassx-to-manage-your-password">使用KeePassX管理你的密码</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2014-01-25T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/2014/01/25/use-keepassx-to-manage-your-password#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/2014/01/25/use-keepassx-to-manage-your-password">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>SaaS化的趋势已经不可阻挡，传统软件的功能逐渐web化。网上服务越来越多，对应的账号也越来越多，所有账号一个密码显然不现实，至少支付宝的登陆密码和支付密码就是不一样的。再加上密码要求越来越严格，大小写字母，数字，特殊字符组合……，尼玛刚设置10分钟后就忘记了。这个时候，就得靠软件了……，比如<a href="http://www.keepassx.org/">KeePassX</a>。
-KeePassX是一款跨平台的免费开源的密码管理软件，安装和使用都比较简单。</p>
-
-<p><a href="http://www.keepassx.org/downloads/">下载地址</a></p>
-
-<p>界面如下:
-<img src="https://dl.dropboxusercontent.com/u/92660221/images/keepass1.png", style="width: 680px;">
-设置:</p>
-
-<ol>
-<li><p>创建密码数据库.
-点击 File ->  New Database, 新建一个密码的数据库。创建的时候需要你设置文件保护密码，保存后会生成一个.kdb文件，</p></li>
-<li><p>密码管理. KeePassX管理密码的方式有两种，组(Group) 和入口(Entry)。比如设置邮件组,里面放置所有的邮件账号。新建一个入口(Entry)，输入标题，账号已经密码，确定即可。
-<img src="https://dl.dropboxusercontent.com/u/92660221/images/keepass2.png", style="width: 680px;"></p></li>
-<li><p>也可以用KeePassX帮你生成随机密码，设置密码过期时间等等，不过我没有用。
-使用:
-异常简单，假设你现在要登录163的邮箱，选中标题，Command+B 拷贝用户名，Command+C拷贝密码，输入登录即可。</p></li>
-</ol>
-
-
-<p>设置一个强度较高的文件保护密码，只要不是电脑丢了，应该是比较安全的。除此之外，还有类似<a href="https://agilebits.com/onepassword">1Password</a>之类的软件，只不过需要收费，上次公司给报销，但是当时没有意识到，错过了。。。</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2014/01/21/sublime-open-gems-source-code-in-repo">Sublime Open Gems Source Code in Repo</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2014-01-21T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/2014/01/21/sublime-open-gems-source-code-in-repo#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/2014/01/21/sublime-open-gems-source-code-in-repo">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Jetbrains的产品很赞，不过就是太耗资源了，比如Rubymine。有时候会用轻量点的编辑器Sublime去打开/编辑ruby工程代码，一个麻烦就产生了，sublime无法关联到工程内所用到的rubygems的源码。</p>
-
-<p>google搜索了下，有两种解决的办法，一种是通过修改EDITOR环境变量.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">EDITOR</span><span class="o">=</span><span class="s1">&#39;subl&#39;</span> &gt;&gt; ~/.bash_profile <span class="o">&amp;&amp;</span> <span class="nb">source</span> ~/.bash_profile
-</span><span class='line'>
-</span><span class='line'>bundle open rubygem_name
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>相信和很多人一样，我们都已经把 EDITOR 设置为 <code>vim</code> 或者 <code>emacs</code>。那么可以采用第二种方案.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; bundle show rake <span class="c"># 返回rubygem的完整路径</span>
-</span><span class='line'> /Users/iambowen/.rvm/gems/ree-1.8.7-2012.02/gems/rake-0.9.6
-</span><span class='line'> ~&gt; bundle show rake <span class="p">|</span> xargs subl   <span class="c"># xargs do the trick</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这次应该解决了问题，不过每次输入这么多命令不是很方便，可以写一个函数的函数来解决这个问题:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="k">function</span> sublg <span class="o">()</span>
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'>  bundle show <span class="nv">$1</span> <span class="p">|</span> xargs subl
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>把这个函数加入<code>~/.bash_profile</code>后，就可以直接使用<code>sublg gem_name</code>来打开gem的源码了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/5">&larr; Older</a>
@@ -1302,6 +1537,14 @@ KeePassX是一款跨平台的免费开源的密码管理软件，安装和使用
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/aws/practice/2015/12/04/stop-making-wheels">Stop Making Wheels, Dude</a>
+      </li>
+    
+      <li class="post">
         <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
       </li>
     
@@ -1311,14 +1554,6 @@ KeePassX是一款跨平台的免费开源的密码管理软件，安装和使用
     
       <li class="post">
         <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
-      </li>
-    
-      <li class="post">
-        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
       </li>
     
   </ul>

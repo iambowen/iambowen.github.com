@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://iambowen.github.com/practice/aws/2015/12/06/make-everything-production-like-2-slash-2</loc>
+    <lastmod>2015-12-06T17:12:21+08:00</lastmod>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/aws/practice/2015/12/04/stop-making-wheels</loc>
+    <lastmod>2015-12-04T11:19:45+08:00</lastmod>
+  </url>
+  <url>
     <loc>http://iambowen.github.com/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer</loc>
     <lastmod>2015-12-02T20:50:33+08:00</lastmod>
   </url>
@@ -335,6 +343,9 @@
   </url>
   <url>
     <loc>http://iambowen.github.com/blog/categories/aws/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/blog/categories/practice/</loc>
   </url>
   <url>
     <loc>http://iambowen.github.com/posts/2/</loc>

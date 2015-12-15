@@ -9,7 +9,9 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content=" ">
+  <meta name="description" content="客户这边对产品环境的事故严重性分为5级定义: Sev 1 一级事故: 服务完全不可用，并且影响到了客户;
+Sev 2 二级事故: 产品的主要功能对于一小部分用户不可用，或者产品的次要功能对于大多数用户不可用；
+Sev 3 三级事故: 不重要的功能不能使用，对外部可见，但是影响不大，不属于严重事故 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +81,504 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2015/01/18/a-pir-for-an-production-fail">A PIR for a Production Failure</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-18T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2015/01/18/a-pir-for-an-production-fail#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2015/01/18/a-pir-for-an-production-fail">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>客户这边对产品环境的事故严重性分为5级定义:</p>
+
+<ol>
+<li>Sev 1 一级事故: 服务完全不可用，并且影响到了客户;</li>
+<li>Sev 2 二级事故: 产品的主要功能对于一小部分用户不可用，或者产品的次要功能对于大多数用户不可用；</li>
+<li>Sev 3 三级事故: 不重要的功能不能使用，对外部可见，但是影响不大，不属于严重事故；</li>
+<li>Sev 4 四级事故: 没有显著的影响，错误只是内部可见；</li>
+<li>Sev 5 五级事故: 不期而至的错误，只发生在团队内部；</li>
+</ol>
+
+
+<p>举个例子来说，比如主站挂掉，这就是个一级错误，但是如果某个服务的产品数据库不能连接，造成的影响要小些，
+可能就是二级事故了。蓝绿部署时inactive环境部署失败的话，这应该算是4级事故。将团队用的CI master
+以及DB干掉，这个应该算是5级事故了。</p>
+
+<p>一般来说，产品在上线之前，都会经过build pipeline, test/staging环境的各种测试，正常情况下它都是
+应该工作的，所以出问题的情况都是非常巧合，甚至令人觉得匪夷所思。这也是这些事故有趣之所在了。</p>
+
+<p>前几天，我就引起了这么一起Sev 2事故。我们做了一次<a href="https://sysadmincasts.com/episodes/20-how-to-write-an-incident-report-postmortem">PIR</a>回顾
+了这次事故，并且提出了相应的改进办法。</p>
+
+<h3>应用的功能</h3>
+
+<hr />
+
+<p>收集用户信息的静态页面</p>
+
+<h3>技术栈</h3>
+
+<hr />
+
+<ol>
+<li>纯前端项目，用Grunt/Bower等前端工作流，Karma做JS测试框架，requirejs做模块管理，前端框架用Backbone；</li>
+<li>后端的API基于Scala，集成测试通过Pact(<a href="http://martinfowler.com/articles/consumerDrivenContracts.html">CDC</a>)的测试方式；</li>
+</ol>
+
+
+<h3>系统架构</h3>
+
+<hr />
+
+<ol>
+<li>应用部署在AWS的S3上；</li>
+<li>最前面用Akamai做CDN；</li>
+<li>通过JSON的方式对后端数据读写；</li>
+</ol>
+
+
+<h3>Build Pipline以及部署方式</h3>
+
+<hr />
+
+<ol>
+<li>本地开发，测试运行后提交代码， PR/Review/Merge</li>
+<li>CI上面运行单元测试以及Pact集成测试，并且打包生成zip文件</li>
+<li>用<code>unzip-to-s3</code>这个工具将文件上传到staging S3 bucket 和 production S3 bucket
+如果我知道这玩意直接进入production，当时说不定会去多看几眼……。</li>
+</ol>
+
+
+<h3>事故回顾</h3>
+
+<hr />
+
+<ol>
+<li>我提交footer修改的PR，客户回复<code>LGTM</code>，然后merge</li>
+<li>2天后客服人员通过Zendesk提交ticket说有几个客户抱怨产品好像不大好用了</li>
+<li>Tech Leader立刻召集产品相关的几个开发和运维人员检查，发现引用cache busting的js的script tag不知道怎么出问题了</li>
+<li>在没有确定最根本的原因时，它们尝试revert了我的代码，然后手动修改了产品环境的文件……-_-！</li>
+<li>找到了最根本的原因，是其中一个用来做cache busting的module突然升级，然后在package.json它是以<code>~0.0.10</code>的方式被引用的，如此在<code>npm install</code>的时候，它会自动升级小版本，没想到那个版本有问题，引入了一个bug。然后打包的过程在Bamboo build上，没人会去仔细看build log。</li>
+<li>拿回我的提交，将cache busting模块的版本锁定，重新部署后恢复正常</li>
+</ol>
+
+
+<h3>事故后的Action</h3>
+
+<hr />
+
+<ol>
+<li>增加相关的测试用例，部署到staging和production后添加相关smoke测试以检验一切加载正常；</li>
+<li>用到的cache busting库在github没有很多人参与，所以重新考虑换一个更加稳定，用得人多点的模块；</li>
+<li>尝试将zendesk服务和pagerduty集成，如此开发团队会更快得到来自客户的反馈会；</li>
+<li>思考下这种直接进入产品环境的持续交付的方式是不是合适的，或者如何去改进；</li>
+<li>考虑对项目中使用到的模块用专门的build做升级时检查；</li>
+<li>测试时要针对整个打包好的assets；</li>
+<li>通过语义化(sematic)工具结合pagerduty报警;</li>
+</ol>
+
+
+<hr />
+
+<p>对于纯前端的这种app，监控确实不如后端(可以用现成的工具如<a href="https://www.newrelic.com/">NewRelic</a>)好做，目前的方式是通过Nagios做Active check，检查bucket中对应
+的文件是否存在，实际的意义并不大，我觉得监控产品环境的集成页面会更有价值些，比如测试相应时间，如果响应
+时间超过某个值，比如10s，或者返回的html中没有包含必要的元素，就认为它可能会有问题。</p>
+
+<p>上面的最后一条也不错，通过API收集前端请求的次数，将数据发送到类似Graphite之类的工具，然后用<a href="https://github.com/etsy/skyline">Skyline</a>之类
+的工具进行数据分析，如果有些数据(如访问量)突然高于或者低于某个值，就可以发送警报到pagerduty。
+另外，对于产品中引用的第三方类库/模块，除了固定使用的版本之外，还有必要搭建测试最新类库集成后的功能
+完整性的build，这个叫做<a href="http://www.thoughtworks.com/radar/techniques">Canary Build</a>(金丝雀构建)，在Thoughtworks最新
+的Tech Radar中有提到。</p>
+
+<p>最后，希望我不会因为制造太多的产品事故而被炒-_-!</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/docker/2015/01/16/running-containers-in-docker">Running Containers in Docker</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-16T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/docker/2015/01/16/running-containers-in-docker#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/docker/2015/01/16/running-containers-in-docker">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>既然有了boot2docker,不妨下几个容器来玩玩。先看下本地的docker服务的信息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker info
+</span><span class='line'>Containers: 0
+</span><span class='line'>Images: 0
+</span><span class='line'>Storage Driver: aufs
+</span><span class='line'>Root Dir: /mnt/sda1/var/lib/docker/aufs
+</span><span class='line'>Dirs: 0
+</span><span class='line'>Execution Driver: native-0.2
+</span><span class='line'>Kernel Version: 3.16.7-tinycore64
+</span><span class='line'>Operating System: Boot2Docker 1.4.1 <span class="o">(</span>TCL 5.4<span class="o">)</span><span class="p">;</span> master : 86f7ec8 - Tue Dec <span class="m">16</span> 23:11:29 UTC 2014
+</span><span class='line'>CPUs: 4
+</span><span class='line'>Total Memory: 1.961 GiB
+</span><span class='line'>Name: boot2docker
+</span><span class='line'>ID: L5JR:QYWN:KEDD:FQ4O:66IY:FUE6:OXTA:SWAE:UV2R:LFCF:7H6H:PTS5
+</span><span class='line'>Debug mode <span class="o">(</span>server<span class="o">)</span>: <span class="nb">true</span>
+</span><span class='line'>Debug mode <span class="o">(</span>client<span class="o">)</span>: <span class="nb">false</span>
+</span><span class='line'>Fds: 10
+</span><span class='line'>Goroutines: 11
+</span><span class='line'>EventsListeners: 0
+</span><span class='line'>Init Path: /usr/local/bin/docker
+</span><span class='line'>Docker Root Dir: /mnt/sda1/var/lib/docker
+</span><span class='line'>
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>ps aux <span class="p">|</span> grep <span class="o">[</span>/<span class="o">]</span>usr/local/bin/docker
+</span><span class='line'><span class="m">690</span> root     /usr/local/bin/docker -d -D -g /var/lib/docker -H unix:// -H tcp://0.0.0.0:2376 --tlsverify --tlscacert<span class="o">=</span>/var/lib/boot2docker/tls/ca.pem --tlscert<span class="o">=</span>/var/lib/boot2docker/tls/server.pem --tlskey<span class="o">=</span>/var/lib/boot2docker/tls/serverkey.pem
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从docker的后台进程可以看到，后台服务监听2376端口，同时支持tls加密协议。</p>
+
+<p>Docker的官方镜像的入口在<a href="https://registry.hub.docker.com/">Docker Hub Registry</a>，镜像文件放在了亚马逊AWS上，这对于国内的用户就比较悲剧了，因为要么是访问不到镜像文件，要么就是下载太慢。万幸的是，国内现在已经有了docker registry 的mirror - <a href="https://docker.cn/">docker.cn</a>。
+所以在pull或者运行容器的时候，需要在镜像前加上registry的ip或者主机名。我觉得更好的方式是可以将registry写在配置文件中，这样可以避免这个麻烦，不过目前还没有看到这样的解决方案。
+So</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker run -i -t docker.cn/docker/ubuntu /bin/bash
+</span><span class='line'>Unable to find image <span class="s1">&#39;docker.cn/docker/ubuntu:latest&#39;</span> locally
+</span><span class='line'>Pulling repository docker.cn/docker/ubuntu
+</span><span class='line'>8eaa4ff06b53: Download <span class="nb">complete</span>
+</span><span class='line'>511136ea3c5a: Download <span class="nb">complete</span>
+</span><span class='line'>3b363fd9d7da: Download <span class="nb">complete</span>
+</span><span class='line'>607c5d1cca71: Download <span class="nb">complete</span>
+</span><span class='line'>f62feddc05dc: Download <span class="nb">complete</span>
+</span><span class='line'>Status: Downloaded newer image <span class="k">for</span> docker.cn/docker/ubuntu:latest
+</span><span class='line'>root@0b8874d6f2c8:/#
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这条命令的意思是保持标准输入打开状态<code>-i</code>，并且Docker要为容器分配一个伪终端(tty)<code>-t</code>。Docker daemon首先在本地寻找名为<code>docker.cn/docker/ubuntu</code>的镜像，找不到的话，在去docker.cn下载。
+从镜像下载的方式我们大概可以判断整个镜像是分层的，像git一样有版本管理，这个就是<code>aufs</code>文件系统的作用。镜像下载完成，容器启动后执行了bash命令，可以认为是来到了容器运行的操作系统中。
+之后就可以像使用一个Ubuntu系统一样去使用这个容器了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@0b8874d6f2c8:/# ip a
+</span><span class='line'>1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu <span class="m">65536</span> qdisc noqueue state UNKNOWN group default
+</span><span class='line'>link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+</span><span class='line'>inet 127.0.0.1/8 scope host lo
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span><span class='line'>inet6 ::1/128 scope host
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span><span class='line'>6: eth0: &lt;BROADCAST,UP,LOWER_UP&gt; mtu <span class="m">1500</span> qdisc noqueue state UP group default
+</span><span class='line'>link/ether 02:42:ac:11:00:02 brd ff:ff:ff:ff:ff:ff
+</span><span class='line'>inet 172.17.0.2/16 scope global eth0
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span><span class='line'>inet6 fe80::42:acff:fe11:2/64 scope link
+</span><span class='line'>valid_lft forever preferred_lft forever
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到容器有自己的eth0网络设备以及由Docker分配的一个ip地址，和host machine没太大区别。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@0b8874d6f2c8:/# vim
+</span><span class='line'>bash: vim: <span class="nb">command </span>not found
+</span><span class='line'>root@0b8874d6f2c8:/# apt-get install -y vim
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>没有vim，赶快装一个。</p>
+
+<p>随之退出控制台，容器也停止运行。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps
+</span><span class='line'>CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps -l
+</span><span class='line'>CONTAINER ID        IMAGE                           COMMAND             CREATED             STATUS                          PORTS               NAMES
+</span><span class='line'>0b8874d6f2c8        docker.cn/docker/ubuntu:14.04   <span class="s2">&quot;/bin/bash&quot;</span>         <span class="m">15</span> hours ago        Exited <span class="o">(</span>0<span class="o">)</span> About a minute ago                       naughty_darwin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用<code>docker ps</code>命令可以查看运行时的容器，对于停止的容器，可以通过 <code>docker ps -l</code> 或者 <code>docker ps -a</code>可以看到所有的容器。
+容器启动时通过<code>--name</code>选项可以指定容器的名字，缺省会随机给出一个名字，很诡异的一个设计，不能理解。
+有名字的好处就是就是容易记忆或者查看，否则如果只能按照containerid那串hash code使用，想来就有些头大。</p>
+
+<p>重新启动停止的容器</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker start 0b8874d6f2c8
+</span><span class='line'>0b8874d6f2c8
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps
+</span><span class='line'>CONTAINER ID        IMAGE                           COMMAND             CREATED             STATUS              PORTS               NAMES
+</span><span class='line'>0b8874d6f2c8        docker.cn/docker/ubuntu:14.04   <span class="s2">&quot;/bin/bash&quot;</span>         <span class="m">15</span> hours ago        Up <span class="m">3</span> seconds                            naughty_darwin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过<code>docker attach</code>命令可以重新连接到容器上。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker attach 0b8874d6f2c8
+</span><span class='line'>root@0b8874d6f2c8:/# which vim
+</span><span class='line'>/usr/bin/vim
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>上次安装的vim依然在，可见docker保存了容器的状态(persistence)。
+前面所创建的容器是交互式的容器，而实际的使用当中，我们需要容器去运行程序或者服务，这种又称为daemonized container. 下面是一个简单的例子:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker run --name awesomeness -d ubuntu /bin/sh -c <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span><span class='line'>1bda4fdc3a3b869d1dc58bb4564b08e1bc0c0f24372f48afb8bcc4291cc94929
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker ps
+</span><span class='line'>CONTAINER ID        IMAGE               COMMAND                CREATED             STATUS              PORTS               NAMES
+</span><span class='line'>1bda4fdc3a3b        ubuntu:latest       <span class="err">&quot;</span>/bin/sh -c <span class="err">&#39;</span><span class="k">while</span> :   <span class="m">55</span> seconds ago      Up <span class="m">54</span> seconds                           awesomeness
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用<code>docker logs</code>命令可以查看容器的日志:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker logs awesomeness
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span><span class='line'>hello
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>加上<code>-t</code>选项可以输出时间戳，<code>-f</code>跟踪最新的日志:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker logs -ft awesomeness
+</span><span class='line'>2015-01-17T13:17:43.827474614Z hello
+</span><span class='line'>2015-01-17T13:17:48.842826627Z hello
+</span><span class='line'>2015-01-17T13:17:53.847642897Z hello
+</span><span class='line'>2015-01-17T13:17:58.856081585Z hello
+</span><span class='line'>2015-01-17T13:18:03.863587257Z hello
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查看容器内的进程:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker top awesomeness
+</span><span class='line'>PID                 USER                COMMAND
+</span><span class='line'><span class="m">922</span>                 root                /bin/sh -c <span class="k">while</span> :<span class="p">;</span> <span class="k">do</span> <span class="nb">echo </span>hello<span class="p">;</span> sleep 5<span class="p">;</span> <span class="k">done</span>
+</span><span class='line'><span class="m">1454</span>                root                sleep 5
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过Docker在容器内部启动新的进程，执行新的任务:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker <span class="nb">exec</span> -d awesomeness touch /tmp/testfile
+</span><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker <span class="nb">exec</span> -t -i  awesomeness  /bin/bash
+</span><span class='line'>root@1bda4fdc3a3b:/# ls -al /tmp/testfile
+</span><span class='line'>-rw-r--r-- <span class="m">1</span> root root <span class="m">0</span> Jan <span class="m">17</span> 14:03 /tmp/testfile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>不得不说docker的发展真的很快，我最开始使用的时候docker的版本大概是在0.6，当时的容器技术还是使用lxc，
+只能用<code>lxc attach</code>命令才能连接到运行的容器的控制台。现在使用这么简单，必须要点个赞。</p>
+
+<p>停止运行的容器:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker stop awesomeness   <span class="c"># 用containerid 1bda4fdc3a3b 效果相同</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在容器意外退出时，自动重启容器:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker run --restart<span class="o">=</span>always --name awesomeness -d ubuntu /bin/sh -c <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>还可以设置重启的次数，<code>--restart=on-failure:5</code>。这个功能也很不错，让容器拥有了一定的自恢复(self-healing)能力，</p>
+
+<p>查看容器的信息:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker inspect awesomeness
+</span><span class='line'><span class="o">[{</span>
+</span><span class='line'>  <span class="s2">&quot;AppArmorProfile&quot;</span>: <span class="s2">&quot;&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;Args&quot;</span>: <span class="o">[</span>
+</span><span class='line'>  <span class="s2">&quot;-c&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span><span class='line'>  <span class="o">]</span>,
+</span><span class='line'>  <span class="s2">&quot;Config&quot;</span>: <span class="o">{</span>
+</span><span class='line'>    <span class="s2">&quot;AttachStderr&quot;</span>: <span class="nb">false</span>,
+</span><span class='line'>    <span class="s2">&quot;AttachStdin&quot;</span>: <span class="nb">false</span>,
+</span><span class='line'>    <span class="s2">&quot;AttachStdout&quot;</span>: <span class="nb">false</span>,
+</span><span class='line'>    <span class="s2">&quot;Cmd&quot;</span>: <span class="o">[</span>
+</span><span class='line'>    <span class="s2">&quot;/bin/sh&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;-c&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;while :; do echo hello; sleep 5; done&quot;</span>
+</span><span class='line'>    <span class="o">]</span>,
+</span><span class='line'>    <span class="s2">&quot;CpuShares&quot;</span>: 0,
+</span><span class='line'>    <span class="s2">&quot;Cpuset&quot;</span>: <span class="s2">&quot;&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;Domainname&quot;</span>: <span class="s2">&quot;&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;Entrypoint&quot;</span>: null,
+</span><span class='line'>........
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>inspect可以返回JSON格式的详细配置信息，不过这个信息略多，通过<code>--format</code>可以格式化输出的内容，假设我只想看到容器的IP地址:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker@boot2docker:~<span class="nv">$ </span>docker inspect --format <span class="s1">&#39;&#39;</span> awesomeness
+</span><span class='line'>172.17.0.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有点像调用了<code>jq</code>命令。</p>
+
+<p>删除容器的命令是<code>docker rm CONTAINER_ID or CONTAINER_NAME</code>，这个操作只能针对已经停止运行的容器。删除所有容器的命令是:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>docker rm <span class="sb">`</span>docker ps -a -q<span class="sb">`</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个命令会返回所有容器的ID，然后执行删除操作。实际的使用中我们可能只是删除部分的容器，可能就得结合<code>cut</code>,<code>grep</code>或者<code>awk</code>等命令来拿到要删除的容器ID/名字，然后再去执行删除操作。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -997,352 +1497,6 @@ PPT如下:</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/scala/2014/08/01/learning-scala-function">Learning Scala: Function</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2014-08-01T00:00:00+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/scala/2014/08/01/learning-scala-function#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/scala/2014/08/01/learning-scala-function">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>函数在Scala中是一等公民，这意味着你可以在任何时候定义函数，而且它不需要依附于类，在Class/Object中定义的函数叫做方法。</p>
-
-<h3>语法</h3>
-
-<p>函数由函数名称，参数以及函数体组成，未声明函数返回类型的，默认返回Unit。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">printName</span><span class="o">(</span><span class="nl">name:</span> <span class="n">String</span><span class="o">)</span> <span class="o">=</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Hello, &quot;</span> <span class="o">+</span> <span class="n">name</span><span class="o">)</span>
-</span><span class='line'><span class="nl">func:</span> <span class="o">(</span><span class="nl">name:</span> <span class="n">String</span><span class="o">)</span><span class="n">Unit</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">double</span><span class="o">(</span><span class="nl">num:</span> <span class="n">Int</span><span class="o">):</span><span class="n">Int</span> <span class="o">=</span> <span class="n">num</span> <span class="o">*</span> <span class="mi">2</span>
-</span><span class='line'><span class="kt">double</span><span class="o">:</span> <span class="o">(</span><span class="nl">num:</span> <span class="n">Int</span><span class="o">)</span><span class="n">Int</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">iter</span><span class="o">(</span><span class="nl">num:</span> <span class="n">Int</span><span class="o">)</span> <span class="o">=</span> <span class="o">{</span> <span class="k">if</span><span class="o">(</span><span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">iter</span><span class="o">(</span><span class="n">num</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">}</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">console</span><span class="o">&gt;:</span><span class="mi">7</span><span class="o">:</span> <span class="nl">error:</span> <span class="n">recursive</span> <span class="n">method</span> <span class="n">iter</span> <span class="n">needs</span> <span class="n">result</span> <span class="n">type</span>
-</span><span class='line'>       <span class="n">def</span> <span class="nf">iter</span><span class="o">(</span><span class="nl">num:</span> <span class="n">Int</span><span class="o">)</span> <span class="o">=</span> <span class="o">{</span> <span class="k">if</span><span class="o">(</span><span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="mi">1</span> <span class="k">else</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">iter</span><span class="o">(</span><span class="n">num</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">}</span>
-</span><span class='line'>                                                      <span class="o">^</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>对于递归函数，必须指定返回类型，否则编译无法通过。</p>
-
-<h3>默认参数和带名参数</h3>
-
-<p>可以给定函数的参数一个默认的值，调用函数时可以不用传入该参数。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">printName</span><span class="o">(</span><span class="nl">congrats:</span><span class="n">String</span><span class="o">,</span> <span class="nl">name:</span> <span class="n">String</span> <span class="o">=</span> <span class="s">&quot;default&quot;</span><span class="o">)</span> <span class="o">=</span> <span class="n">println</span><span class="o">(</span><span class="n">congrats</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">name</span><span class="o">)</span>
-</span><span class='line'><span class="nl">printName:</span> <span class="o">(</span><span class="nl">name:</span> <span class="n">String</span><span class="o">,</span> <span class="nl">congrats:</span> <span class="n">String</span><span class="o">)</span><span class="n">Unit</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">printName</span><span class="o">(</span><span class="s">&quot;hello&quot;</span><span class="o">)</span>
-</span><span class='line'><span class="n">hello</span> <span class="k">default</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>不过，如果函数有多个参数并且默认参数是第一个，只传入一个参数时，编译无法通过，应该是没有特别指明，直接被当成了第一个参数。解决的办法是通过带名参数。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">printName</span><span class="o">(</span><span class="nl">name:</span> <span class="n">String</span> <span class="o">=</span> <span class="s">&quot;default&quot;</span><span class="o">,</span> <span class="nl">congrats:</span><span class="n">String</span><span class="o">)</span> <span class="o">=</span> <span class="n">println</span><span class="o">(</span><span class="n">congrats</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">name</span><span class="o">)</span>
-</span><span class='line'><span class="nl">printName:</span> <span class="o">(</span><span class="nl">name:</span> <span class="n">String</span><span class="o">,</span> <span class="nl">congrats:</span> <span class="n">String</span><span class="o">)</span><span class="n">Unit</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">printName</span><span class="o">(</span><span class="n">congrats</span> <span class="o">=</span> <span class="s">&quot;hello&quot;</span><span class="o">)</span>
-</span><span class='line'><span class="n">hello</span> <span class="k">default</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>由此我们可以看出，带名参数不需要和参数列表的顺序相同。</p>
-
-<h3>call by name / call by value</h3>
-
-<p>Scala中有两种参数替换模型，<code>call by name</code>和<code>call by value</code>，直译就是传名或者传值。对于下面的函数</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">def</span> <span class="nf">f</span><span class="o">(</span><span class="nl">x:</span><span class="n">Int</span><span class="o">,</span> <span class="nl">y:</span><span class="n">Int</span><span class="o">)</span> <span class="o">=</span> <span class="o">{</span> <span class="n">x</span> <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果是传值的方式，那么 f(2, 2 * 2) 首先会被转换为f(2, 4),也就是说在函数体中未调用之前就已经计算好了。如果是传名的方式，那么2 * 2始终不会被计算，除非该参数被调用。Scala中支持两种传参方式，上面的例子中实际上是<code>call by name</code>。<code>call by value</code>是用下面的方式声明函数。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">def</span> <span class="nf">g</span><span class="o">(</span><span class="nl">y:</span> <span class="kt">int</span><span class="o">)</span> <span class="o">=</span> <span class="o">{</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">y</span><span class="o">}</span>
-</span><span class='line'><span class="n">def</span> <span class="nf">f</span><span class="o">(</span><span class="nl">x:</span><span class="n">Int</span><span class="o">,</span> <span class="nl">y:</span><span class="n">Int</span> <span class="o">=&gt;</span> <span class="n">Int</span><span class="o">)</span> <span class="o">=</span> <span class="o">{</span> <span class="n">x</span> <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>只要传入于参数一致的签名的函数即可。</p>
-
-<h3>变长参数</h3>
-
-<p>和其他编程语言一样，Scala也可以接受变长参数。函数会将变长参数转换参数序列。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">def</span> <span class="nf">sum</span><span class="o">(</span><span class="nl">args:</span> <span class="n">Int</span><span class="o">*)</span> <span class="o">=</span> <span class="o">{</span>
-</span><span class='line'>        <span class="n">var</span> <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span class='line'>        <span class="k">for</span> <span class="o">(</span><span class="n">arg</span> <span class="o">&lt;-</span> <span class="n">args</span><span class="o">)</span> <span class="n">result</span> <span class="o">+=</span> <span class="n">arg</span>
-</span><span class='line'>        <span class="n">result</span>
-</span><span class='line'>      <span class="o">}</span>
-</span><span class='line'><span class="nl">sum:</span> <span class="o">(</span><span class="nl">args:</span> <span class="n">Int</span><span class="o">*)</span><span class="n">Int</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">sum</span><span class="o">(</span><span class="mi">1</span> <span class="o">,</span><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">)</span>
-</span><span class='line'><span class="nl">res4:</span> <span class="n">Int</span> <span class="o">=</span> <span class="mi">15</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>但是直接传入Seq会出错……，因为类型不匹配。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="n">val</span> <span class="n">s</span> <span class="o">=</span> <span class="n">sum</span><span class="o">(</span><span class="mi">1</span> <span class="n">to</span> <span class="mi">5</span><span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">sum</span><span class="o">(</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">5</span><span class="o">)</span>
-</span><span class='line'><span class="o">&lt;</span><span class="n">console</span><span class="o">&gt;:</span><span class="mi">9</span><span class="o">:</span> <span class="nl">error:</span> <span class="n">type</span> <span class="n">mismatch</span><span class="o">;</span>
-</span><span class='line'> <span class="n">found</span>   <span class="o">:</span> <span class="n">scala</span><span class="o">.</span><span class="na">collection</span><span class="o">.</span><span class="na">immutable</span><span class="o">.</span><span class="na">Range</span><span class="o">.</span><span class="na">Inclusive</span>
-</span><span class='line'> <span class="nl">required:</span> <span class="n">Int</span>
-</span><span class='line'>              <span class="nf">sum</span><span class="o">(</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">5</span><span class="o">)</span>
-</span><span class='line'>                     <span class="o">^</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>所以还是需要转换称参数序列。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">sum</span><span class="o">(</span><span class="mi">1</span> <span class="n">to</span> <span class="mi">5</span><span class="o">:</span> <span class="n">_</span><span class="o">*)</span>
-</span><span class='line'><span class="nl">res1:</span> <span class="n">Int</span> <span class="o">=</span> <span class="mi">15</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>匿名函数</h3>
-
-<p>举个简单的栗子好了。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">List</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">).</span><span class="na">map</span> <span class="o">{(</span><span class="nl">x:</span><span class="n">Int</span><span class="o">)</span> <span class="o">=&gt;</span> <span class="o">(</span><span class="n">x</span> <span class="o">*</span> <span class="mi">2</span><span class="o">)}</span>
-</span><span class='line'><span class="nl">res4:</span> <span class="n">List</span><span class="o">[</span><span class="n">Int</span><span class="o">]</span> <span class="o">=</span> <span class="n">List</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">6</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>过程</h3>
-
-<p>过程是返回Unit的函数，利用的是函数的副作用。从语法上来说，和函数的区别就在于它没有等号。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">def</span> <span class="nf">process</span><span class="o">(</span><span class="nl">job:</span> <span class="n">String</span><span class="o">)</span>  <span class="o">{</span> <span class="n">run</span><span class="o">;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;running job&quot;</span> <span class="o">+</span> <span class="n">job</span><span class="o">)</span> <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>当然也可以加上等号，显示的申明返回类型为Unit。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">def</span> <span class="nf">process</span><span class="o">(</span><span class="nl">job:</span> <span class="n">String</span><span class="o">):</span><span class="n">Unit</span> <span class="o">=</span>  <span class="o">{</span> <span class="n">run</span><span class="o">;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;running job&quot;</span> <span class="o">+</span> <span class="n">job</span><span class="o">)</span> <span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/scala/2014/04/01/learning-scala-control-structure">Learning Scala: Control Structure</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2014-04-01T00:00:00+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>1</span><span class='date-suffix'>st</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/scala/2014/04/01/learning-scala-control-structure#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/scala/2014/04/01/learning-scala-control-structure">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>任何语言的控制结构应当都是相似的，语言处理现实世界的问题，理应和现实世界对应。Scala的控制结构以及关键字与Java没什么不同，有区别的地方在于Scala中表达式可以有返回值，比如条件表达式。</p>
-
-<h3>条件表达式(if/else)</h3>
-
-<p>Scala中典型的条件表达式如下:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">x</span> <span class="k">=</span> <span class="mi">1</span>
-</span><span class='line'><span class="n">x</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="k">if</span> <span class="o">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="mi">1</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
-</span><span class='line'><span class="n">res0</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="k">val</span> <span class="n">y</span> <span class="k">=</span> <span class="o">-</span><span class="mi">1</span>
-</span><span class='line'><span class="n">y</span><span class="k">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-</span><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="k">if</span> <span class="o">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="mi">1</span>
-</span><span class='line'><span class="n">res1</span><span class="k">:</span> <span class="kt">AnyVal</span> <span class="o">=</span> <span class="o">()</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>需要注意的有如下几点:
-1. Scala中，表达式不需要分号表示结束;
-2. Scala中没有?:三元表达式;
-3. 条件表达式都有返回值;
-4. 返回值的超类是Any，if语句没有输出值时，返回值为Unit;
-5. 表达式过长或者，可以将其放在大括号中，如下:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">if</span> <span class="o">(</span><span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>  <span class="n">n</span> <span class="k">=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">n</span>
-</span><span class='line'>  <span class="n">n</span> <span class="o">-=</span> <span class="mi">1</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>循环(for/while)</h3>
-
-<p>Scala中的<em>for/while</em>循环和Java中没什么太大区别，但是Scala中没有类似Java中<em>for(initialize; condition; update variable)</em>的结构。</p>
-
-<p>for循环的例子:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">for</span><span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">10</span><span class="o">)</span>
-</span><span class='line'>  <span class="n">println</span><span class="o">(</span><span class="n">i</span><span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">for</span><span class="o">(</span><span class="n">c</span> <span class="k">&lt;-</span> <span class="s">&quot;hello, world&quot;</span><span class="o">)</span>
-</span><span class='line'>  <span class="n">println</span><span class="o">(</span><span class="n">c</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><em>变量&lt;-表达式</em> 这样的语法被称作生成器， 变量i/c为集合元素类型，循环用其依次获得集合中的元素，并处理。</p>
-
-<p>while的例子:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">var</span> <span class="n">a</span> <span class="k">=</span> <span class="mi">10</span>
-</span><span class='line'><span class="k">var</span> <span class="n">b</span> <span class="k">=</span> <span class="mi">1</span>
-</span><span class='line'><span class="k">while</span> <span class="o">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
-</span><span class='line'>  <span class="n">b</span> <span class="o">*=</span> <span class="n">a</span>
-</span><span class='line'>  <span class="n">a</span> <span class="o">-=</span> <span class="mi">1</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Scala中没有<em>break</em>或者<em>continue</em>关键字，如果要中途退出循环，需要自己设置Boolean型变量或者使用Breaks对象的break方法。</p>
-
-<h3>for推导</h3>
-
-<p>for推导是包含卫语句(<em>guard clause</em>)的for表达式，比如:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">for</span> <span class="o">(</span><span class="n">i</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">3</span><span class="o">;</span> <span class="n">j</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">3</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="o">)</span> <span class="n">println</span><span class="o">((</span><span class="mi">10</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="o">)</span> <span class="o">+</span> <span class="s">&quot; &quot;</span><span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果i 等于 j，表达式不会打印结果。</p>
-
-<h3>模式匹配</h3>
-
-<p>个人认为Scala最好用的特性之一，等理解透彻了专门写一篇，下面只是个简单的例子，可以认为是可以用来匹配类对象的<em>switch</em>。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="k">val</span> <span class="n">a</span> <span class="k">=</span> <span class="kc">true</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">a</span> <span class="k">match</span> <span class="o">{</span>
-</span><span class='line'>  <span class="k">case</span> <span class="kc">true</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;yes, PPG!&quot;</span><span class="o">)</span>
-</span><span class='line'>  <span class="k">case</span> <span class="k">_</span> <span class="k">=&gt;</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;failed!&quot;</span><span class="o">)</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -1360,6 +1514,14 @@ PPT如下:</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/aws/practice/2015/12/04/stop-making-wheels">Stop Making Wheels, Dude</a>
+      </li>
+    
+      <li class="post">
         <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
       </li>
     
@@ -1369,14 +1531,6 @@ PPT如下:</p>
     
       <li class="post">
         <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/08/25/tracing-and-production-bug-about-netty">Tracing and Production Bug About Netty</a>
-      </li>
-    
-      <li class="post">
-        <a href="/mysql/2015/08/18/mysql-access-control">Mysql Access Control</a>
       </li>
     
   </ul>
