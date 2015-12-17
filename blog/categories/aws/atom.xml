@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Aws | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2015-12-15T13:37:54+08:00</updated>
+  <updated>2015-12-17T17:31:09+08:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -91,15 +91,6 @@ snapshot比较好。</li>
 时间成本都会比较低，在半个小时以内。</p>
 
 <p>开发/测试依赖的环境可能还有很多，更多的把它们当做产品环境对待，会大大增加持续交付的流畅度，减轻环境维护方面的痛楚。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Stop Making Wheels, Dude]]></title>
-    <link href="http://iambowen.github.com/aws/practice/2015/12/04/stop-making-wheels"/>
-    <updated>2015-12-04T11:19:45+08:00</updated>
-    <id>http://iambowen.github.com/aws/practice/2015/12/04/stop-making-wheels</id>
-    <content type="html"><![CDATA[<p>程序员喜欢造轮子，没事写个什么MVC，IOC甚至编程语言之类的，这对于自己的提升</p>
 ]]></content>
   </entry>
   
