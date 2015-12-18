@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ssh | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/ssh/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2015-12-17T17:31:09+08:00</updated>
+  <updated>2015-12-18T16:17:51+08:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -23,8 +23,8 @@
 <ol>
 <li>客户把AWS的ssh instance的private key通过slack拷给了同事；</li>
 <li>同事发现用部署工具<a href="http://www.fabfile.org/">fabric</a>可以使用该key，ssh到EC2的instance上进行部署；</li>
-<li>但是如果使用key去ssh(如<code>ssh -i key user@instance</code>)到EC2的instance，就会提示输入<code>passpharse</code></li>
-<li>客户的Ops很肯定说这个private key没有加<code>passpharse</code></li>
+<li>但是如果使用key去ssh(如<code>ssh -i key user@instance</code>)到EC2的instance，就会提示输入<code>passphrase</code></li>
+<li>客户的Ops很肯定说这个private key没有加<code>passphrase</code></li>
 </ol>
 
 
@@ -63,7 +63,8 @@ debug1: key_parse_private_pem: PEM_read_PrivateKey failed
 
 <p>private key的开始或者结束的marker出问题了，于是客户询问这个key是不是从slack拷贝过去的，因为
 聊天工具有时候会自动纠错，把结束的marker <code>----</code>自动改成<code>——</code>，他曾经就遇到过这种情况。
-再看一遍private key，果然是这样……好羞愧。修改后，果然可以顺利ssh 到instance上了。</p>
+再看一遍private key，果然是这样……好羞愧。修改后，果然可以顺利ssh 到instance上了。
+(更正下，虽然他指出了问题的来源，但是这段debug信息，在private key是完整的情况下仍然存在，所以这不是key出错的绝对证据。)</p>
 
 <p>从这个事情中，我们可以得到一些教训</p>
 
