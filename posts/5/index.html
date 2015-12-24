@@ -9,7 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="SaaS化的趋势已经不可阻挡，传统软件的功能逐渐web化。网上服务越来越多，对应的账号也越来越多，所有账号一个密码显然不现实，至少支付宝的登陆密码和支付密码就是不一样的。再加上密码要求越来越严格，大小写字母，数字，特殊字符组合……，尼玛刚设置10分钟后就忘记了。这个时候，就得靠软件了……， &hellip;">
+  <meta name="description" content="Hubot 是一个github开源的机器人项目，可以集成到众多的聊天工具中，如IRC, Hipchat, Skype，QQ等。你可以用它来搞笑，也可以用它来进行自动化的管理，比如自动化部署等。这几天花了点时间，在OSX和Centos上分别尝试搭了下Hubot，详细过程如下: 安装Hubot, &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,242 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2014/01/27/use-hubot-in-skype">在Skype中使用Hubot</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-01-27T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2014/01/27/use-hubot-in-skype#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2014/01/27/use-hubot-in-skype">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://www.36kr.com/p/55962.html">Hubot</a> 是一个github开源的<a href="http://hubot.github.com/">机器人项目</a>，可以集成到众多的聊天工具中，如IRC, Hipchat, Skype，QQ等。你可以用它来搞笑，也可以用它来进行自动化的管理，比如自动化部署等。这几天花了点时间，在OSX和Centos上分别尝试搭了下Hubot，详细过程如下:</p>
+
+<p>安装Hubot, 有两种方式，懒人的方式就用现成的<a href="https://github.com/RafaelGorski/VagrantChefHubot">Vagarant Script</a>, 有几点要注意的是:</p>
+
+<ol>
+<li>OSX必须得安装<a href="http://xquartz.macosforge.org/downloads/SL/XQuartz-2.7.5.dmg">X11</a>支持</li>
+<li>Oracle OCI 不是必须的</li>
+</ol>
+
+
+<p>在Centos 6.4 上安装Hubot。</p>
+
+<p>环境准备, 包括桌面支持，开发工具, skype等等.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum install http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
+</span><span class='line'>yum groupinstall -y <span class="s2">&quot;Desktop&quot;</span>
+</span><span class='line'>yum groupinstall -y <span class="err">&quot;</span>Development Tools”
+</span><span class='line'>yum install qtwebkit.i686 webkitgtk.i686 —y
+</span><span class='line'>yum install tigervnc-server -y   <span class="c">#for vnc connect</span>
+</span><span class='line'>yum install wget telnet -y
+</span><span class='line'>yum install sqlite-devel -y
+</span><span class='line'>yum install nodejs npm -y
+</span><span class='line'>yum install redis -y
+</span><span class='line'>yum install python-setuptools python-setuptools-devel -y
+</span><span class='line'>yum update
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装Skype:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>wget http://download.skype.com/linux/skype-4.2.0.13.tar.bz2
+</span><span class='line'>tar skype-4.2.0.13.tar.bz2 -C /opt/
+</span><span class='line'>ln -s skype-4.2.0.13 skype
+</span><span class='line'>ln -s /opt/skype/skype /usr/bin/skype
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装Skype4py: Skype api 的python wrapper</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>easy_install pip
+</span><span class='line'>pip install Skype4Py
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装coffee-script hubot:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>npm install -g coffee-script hubot
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>配置服务:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> -e <span class="s2">&quot;VNCSERVERS=&quot;</span>1:vnc<span class="s2">&quot;\n VNCSERVERARGS[1]=&quot;</span>-geometry 1024x768<span class="err">&quot;</span> &gt;&gt; /etc/sysconfig/vncservers
+</span><span class='line'>useradd vnc
+</span><span class='line'>su - vnc
+</span><span class='line'>passwd
+</span><span class='line'>
+</span><span class='line'>service iptables stop
+</span><span class='line'>service vncserver start
+</span><span class='line'>
+</span><span class='line'>chkconfig redis on    <span class="c"># auto start</span>
+</span><span class='line'>chkconfig vncserver on   <span class="c">#auto start</span>
+</span><span class='line'>service redis start
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>centos默认iptables的服务是打开的，邪恶一点的方法是直接关掉iptables服务，上进的方法就是在iptables里面添加新的规则，还是邪恶吧……，因为hubot-skype也可能存在被iptables block的情况。
+VNC到虚拟机上，启动Skype并登陆。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>skype <span class="p">&amp;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>安装配置hubot-skype:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir hubot <span class="o">&amp;&amp;</span> <span class="nb">cd </span>hubot
+</span><span class='line'>hubot -c .
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>自动生成如下目录结构:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>root@localhost hubot<span class="o">]</span><span class="c"># tree -L 1</span>
+</span><span class='line'>.
+</span><span class='line'><span class="p">|</span>-- bin
+</span><span class='line'><span class="p">|</span>-- external-scripts.json
+</span><span class='line'><span class="p">|</span>-- hubot-scripts.json
+</span><span class='line'><span class="p">|</span>-- node_modules
+</span><span class='line'><span class="p">|</span>-- package.json
+</span><span class='line'><span class="p">|</span>-- Procfile
+</span><span class='line'><span class="p">|</span>-- README.md
+</span><span class='line'><span class="sb">`</span>-- scripts
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>package.json</code> 里面放的hubot运行依赖的插件，<code>hubot-scripts.json</code> 里面写的是hubot的脚本。修改 <code>package.json</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'>  <span class="s2">&quot;dependencies&quot;</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="s2">&quot;hubot&quot;</span><span class="o">:</span>         <span class="s2">&quot;&gt;= 2.6.0 &lt; 3.0.0&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;hubot-scripts&quot;</span><span class="o">:</span> <span class="s2">&quot;&gt;= 2.5.0 &lt; 3.0.0&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;hubot-skype&quot;</span><span class="o">:</span> <span class="s2">&quot;0.0.2&quot;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="nx">npm</span> <span class="nx">install</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>修改<code>hubot-scripts.json</code>, 添加<code>karma.coffee</code>:</p>
+
+<p><code>["redis-brain.coffee", "shipit.coffee", "karma.coffee”]</code></p>
+
+<p>运行:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./bin/hubot  -a skype <span class="p">&amp;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Skype会弹出是否允许第三方的应用控制，勾选就可以了。</p>
+
+<p>把hubot添加到Skype对话中，就可以用命令来调戏hubot了, 下面是一些例子:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>hubot image me keyword  <span class="c">#google 搜索keyword相关的图片，随机挑选一张返回图片链接</span>
+</span><span class='line'>hubot animate me keyword  <span class="c">#google 搜索keyword相关的gif图片，随机挑选一张返回图片链接</span>
+</span><span class='line'>hubot youtube me keyword  <span class="c">#youtube 搜索keyword相关的视频，随机挑选一个返回视频链接</span>
+</span><span class='line'>rebot mustache me keyword <span class="c">#给google搜索返回的图片上加个胡子。。。。</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>添加了<code>karma.coffee</code>脚本-人品计算器的话，可以用<code>user++/user—</code> 来增加和减少讨论组内成员的人品值。
+鉴于youtube国内无法访问，所以正准备扩展下脚本，提供 <code>hubot youku me</code>的命令。另外，如果把这个做成微信服务号部署到heroku上拿来玩应该也很有趣。</p>
+
+<p>最后，写了一个<a href="https://gist.github.com/iambowen/8642990">脚本</a>，配置过程中绝大多数操作都放到里面了, 不能保证100%自动化。</p>
+
+<h4>Note:</h4>
+
+<ol>
+<li>有个rails的工程<a href="https://github.com/iambowen/hubot-control">hubot-control</a>可以更加方便的进行hubot的管理， 我做了些许修改;</li>
+<li>一定要VNC到虚拟机上去启动hubot-skype，不然会报这个错误:</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>  ......
+</span><span class='line'>  File <span class="s2">&quot;/usr/lib/python2.6/site-packages/Skype4Py/api/posix_x11.py&quot;</span>, line 254, in __init__
+</span><span class='line'>    raise SkypeAPIError<span class="o">(</span><span class="s1">&#39;Could not open XDisplay&#39;</span><span class="o">)</span>
+</span><span class='line'>Skype4Py.errors.SkypeAPIError: Could not open XDisplay
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>原因是X11的环境变量 DISPLAY没有设置成0，非常之烦人，下次会考虑使用dbus去运行，虽然不知道怎么弄……</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -781,313 +1017,6 @@ The thing you need to pay attention to is that such recording just happen in a s
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/linux/2013/10/31/math-in-shell">Math in Shell</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2013-10-31T00:00:00+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/linux/2013/10/31/math-in-shell#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/linux/2013/10/31/math-in-shell">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>最近半年的所作的项目中，接触了些Ops的工作，自动化工具如Chef/Puppet都用过些。这些工具都很不错，但是过程当中会遇到一些问题，需要你基础的系统/shell知识，从而认识到了其重要性，开始系统学习，目前阅读的书为: <linux shell scripting cookbook version> 以及浏览china-unix论坛。</p>
-
-<p>Shell的强大是毋庸置疑的，所以进行数学运算也就是理所应当具有的功能。Shell可以用<code>declare/let/(( ))/[]</code>进行一些简单的数学运算。
-Shell 支持的运算:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>ARITHMETIC EVALUATION
-</span><span class='line'>       The  shell  allows arithmetic expressions to be evaluated, under certain circumstances <span class="o">(</span>see the <span class="nb">let </span>and <span class="nb">declare builtin </span>commands and Arithmetic Expansion<span class="o">)</span>.
-</span><span class='line'>       Evaluation is <span class="k">done</span> in fixed-width integers with no check <span class="k">for</span> overflow, though division by <span class="m">0</span> is trapped and flagged as an error.  The  operators  and  their
-</span><span class='line'>       precedence, associativity, and values are the same as in the C language.  The following list of operators is grouped into levels of equal-precedence opera-
-</span><span class='line'>       tors.  The levels are listed in order of decreasing precedence.
-</span><span class='line'>
-</span><span class='line'>       id++ id--
-</span><span class='line'>              variable post-increment and post-decrement
-</span><span class='line'>       ++id --id
-</span><span class='line'>              variable pre-increment and pre-decrement
-</span><span class='line'>       - +    unary minus and plus
-</span><span class='line'>       ! ~    logical and bitwise negation
-</span><span class='line'>       **     exponentiation
-</span><span class='line'>       * / %  multiplication, division, remainder
-</span><span class='line'>       + -    addition, subtraction
-</span><span class='line'>       &lt;&lt; &gt;&gt;  left and right bitwise shifts
-</span><span class='line'>       &lt;<span class="o">=</span> &gt;<span class="o">=</span> &lt; &gt;
-</span><span class='line'>              <span class="nv">comparison</span>
-</span><span class='line'>       <span class="o">==</span> !<span class="o">=</span>  equality and inequality
-</span><span class='line'>       <span class="p">&amp;</span>      bitwise AND
-</span><span class='line'>       ^      bitwise exclusive OR
-</span><span class='line'>       <span class="p">|</span>      bitwise OR
-</span><span class='line'>       <span class="o">&amp;&amp;</span>     logical AND
-</span><span class='line'>       <span class="o">||</span>     logical OR
-</span><span class='line'>       expr?expr:expr
-</span><span class='line'>              conditional <span class="nv">operator</span>
-</span><span class='line'>       <span class="o">=</span> *<span class="o">=</span> /<span class="o">=</span> %<span class="o">=</span> +<span class="o">=</span> -<span class="o">=</span> &lt;&lt;<span class="o">=</span> &gt;&gt;<span class="o">=</span> <span class="p">&amp;</span><span class="o">=</span> ^<span class="o">=</span> <span class="p">|</span><span class="o">=</span>
-</span><span class='line'>              assignment
-</span><span class='line'>       expr1 , expr2
-</span><span class='line'>              comma
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>可以看到涵盖了通用的编程语言中的数学运算方式，那么在shell中可以通过那些命令来进行计算呢？</p>
-
-<p><code>declare</code>: 声明变量同时定义其属性。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/bash</span>
-</span><span class='line'><span class="nv">n</span><span class="o">=</span>1*2*9/3
-</span><span class='line'><span class="nb">echo</span> <span class="nv">$n</span>
-</span><span class='line'><span class="nb">declare</span> -i n
-</span><span class='line'><span class="nv">n</span><span class="o">=</span>1*2*9/3
-</span><span class='line'><span class="nb">echo</span> <span class="nv">$n</span>
-</span><span class='line'>
-</span><span class='line'>result:
-</span><span class='line'>1*2*9/3
-</span><span class='line'>
-</span><span class='line'>6
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>从上面的例子可以看出，只有将变量声明为整数，shell才会认为你是在尝试进行数学运算而不是单纯的字符串变量。</p>
-
-<p><code>expr</code>: 数学表达式运算</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">z</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">5</span> + 1<span class="sb">`</span>
-</span><span class='line'><span class="nb">echo</span> <span class="nv">$z</span>
-</span><span class='line'><span class="nv">a</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">7</span> % 2<span class="sb">`</span>
-</span><span class='line'><span class="nb">echo</span> <span class="nv">$a</span>
-</span><span class='line'><span class="nv">d</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">1</span> <span class="se">\&amp;</span> 0<span class="sb">`</span>
-</span><span class='line'><span class="nb">echo</span> <span class="nv">$d</span>
-</span><span class='line'><span class="c">#error</span>
-</span><span class='line'><span class="nv">b</span><span class="o">=</span><span class="sb">`</span>expr 7*2<span class="sb">`</span>
-</span><span class='line'><span class="nb">echo</span> <span class="nv">$b</span>
-</span><span class='line'>
-</span><span class='line'>result:
-</span><span class='line'>6
-</span><span class='line'>1
-</span><span class='line'>0
-</span><span class='line'>7*2
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>expr后所带的表达式运算符必须以空格分开，不然会被当做字符串，不会进行运算，一些meta字符比如&amp; %等，必须转义才可以执行。</p>
-
-<p><code>let</code>:  后面跟随数学表达式并进行运算</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ a</span><span class="o">=</span>2
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ b</span><span class="o">=</span>2
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span><span class="nv">result</span><span class="o">=</span>a+b
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
-</span><span class='line'>4
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span>result++
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
-</span><span class='line'>5
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span>result--
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
-</span><span class='line'>4
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>同样，在计算的时候需要用空格分隔。</p>
-
-<p><code>(( ))</code> 和<code>[]</code>也可以起到类似的作用。参加如下的例子:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ a</span><span class="o">=</span>1
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ b</span><span class="o">=</span>2
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="nv">$[</span> a + b <span class="o">]</span>
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
-</span><span class='line'>3
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="nv">$[</span> <span class="nv">$a</span> + b <span class="o">]</span>
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
-</span><span class='line'>3
-</span><span class='line'>
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="k">$((</span><span class="nv">$a</span> <span class="o">+</span> <span class="m">50</span><span class="k">))</span>
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
-</span><span class='line'>51
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="k">$((</span><span class="nv">$a</span> <span class="o">-</span> <span class="m">50</span><span class="k">))</span>
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
-</span><span class='line'>-49
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="k">$((</span><span class="m">16#2</span>a<span class="k">))</span>  <span class="c">#进制转换,将16进制的”2a”转换为十进制的数字, 相当酷帅吊炸天</span>
-</span><span class='line'><span class="m">42</span>
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="k">$((</span><span class="m">2#1111</span><span class="k">))</span>
-</span><span class='line'>15
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>(())</code>或者<code>[]</code>中的变量也可以加或者不加$符号从表达式外获取。以上这些命令只能处理整数运算，如果想要进行浮点数运算，就得求助<code>bc</code>命令了。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;5 * 0.86&quot;</span> <span class="p">|</span> bc
-</span><span class='line'>4.30
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ n</span><span class="o">=</span>40
-</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span> <span class="nb">echo</span> <span class="s2">&quot;$n * 0.86&quot;</span> <span class="p">|</span> bc
-</span><span class='line'>34.40
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;scale=3;4/7&quot;</span> <span class="p">|</span> bc   <span class="c">#指定十进制浮点运算的精度</span>
-</span><span class='line'>.571
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">umask</span>
-</span><span class='line'>0002
-</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;obase=8;$(( 8#666 &amp; (8#777 ^ 8#$(umask)) ))&quot;</span> <span class="p">|</span> bc
-</span><span class='line'>664
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ no</span><span class="o">=</span>100
-</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;obase=2;$no&quot;</span> <span class="p">|</span> bc   <span class="c">#进制转换, 10进制-&gt; 2进制</span>
-</span><span class='line'>1100100
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;sqrt(100)&quot;</span> <span class="p">|</span> bc <span class="c">#开方</span>
-</span><span class='line'>10
-</span><span class='line'>
-</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;10^10&quot;</span> <span class="p">|</span> bc   <span class="c">#次方计算</span>
-</span><span class='line'>10000000000
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>bc</code>的功能远超上面所列举的例子，想仔细研究的话就 <code>man bc</code>…., enjoy。</p>
-
-<p>references:<a href="http://www.sal.ksu.edu/faculty/tim/unix_sg/bash/math.html">1</a>, <a href="http://bbs.chinaunix.net/forum.php?mod=viewthread&amp;tid=218853&amp;page=7#pid1617953">2</a>, <a href="http://www.amazon.com/Linux-Scripting-Cookbook-Second-Edition/dp/1782162747">3</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/6">&larr; Older</a>
@@ -1105,6 +1034,10 @@ Shell 支持的运算:</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
+      </li>
+    
+      <li class="post">
         <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
       </li>
     
@@ -1118,10 +1051,6 @@ Shell 支持的运算:</p>
     
       <li class="post">
         <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
       </li>
     
   </ul>

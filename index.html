@@ -9,9 +9,9 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="今天，别的组的同事过来问我一个关于SSH的问题，问题是这样的: 客户把AWS的ssh instance的private key通过slack拷给了同事；
-同事发现用部署工具fabric可以使用该key，ssh到EC2的instance上进行部署；
-但是如果使用key去ssh(如ssh -i key &hellip;">
+  <meta name="description" content="理想情况下的运维，是不需要ops去ssh到服务器上检查问题(包括安全问题)/日志等，这些是可以通过更好
+监控,如使用newrelic,或者更好的日志收集系统，如splunk等去避免。不过现实不总是完美的，加上历史
+遗留的原因，ops总是会ssh到堡垒机(bastion host)， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +81,158 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-12-19T14:24:30+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:24 pm</span></time>
+        
+           | <a href="/ssh/security/2015/12/19/ssh-securely-and-handy#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/ssh/security/2015/12/19/ssh-securely-and-handy">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>理想情况下的运维，是不需要ops去ssh到服务器上检查问题(包括安全问题)/日志等，这些是可以通过更好
+监控,如使用newrelic,或者更好的日志收集系统，如splunk等去避免。不过现实不总是完美的，加上历史
+遗留的原因，ops总是会ssh到堡垒机(bastion host)，然后跳转到目标服务器去做操作。</p>
+
+<p>于是，就有很多人(包括我)在堡垒机上生成key/pair, 而且private key很少加密(包括我)，这个存在
+很严重的安全风险。</p>
+
+<p>一个比较合理的方式是通过ssh proxy的方式去访问目标服务器，这样不需要把key暴露给bastion，比如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; ssh -L 3333:destination_host:22 user@bastion
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后再启动一个新的ssh进程去通过proxy连接:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; ssh -p <span class="m">3333</span> user@0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>每次这么操作略麻烦，可以通过在ssh配置文件简化：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host bastion
+</span><span class='line'>        HostName 192.168.1.1
+</span><span class='line'>        HostKeyAlias bastion
+</span><span class='line'>        LocalForward <span class="m">9999</span> target:22
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>那么建立proxy就只是<code>ssh user@bastion</code>就可以了，然后同理去<code>ssh -p 9999 user@0</code>。
+这么做的坏处在于<code>~/.ssh/config</code>配置可能会迅速膨胀，同时，每次还是启动两个进程去完成这件事情，不开心。</p>
+
+<p>于是，我们的安全大神介绍一个更加简单的方法，在<code>~/.ssh/config</code>中，加入下面的内容:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host */*
+</span><span class='line'>        ProxyCommand ssh <span class="k">$(</span>dirname %h<span class="k">)</span> -W <span class="k">$(</span>basename %h<span class="k">)</span>:%
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如此我就可以通过<code>ssh user@bastion/target</code>的方式直接ssh到远程主机，<code>ProxyCommand</code>指令会
+生成两个进程，后台proxy进程，前台的进程直接通过proxy连接到目标主机。这样从命令行窗口看来我只
+是打开了一个会话。同时，你可以链接很多个主机，如<code>ssh user@bastion/targetA/targetB/targetC</code>。
+依次通过前一个主机建立的proxy连接到后面的主机上。</p>
+
+<p>这个方法有一些局限：</p>
+
+<ol>
+<li>不能在主机链上指定不同的端口；</li>
+<li>不能对不同的主机使用不同的登录用户名；</li>
+<li>不同链上建立的连接不能重用已经建立的连接，这可能会导致连接的速度减缓；</li>
+<li>其实还有个问题就是不能很容易的从<code>targetC</code>退出到 <code>targetB</code>…… (我想的)</li>
+</ol>
+
+
+<p>为了解决这些问题，大神想出了终极解决方案:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host */*
+</span><span class='line'>    ControlMaster auto
+</span><span class='line'>    ControlPath   ~/.ssh/.sessions/%r@%h:%p
+</span><span class='line'>    ProxyCommand /bin/sh -c <span class="s1">&#39;mkdir -p -m700 ~/.ssh/.sessions/&quot;%r@$(dirname %h)&quot; &amp;&amp; exec ssh -o &quot;ControlMaster auto&quot; -o &quot;ControlPath   ~/.ssh/.sessions/%r@$(dirname %h):%p&quot; -o &quot;ControlPersist 120s&quot; -l %r -p %p $(dirname %h) -W $(basename %h):%p&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li><code>Host */*</code>: 匹配ssh到<code>A/B/X</code>这样的主机类型，然后递归的ssh到链中的主机；</li>
+<li><code>ControlMaster auto</code>: 这个指令的意思是指ssh应当复用已有的control channel连接远程主
+机，如果这样的channel不存在，则重新创建，以便以后的链接复用；</li>
+<li><code>ControlPath ~/.ssh/.sessions/%r@%h:%p</code>: 这个指令告诉ssh control channel socket
+文件的位置。对于每个远程主机，socket文件应该是唯一的，如此我们可以重用已有连接并且跳过验证。所
+以我们用<code>%r</code>(remote login name),<code>%h</code>(remote host name)和<code>%p</code>(端口)作为文件名的部分。
+唯一的问题是因为路径中的<code>/</code>，这里会在<code>%h</code>被当成一个目录，但是ssh不会自动创建目录；</li>
+<li><code>ProxyCommand blah</code>: 命令开始时就先创建了所有必须的目录。 <code>ControlPersist</code>的意思是如果
+control channel 2分钟内没有活动则停止ssh进程。如果你有两个会话<code>bastion/HostA</code>和
+<code>bastion/HostB</code>，如果不配置<code>ControlPersist</code>，结束第一个进程时第二进程也会同时被干掉。</li>
+</ol>
+
+
+<p>所以，当你用上面的配置去<code>ssh user@bastion/A/B/C</code>时:</p>
+
+<ol>
+<li>ssh 匹配到了<code>*/*</code>模式</li>
+<li>ssh 尝试重用<code>~/.ssh/.sessions/user@bastion/A/B/C:22</code>的socket，如果成功则建立连接，
+没有则继续执行</li>
+<li>ssh执行<code>ProxyCommand</code>中的内容， 创建目录同时递归的ssh到最终的主机C</li>
+<li>然后ssh在主机C上进行身份验证，成功则创建<code>~/.ssh/.sessions/user@bastion/A/B/C:22</code>的
+control channel socket文件，并且成为control channel的master</li>
+<li>显示命令行提示符</li>
+</ol>
+
+
+<p>你现在有没有和我一样晕，在和大神交流一番后，大神告诉我一个改进版的配置:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host */*
+</span><span class='line'>        ControlMaster auto
+</span><span class='line'>        ProxyCommand    /usr/bin/ssh -o <span class="s2">&quot;ControlMaster auto&quot;</span> -o <span class="s2">&quot;ControlPath ~/.ssh/.sessions/%%C&quot;</span> -o <span class="s2">&quot;ControlPersist 120s&quot;</span> -l %r -p %p <span class="k">$(</span>dirname %h<span class="k">)</span> -W <span class="k">$(</span>basename %h<span class="k">)</span>:%p
+</span><span class='line'>
+</span><span class='line'>Host *
+</span><span class='line'>        ControlPath     ~/.ssh/.sessions/%C
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个配置要简单些，不过他假设你已经创建了<code>~/.ssh/.sessions</code>目录。</p>
+
+<p>荣耀归于Dmitry大神，虽然那个ssh keypair我还没有删除……。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1212,141 +1364,6 @@ mysql版本升级，OpenSSL升级等，就得重新编译链接类库，很不�
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2015/06/02/a-good-lesson-on-security-when-provisioning">A Good Lesson on Security When Provisioning</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-06-02T00:00:00+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/2015/06/02/a-good-lesson-on-security-when-provisioning#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/2015/06/02/a-good-lesson-on-security-when-provisioning">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>客户很多老的(legacy)系统都部署在租用的数据中心中，其中部署的方式大多是通过puppet去做zero-downtime
-或者blue-green部署。绝大多数服务器都使用基于Centos的base image,其中包含基础架构需要的软件，如
-nagios agent, splunk agent等。应用程序通过流水线打包为rpm package，上传到<a href="http://fedoraproject.org/wiki/Koji/ServerHowTo">Koji</a>, Koji将repo
-分为三类，dev,staging,production，大致的持续交付流程如下:</p>
-
-<ol>
-<li>代码提交后触发ci的build job，通过所有测试后生成package，上传到Koji，并tag在dev repo下面；</li>
-<li>自动化部署测试环境，服务器的<code>yum repo</code>的配置中缺省enable dev，所以<code>yum install</code>即可更新package；</li>
-<li>接受测试结束后，运行build去promote这个package到staging repo；</li>
-<li>在部署的build中执行deploy staging 的<code>dry-run</code>job和实际应用的job，由于staging服务器缺省
-enable的repo是staging，所以它也会自动安装最新的package，并不需要你在puppet脚本中指定package的
-版本号，<code>ensure =&gt; latest</code>即可。</li>
-<li>产品环境的部署过程同staging类似。</li>
-</ol>
-
-
-<p>看上去还不错，然而这里面有几个问题:</p>
-
-<ol>
-<li>每次上传新的rpm包到koji时，它需要重新indexing去更新metadata，这个时间很长，可能有10几分钟，
-会极大的影响持续交付流水线的时间</li>
-<li>现在没有专门的团队去照看它，一旦koji出现问题，会极大的影响应用的部署上线时间</li>
-</ol>
-
-
-<p>按道理说我们应该去解决Koji的indexing的问题，这样比较一劳永逸。但是客户的重心逐渐都转移到了AWS上，
-所以不愿意再投入时间去修复这个问题，加之CI工具，Bamboo或者Jenkins都可以host rpm artifact，所以
-后来的解决方案就是直接从Bamboo或者Jenkins取package，然后安装更新。我们在应用的部署上已经采取了这样
-的方式，提交跑完流水线加部署到产品环境大概需要20分钟多点的时间，是以前的一半，当然这不是完美的解决方案，
-如其中有安全问题，如产品环境(数据中心)需要通过代理去访问AWS部署的CI的artifact。不过作为过渡方案，
-目前来说大家还都能接受。</p>
-
-<p>好，该说到今天的问题了，Koji服务器不能显示导入的package，致使一个应用不能部署最新的package，其中
-包含一个比较紧急的bug修复，于是客户问我试试通过Jenkins去获取rpm包进行部署，绕过Koji。</p>
-
-<p>首先，我做了如下的测试:</p>
-
-<ol>
-<li>下载Jenkins host的rpm包是否需要验证(用户名/密码)，答案是否定的，Bamboo需要验证，Jenkins的
-安全性比较差，but anyway.</li>
-<li>是否能在staging和production服务器上下载在Jenkins上的package，答案也是可以。</li>
-</ol>
-
-
-<p>那么我就有了一个大致的思路，通过传入buildnumber, 用puppet脚本调用wget等命令将package下载到服
-务器的/tmp下，然后在package定义中，通过指定rpm文件，进行local install.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">package</span> <span class="p">{</span> <span class="s">&quot;my-app&quot;</span><span class="p">:</span>
-</span><span class='line'>   <span class="na">provider</span> <span class="o">=&gt;</span> <span class="s">&quot;rpm&quot;</span><span class="p">,</span>
-</span><span class='line'>   <span class="na">ensure</span> <span class="o">=&gt;</span> <span class="s">&quot;$version&quot;</span><span class="p">,</span>
-</span><span class='line'>   <span class="na">source</span> <span class="o">=&gt;</span> <span class="k">File</span><span class="p">[</span><span class="s">&quot;/tmp/$package_name&quot;</span><span class="p">],</span>
-</span><span class='line'>   <span class="na">require</span> <span class="o">=&gt;</span> <span class="k">File</span><span class="p">[</span><span class="s">&quot;/tmp/$package_name&quot;</span><span class="p">]</span>
-</span><span class='line'> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>因为对puppet的type理解不足，我总以为<code>File["/tmp/$package_name"]</code> 返回的是文件的路径，但是
-没想到返回的却是一个字符串，类似这样<code>"file /tmp/my-app-version.rpm"</code>，所以rpm update总是
-失败。因为有点着急，我就开始各种hack，通过<code>Exec</code>类型，执行<code>yum localinstall</code>的方式更新，然后，
-我就被客户的安全专家怒喷……，针对我的puppet修改提交，他提出的几点关于安全方面的原因如下:</p>
-
-<ol>
-<li>puppet脚本不应该用root账号去执行，而是应该用一个专用的限定权限的账号，如puppet,并且只授予安装
-删除以及在某些特定目录下修改文件的权限，这样它就不能执行一些其他的命令；</li>
-<li>将文件放在/tmp下是非常危险的，因为当黑客通过web应用程序漏洞获得<code>www</code>用户权限时，他可以将一些
-恶意的文件(如包含恶意脚本的rpm包)放在/tmp下，这时候如果我安装rpm包，很有可能中招。</li>
-</ol>
-
-
-<p>大神在喷完我后给出了几点建议:</p>
-
-<ol>
-<li>鉴于情况比较特殊，所以可以沿用当前的方式，但是可以将文件下载到如/opt之类只有root用户组才能访问的
-目录中；</li>
-<li>可以考虑使用S3作为yum的repository(这个以前我们就有讨论过，以后应该就是这种方式了)</li>
-</ol>
-
-
-<p>我觉得他说的很有道理，所以先静下心来，找到了为什么source文件找不到的原因，然后修改了保存pacakge的
-目录，最后的<code>package</code>定义脚本如下:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">package</span> <span class="p">{</span> <span class="s">&quot;my-app&quot;</span><span class="p">:</span>
-</span><span class='line'>  <span class="na">provider</span> <span class="o">=&gt;</span> <span class="s">&quot;rpm&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">ensure</span> <span class="o">=&gt;</span> <span class="s">&quot;$version&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;/opt/$package_name&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">require</span> <span class="o">=&gt;</span> <span class="k">File</span><span class="p">[</span><span class="s">&quot;/opt/$package_name&quot;</span><span class="p">]</span>
-</span><span class='line'> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>虽然被喷有点尴尬，但是学到了东西感觉还是很开心的，以后要更加稳重些，多找下root cause和best
-practice。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1362,6 +1379,10 @@ practice。</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
+      </li>
+    
+      <li class="post">
         <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
       </li>
     
@@ -1375,10 +1396,6 @@ practice。</p>
     
       <li class="post">
         <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
       </li>
     
   </ul>

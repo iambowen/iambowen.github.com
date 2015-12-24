@@ -9,9 +9,8 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="客户这边对产品环境的事故严重性分为5级定义: Sev 1 一级事故: 服务完全不可用，并且影响到了客户;
-Sev 2 二级事故: 产品的主要功能对于一小部分用户不可用，或者产品的次要功能对于大多数用户不可用；
-Sev 3 三级事故: 不重要的功能不能使用，对外部可见，但是影响不大，不属于严重事故 &hellip;">
+  <meta name="description" content="Sonatype Nexus是一个Maven的仓库管理器。它的好处在于: 作为其他Maven仓库的镜像或者代理，加快本地构建速度，同时节省带宽
+作为私有仓库，可以保存自定义的artifacts，支持多种文件类型，jar，rpm等 最近我们将nexus从美西的AWS数据中心迁移到了悉尼的数据中心， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +80,100 @@ Sev 3 三级事故: 不重要的功能不能使用，对外部可见，但是影
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/nginx/2015/01/21/solve-request-entity-too-large-issue">Solve Request Entity Too Large Issue</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-21T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/nginx/2015/01/21/solve-request-entity-too-large-issue#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/nginx/2015/01/21/solve-request-entity-too-large-issue">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="http://www.sonatype.org/">Sonatype Nexus</a>是一个Maven的仓库管理器。它的好处在于:</p>
+
+<ol>
+<li>作为其他Maven仓库的镜像或者代理，加快本地构建速度，同时节省带宽</li>
+<li>作为私有仓库，可以保存自定义的artifacts，支持多种文件类型，jar，rpm等</li>
+</ol>
+
+
+<p>最近我们将nexus从美西的AWS数据中心迁移到了悉尼的数据中心，迁移后的Nexus架构如下:</p>
+
+<ol>
+<li>新建一个<code>t2.micro</code>的instance，挂载一个100GB大小的EBS block，并nexus工作目录放在其中</li>
+<li>新建一个ELB，指向该instance，并限制访问的IP地址来源</li>
+<li>在R53中建立域名的记录，并将其指向该ELB</li>
+</ol>
+
+
+<p>为了保证Nexus环境在遇到问题时可以快速恢复，我们做了两件事情:</p>
+
+<ol>
+<li>保证用代码可以重现整个Nexus的基础架构，这点通过CloudFormation结合AWS CLI工具实现</li>
+<li>为了保证数据的完整性，我们在Nexus上运行cron job，每天给EBS block做一次snapshot</li>
+</ol>
+
+
+<p>最近在更新了Nexus 上传artifact用户的credential之后，有其他组反馈往Nexus上publish artifact失败。
+我和同事开始以为是有人又修改了密码，重新设置后依然不行。</p>
+
+<blockquote><p>这里要说一下Nexus的用户权限管理，它的权限可以细化到能不能用网页的方式登陆，可不可以往某个
+repository中上传文件等。所以，如果发现有credential不能网页登陆Nexus，不代表这个用户不能够上传
+artifact。</p></blockquote>
+
+<p>于是我和同事登陆到了Nexus的instance上面，一边执行上传artifact的任务，一边查看log。发现Nginx的
+access log返回的是<code>413 - Request Entity Too Large</code>。原来，Nginx配置中<code>client_max_body_size</code>
+这项可以限制请求的body大小，我们要上传的jar文件大概有19Mb，远超其默认的大小，所以请求出错，难怪本地也会返回<code>java.net.SocketException</code>.
+于是，先在Nginx的配置文件的<code>http</code>部分添加:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">client_max_body_size</span> <span class="s">50M</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>保存之后，检查Nginx配置，reload:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@aws nginx <span class="c"># nginx -t</span>
+</span><span class='line'>nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+</span><span class='line'>nginx: configuration file /etc/nginx/nginx.conf <span class="nb">test </span>is successful
+</span><span class='line'>
+</span><span class='line'>root@aws nginx <span class="c"># nginx -s reload</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>再次尝试上传，果然成功了。</p>
+
+<p>之所以以前没有出现过这样的问题，是因为构建工具直接访问的是Nexus的8081端口，而其本身是没有这样的上传
+文件大小限制的。我们在做migration时用了Nginx只是为了做代理，映射80->8081。但是在有ELB的前提下，
+已经没有必要再使用Nginx了。所以下一步要做的事情就是更新cloudformation stack，让ELB的80和8081
+端口都指向Nexus instance的8081端口即可。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1365,138 +1458,6 @@ PPT如下:</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/shell/2014/08/18/learning-shell-navigation-file-content">Learning Shell: Navigation File Content</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2014-08-18T00:00:00+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/shell/2014/08/18/learning-shell-navigation-file-content#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/shell/2014/08/18/learning-shell-navigation-file-content">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Linux系统中浏览文件的命令很多，比如<code>less</code>,<code>more</code>, <code>head</code>,<code>tail</code>, <code>cat</code>等，其中<code>less</code>命令最为丰富，对于二进制文件和压缩文件，也有对应的命令去浏览。我整理了下，在组内做了一次分享，如下为主要内容。</p>
-
-<h2>less</h2>
-
-<p>这个命令可以查看一个文件的内容，和编辑器的打开要读取整个文件的方式不一样，<code>less</code>只读取部分，因此，它占用的内存较少。如果是在产品环境下追踪问题，需要打开很大的文档，用这个命令要好过编辑器。</p>
-
-<h4>移动</h4>
-
-<ul>
-<li>Ctrl + F(orward)/U(p)/B(ackward)/D(own)  或者 space 滚动</li>
-<li>j/k   向上或者向下移动一行</li>
-<li>g/G/q   跳到文件头/尾部， 退出浏览</li>
-</ul>
-
-
-<h4>Search</h4>
-
-<ul>
-<li>?         反向搜索</li>
-<li>/         正向搜索</li>
-<li>n/N       跳到下一处/前一处匹配行</li>
-<li>&amp;pattern  只显示匹配 pattern 的行</li>
-</ul>
-
-
-<h4>有用的命令</h4>
-
-<ul>
-<li>:v         使用缺省的编辑器进入编辑模式，可以通过<code>EDITOR</code>环境变量修改</li>
-<li>:F         类似<code>tail -f</code>的效果，等待文件即时的输出，但是tail命令是不能搜索的</li>
-<li>ma         标记，使用a跳到标记处，``跳到上次浏览位置</li>
-<li>!          执行shell命令</li>
-<li>:s file    将管道中的内容保存在file中</li>
-<li>:h         显示所有快捷方式及命令</li>
-</ul>
-
-
-<h4>浏览多个文件</h4>
-
-<ul>
-<li>less file1 file2 file3</li>
-<li>:n   查看下一个文件</li>
-<li>:p   查看前一个文件</li>
-<li>:e   打开一个文件</li>
-</ul>
-
-
-<h2>cat</h2>
-
-<p>查看文件内容，每次输出全部内容。<code>tac</code>命令和<code>cat</code>命令作用相反。</p>
-
-<h4>常用参数</h4>
-
-<ul>
-<li>-T 显示文件中的tab</li>
-<li>-n 显示文件的行数</li>
-<li>-b 显示行数，不包括空行</li>
-</ul>
-
-
-<h4>重定向</h4>
-
-<ul>
-<li>清空文件:  <code>cat /dev/null &gt; empty_the_file.txt</code></li>
-<li>合并文件:  <code>cat -n file1 file2 &gt; file3</code></li>
-<li>重定向:    <code>cat ~/.ssh/id_rsa.pub | ssh root@remote “cat &gt;&gt; ~/.ssh/authorized_keys”</code></li>
-</ul>
-
-
-<h2>head/tail</h2>
-
-<p>取文件前/尾部 10(n)行内容，用法简单直接。
-  - head -n 10 file
-  - tail -f -n 10 file
-  - tail -n 10
-  - tail -r file(reversely)</p>
-
-<h2>strings</h2>
-
-<p>浏览二进制文件，<code>strings</code>命令可以抽取二进制文件中所有的字符串，在二进制文件没有提供很有效的信息的清空下，可以用这个命令获取到更多的信息，用法很简单。
-  - <code>strings filename</code></p>
-
-<h2><code>Z</code>命令</h2>
-
-<p>z系列命令特指z开头的一系列命令，包括:</p>
-
-<ul>
-<li>zcat</li>
-<li>zless/zmore</li>
-<li>zgrep</li>
-<li>zdiff(zcmp)</li>
-</ul>
-
-
-<p>这些命令可以看做是变异版的cat/less等，其针对的对象是压缩文件，如<code>tar.gz</code>结尾的文件，在不解压的情况下，浏览/查找其内容，对比文件内容等。需要注意的是，这些命令只能操作单个文件压缩后的文件，如果是整个目录那就达不到效果了。
-对于 bz2 结尾的压缩文件，也有对应的命令群，<code>bz*</code>，以此类推。</p>
-
-<h3>本次session的ppt:</h3>
-
-<script async class="speakerdeck-embed" data-id="b70bb090096e01326f7c2216803d3d2d" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -1514,6 +1475,10 @@ PPT如下:</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
+      </li>
+    
+      <li class="post">
         <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
       </li>
     
@@ -1527,10 +1492,6 @@ PPT如下:</p>
     
       <li class="post">
         <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
       </li>
     
   </ul>

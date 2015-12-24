@@ -9,18 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="函数在Scala中是一等公民，这意味着你可以在任何时候定义函数，而且它不需要依附于类，在Class/Object中定义的函数叫做方法。 语法 函数由函数名称，参数以及函数体组成，未声明函数返回类型的，默认返回Unit。 1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-scala&gt; def &hellip;">
+  <meta name="description" content="Linux系统中浏览文件的命令很多，比如less,more, head,tail, cat等，其中less命令最为丰富，对于二进制文件和压缩文件，也有对应的命令去浏览。我整理了下，在组内做了一次分享，如下为主要内容。 less 这个命令可以查看一个文件的内容， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -90,6 +79,138 @@ scala&gt; def &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/shell/2014/08/18/learning-shell-navigation-file-content">Learning Shell: Navigation File Content</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-08-18T00:00:00+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/shell/2014/08/18/learning-shell-navigation-file-content#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/shell/2014/08/18/learning-shell-navigation-file-content">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Linux系统中浏览文件的命令很多，比如<code>less</code>,<code>more</code>, <code>head</code>,<code>tail</code>, <code>cat</code>等，其中<code>less</code>命令最为丰富，对于二进制文件和压缩文件，也有对应的命令去浏览。我整理了下，在组内做了一次分享，如下为主要内容。</p>
+
+<h2>less</h2>
+
+<p>这个命令可以查看一个文件的内容，和编辑器的打开要读取整个文件的方式不一样，<code>less</code>只读取部分，因此，它占用的内存较少。如果是在产品环境下追踪问题，需要打开很大的文档，用这个命令要好过编辑器。</p>
+
+<h4>移动</h4>
+
+<ul>
+<li>Ctrl + F(orward)/U(p)/B(ackward)/D(own)  或者 space 滚动</li>
+<li>j/k   向上或者向下移动一行</li>
+<li>g/G/q   跳到文件头/尾部， 退出浏览</li>
+</ul>
+
+
+<h4>Search</h4>
+
+<ul>
+<li>?         反向搜索</li>
+<li>/         正向搜索</li>
+<li>n/N       跳到下一处/前一处匹配行</li>
+<li>&amp;pattern  只显示匹配 pattern 的行</li>
+</ul>
+
+
+<h4>有用的命令</h4>
+
+<ul>
+<li>:v         使用缺省的编辑器进入编辑模式，可以通过<code>EDITOR</code>环境变量修改</li>
+<li>:F         类似<code>tail -f</code>的效果，等待文件即时的输出，但是tail命令是不能搜索的</li>
+<li>ma         标记，使用a跳到标记处，``跳到上次浏览位置</li>
+<li>!          执行shell命令</li>
+<li>:s file    将管道中的内容保存在file中</li>
+<li>:h         显示所有快捷方式及命令</li>
+</ul>
+
+
+<h4>浏览多个文件</h4>
+
+<ul>
+<li>less file1 file2 file3</li>
+<li>:n   查看下一个文件</li>
+<li>:p   查看前一个文件</li>
+<li>:e   打开一个文件</li>
+</ul>
+
+
+<h2>cat</h2>
+
+<p>查看文件内容，每次输出全部内容。<code>tac</code>命令和<code>cat</code>命令作用相反。</p>
+
+<h4>常用参数</h4>
+
+<ul>
+<li>-T 显示文件中的tab</li>
+<li>-n 显示文件的行数</li>
+<li>-b 显示行数，不包括空行</li>
+</ul>
+
+
+<h4>重定向</h4>
+
+<ul>
+<li>清空文件:  <code>cat /dev/null &gt; empty_the_file.txt</code></li>
+<li>合并文件:  <code>cat -n file1 file2 &gt; file3</code></li>
+<li>重定向:    <code>cat ~/.ssh/id_rsa.pub | ssh root@remote “cat &gt;&gt; ~/.ssh/authorized_keys”</code></li>
+</ul>
+
+
+<h2>head/tail</h2>
+
+<p>取文件前/尾部 10(n)行内容，用法简单直接。
+  - head -n 10 file
+  - tail -f -n 10 file
+  - tail -n 10
+  - tail -r file(reversely)</p>
+
+<h2>strings</h2>
+
+<p>浏览二进制文件，<code>strings</code>命令可以抽取二进制文件中所有的字符串，在二进制文件没有提供很有效的信息的清空下，可以用这个命令获取到更多的信息，用法很简单。
+  - <code>strings filename</code></p>
+
+<h2><code>Z</code>命令</h2>
+
+<p>z系列命令特指z开头的一系列命令，包括:</p>
+
+<ul>
+<li>zcat</li>
+<li>zless/zmore</li>
+<li>zgrep</li>
+<li>zdiff(zcmp)</li>
+</ul>
+
+
+<p>这些命令可以看做是变异版的cat/less等，其针对的对象是压缩文件，如<code>tar.gz</code>结尾的文件，在不解压的情况下，浏览/查找其内容，对比文件内容等。需要注意的是，这些命令只能操作单个文件压缩后的文件，如果是整个目录那就达不到效果了。
+对于 bz2 结尾的压缩文件，也有对应的命令群，<code>bz*</code>，以此类推。</p>
+
+<h3>本次session的ppt:</h3>
+
+<script async class="speakerdeck-embed" data-id="b70bb090096e01326f7c2216803d3d2d" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1284,242 +1405,6 @@ scala&gt; def &hellip;">
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2014/01/27/use-hubot-in-skype">在Skype中使用Hubot</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2014-01-27T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/2014/01/27/use-hubot-in-skype#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/2014/01/27/use-hubot-in-skype">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://www.36kr.com/p/55962.html">Hubot</a> 是一个github开源的<a href="http://hubot.github.com/">机器人项目</a>，可以集成到众多的聊天工具中，如IRC, Hipchat, Skype，QQ等。你可以用它来搞笑，也可以用它来进行自动化的管理，比如自动化部署等。这几天花了点时间，在OSX和Centos上分别尝试搭了下Hubot，详细过程如下:</p>
-
-<p>安装Hubot, 有两种方式，懒人的方式就用现成的<a href="https://github.com/RafaelGorski/VagrantChefHubot">Vagarant Script</a>, 有几点要注意的是:</p>
-
-<ol>
-<li>OSX必须得安装<a href="http://xquartz.macosforge.org/downloads/SL/XQuartz-2.7.5.dmg">X11</a>支持</li>
-<li>Oracle OCI 不是必须的</li>
-</ol>
-
-
-<p>在Centos 6.4 上安装Hubot。</p>
-
-<p>环境准备, 包括桌面支持，开发工具, skype等等.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum install http://dl.fedoraproject.org/pub/epel/6/i386/epel-release-6-8.noarch.rpm
-</span><span class='line'>yum groupinstall -y <span class="s2">&quot;Desktop&quot;</span>
-</span><span class='line'>yum groupinstall -y <span class="err">&quot;</span>Development Tools”
-</span><span class='line'>yum install qtwebkit.i686 webkitgtk.i686 —y
-</span><span class='line'>yum install tigervnc-server -y   <span class="c">#for vnc connect</span>
-</span><span class='line'>yum install wget telnet -y
-</span><span class='line'>yum install sqlite-devel -y
-</span><span class='line'>yum install nodejs npm -y
-</span><span class='line'>yum install redis -y
-</span><span class='line'>yum install python-setuptools python-setuptools-devel -y
-</span><span class='line'>yum update
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>安装Skype:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>wget http://download.skype.com/linux/skype-4.2.0.13.tar.bz2
-</span><span class='line'>tar skype-4.2.0.13.tar.bz2 -C /opt/
-</span><span class='line'>ln -s skype-4.2.0.13 skype
-</span><span class='line'>ln -s /opt/skype/skype /usr/bin/skype
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>安装Skype4py: Skype api 的python wrapper</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>easy_install pip
-</span><span class='line'>pip install Skype4Py
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>安装coffee-script hubot:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>npm install -g coffee-script hubot
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>配置服务:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> -e <span class="s2">&quot;VNCSERVERS=&quot;</span>1:vnc<span class="s2">&quot;\n VNCSERVERARGS[1]=&quot;</span>-geometry 1024x768<span class="err">&quot;</span> &gt;&gt; /etc/sysconfig/vncservers
-</span><span class='line'>useradd vnc
-</span><span class='line'>su - vnc
-</span><span class='line'>passwd
-</span><span class='line'>
-</span><span class='line'>service iptables stop
-</span><span class='line'>service vncserver start
-</span><span class='line'>
-</span><span class='line'>chkconfig redis on    <span class="c"># auto start</span>
-</span><span class='line'>chkconfig vncserver on   <span class="c">#auto start</span>
-</span><span class='line'>service redis start
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>centos默认iptables的服务是打开的，邪恶一点的方法是直接关掉iptables服务，上进的方法就是在iptables里面添加新的规则，还是邪恶吧……，因为hubot-skype也可能存在被iptables block的情况。
-VNC到虚拟机上，启动Skype并登陆。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>skype <span class="p">&amp;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>安装配置hubot-skype:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir hubot <span class="o">&amp;&amp;</span> <span class="nb">cd </span>hubot
-</span><span class='line'>hubot -c .
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>自动生成如下目录结构:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>root@localhost hubot<span class="o">]</span><span class="c"># tree -L 1</span>
-</span><span class='line'>.
-</span><span class='line'><span class="p">|</span>-- bin
-</span><span class='line'><span class="p">|</span>-- external-scripts.json
-</span><span class='line'><span class="p">|</span>-- hubot-scripts.json
-</span><span class='line'><span class="p">|</span>-- node_modules
-</span><span class='line'><span class="p">|</span>-- package.json
-</span><span class='line'><span class="p">|</span>-- Procfile
-</span><span class='line'><span class="p">|</span>-- README.md
-</span><span class='line'><span class="sb">`</span>-- scripts
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>package.json</code> 里面放的hubot运行依赖的插件，<code>hubot-scripts.json</code> 里面写的是hubot的脚本。修改 <code>package.json</code>:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='javascript'><span class='line'>  <span class="s2">&quot;dependencies&quot;</span><span class="o">:</span> <span class="p">{</span>
-</span><span class='line'>    <span class="s2">&quot;hubot&quot;</span><span class="o">:</span>         <span class="s2">&quot;&gt;= 2.6.0 &lt; 3.0.0&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="s2">&quot;hubot-scripts&quot;</span><span class="o">:</span> <span class="s2">&quot;&gt;= 2.5.0 &lt; 3.0.0&quot;</span><span class="p">,</span>
-</span><span class='line'>    <span class="s2">&quot;hubot-skype&quot;</span><span class="o">:</span> <span class="s2">&quot;0.0.2&quot;</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="nx">npm</span> <span class="nx">install</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>修改<code>hubot-scripts.json</code>, 添加<code>karma.coffee</code>:</p>
-
-<p><code>["redis-brain.coffee", "shipit.coffee", "karma.coffee”]</code></p>
-
-<p>运行:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>./bin/hubot  -a skype <span class="p">&amp;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Skype会弹出是否允许第三方的应用控制，勾选就可以了。</p>
-
-<p>把hubot添加到Skype对话中，就可以用命令来调戏hubot了, 下面是一些例子:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>hubot image me keyword  <span class="c">#google 搜索keyword相关的图片，随机挑选一张返回图片链接</span>
-</span><span class='line'>hubot animate me keyword  <span class="c">#google 搜索keyword相关的gif图片，随机挑选一张返回图片链接</span>
-</span><span class='line'>hubot youtube me keyword  <span class="c">#youtube 搜索keyword相关的视频，随机挑选一个返回视频链接</span>
-</span><span class='line'>rebot mustache me keyword <span class="c">#给google搜索返回的图片上加个胡子。。。。</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>添加了<code>karma.coffee</code>脚本-人品计算器的话，可以用<code>user++/user—</code> 来增加和减少讨论组内成员的人品值。
-鉴于youtube国内无法访问，所以正准备扩展下脚本，提供 <code>hubot youku me</code>的命令。另外，如果把这个做成微信服务号部署到heroku上拿来玩应该也很有趣。</p>
-
-<p>最后，写了一个<a href="https://gist.github.com/iambowen/8642990">脚本</a>，配置过程中绝大多数操作都放到里面了, 不能保证100%自动化。</p>
-
-<h4>Note:</h4>
-
-<ol>
-<li>有个rails的工程<a href="https://github.com/iambowen/hubot-control">hubot-control</a>可以更加方便的进行hubot的管理， 我做了些许修改;</li>
-<li>一定要VNC到虚拟机上去启动hubot-skype，不然会报这个错误:</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>  ......
-</span><span class='line'>  File <span class="s2">&quot;/usr/lib/python2.6/site-packages/Skype4Py/api/posix_x11.py&quot;</span>, line 254, in __init__
-</span><span class='line'>    raise SkypeAPIError<span class="o">(</span><span class="s1">&#39;Could not open XDisplay&#39;</span><span class="o">)</span>
-</span><span class='line'>Skype4Py.errors.SkypeAPIError: Could not open XDisplay
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>原因是X11的环境变量 DISPLAY没有设置成0，非常之烦人，下次会考虑使用dbus去运行，虽然不知道怎么弄……</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/5">&larr; Older</a>
@@ -1537,6 +1422,10 @@ VNC到虚拟机上，启动Skype并登陆。</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
+      </li>
+    
+      <li class="post">
         <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
       </li>
     
@@ -1550,10 +1439,6 @@ VNC到虚拟机上，启动Skype并登陆。</p>
     
       <li class="post">
         <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
       </li>
     
   </ul>

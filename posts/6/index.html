@@ -9,9 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="前一篇 YUM基本命令，介绍了工作中比较常用的一些命令。除此之外，YUM还有些不太常用的但是还算比较有趣的命令，在此我们稍微探索发现下。 yum shell: yum内建的交互式shell 在这个shell中，我们可以进行各种操作，比如罗列所有repo，搜索/查看软件信息等等。eg: 1
-2
-3 &hellip;">
+  <meta name="description" content="最近半年的所作的项目中，接触了些Ops的工作，自动化工具如Chef/Puppet都用过些。这些工具都很不错，但是过程当中会遇到一些问题，需要你基础的系统/shell知识，从而认识到了其重要性，开始系统学习，目前阅读的书为: 以及浏览china-unix论坛。 Shell的强大是毋庸置疑的， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +79,313 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/10/31/math-in-shell">Math in Shell</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-10-31T00:00:00+08:00'><span class='date'><span class='date-month'>Oct</span> <span class='date-day'>31</span><span class='date-suffix'>st</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/10/31/math-in-shell#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/10/31/math-in-shell">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近半年的所作的项目中，接触了些Ops的工作，自动化工具如Chef/Puppet都用过些。这些工具都很不错，但是过程当中会遇到一些问题，需要你基础的系统/shell知识，从而认识到了其重要性，开始系统学习，目前阅读的书为: <linux shell scripting cookbook version> 以及浏览china-unix论坛。</p>
+
+<p>Shell的强大是毋庸置疑的，所以进行数学运算也就是理所应当具有的功能。Shell可以用<code>declare/let/(( ))/[]</code>进行一些简单的数学运算。
+Shell 支持的运算:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ARITHMETIC EVALUATION
+</span><span class='line'>       The  shell  allows arithmetic expressions to be evaluated, under certain circumstances <span class="o">(</span>see the <span class="nb">let </span>and <span class="nb">declare builtin </span>commands and Arithmetic Expansion<span class="o">)</span>.
+</span><span class='line'>       Evaluation is <span class="k">done</span> in fixed-width integers with no check <span class="k">for</span> overflow, though division by <span class="m">0</span> is trapped and flagged as an error.  The  operators  and  their
+</span><span class='line'>       precedence, associativity, and values are the same as in the C language.  The following list of operators is grouped into levels of equal-precedence opera-
+</span><span class='line'>       tors.  The levels are listed in order of decreasing precedence.
+</span><span class='line'>
+</span><span class='line'>       id++ id--
+</span><span class='line'>              variable post-increment and post-decrement
+</span><span class='line'>       ++id --id
+</span><span class='line'>              variable pre-increment and pre-decrement
+</span><span class='line'>       - +    unary minus and plus
+</span><span class='line'>       ! ~    logical and bitwise negation
+</span><span class='line'>       **     exponentiation
+</span><span class='line'>       * / %  multiplication, division, remainder
+</span><span class='line'>       + -    addition, subtraction
+</span><span class='line'>       &lt;&lt; &gt;&gt;  left and right bitwise shifts
+</span><span class='line'>       &lt;<span class="o">=</span> &gt;<span class="o">=</span> &lt; &gt;
+</span><span class='line'>              <span class="nv">comparison</span>
+</span><span class='line'>       <span class="o">==</span> !<span class="o">=</span>  equality and inequality
+</span><span class='line'>       <span class="p">&amp;</span>      bitwise AND
+</span><span class='line'>       ^      bitwise exclusive OR
+</span><span class='line'>       <span class="p">|</span>      bitwise OR
+</span><span class='line'>       <span class="o">&amp;&amp;</span>     logical AND
+</span><span class='line'>       <span class="o">||</span>     logical OR
+</span><span class='line'>       expr?expr:expr
+</span><span class='line'>              conditional <span class="nv">operator</span>
+</span><span class='line'>       <span class="o">=</span> *<span class="o">=</span> /<span class="o">=</span> %<span class="o">=</span> +<span class="o">=</span> -<span class="o">=</span> &lt;&lt;<span class="o">=</span> &gt;&gt;<span class="o">=</span> <span class="p">&amp;</span><span class="o">=</span> ^<span class="o">=</span> <span class="p">|</span><span class="o">=</span>
+</span><span class='line'>              assignment
+</span><span class='line'>       expr1 , expr2
+</span><span class='line'>              comma
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>可以看到涵盖了通用的编程语言中的数学运算方式，那么在shell中可以通过那些命令来进行计算呢？</p>
+
+<p><code>declare</code>: 声明变量同时定义其属性。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/bash</span>
+</span><span class='line'><span class="nv">n</span><span class="o">=</span>1*2*9/3
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$n</span>
+</span><span class='line'><span class="nb">declare</span> -i n
+</span><span class='line'><span class="nv">n</span><span class="o">=</span>1*2*9/3
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$n</span>
+</span><span class='line'>
+</span><span class='line'>result:
+</span><span class='line'>1*2*9/3
+</span><span class='line'>
+</span><span class='line'>6
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从上面的例子可以看出，只有将变量声明为整数，shell才会认为你是在尝试进行数学运算而不是单纯的字符串变量。</p>
+
+<p><code>expr</code>: 数学表达式运算</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">z</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">5</span> + 1<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$z</span>
+</span><span class='line'><span class="nv">a</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">7</span> % 2<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$a</span>
+</span><span class='line'><span class="nv">d</span><span class="o">=</span><span class="sb">`</span>expr <span class="m">1</span> <span class="se">\&amp;</span> 0<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$d</span>
+</span><span class='line'><span class="c">#error</span>
+</span><span class='line'><span class="nv">b</span><span class="o">=</span><span class="sb">`</span>expr 7*2<span class="sb">`</span>
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$b</span>
+</span><span class='line'>
+</span><span class='line'>result:
+</span><span class='line'>6
+</span><span class='line'>1
+</span><span class='line'>0
+</span><span class='line'>7*2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>expr后所带的表达式运算符必须以空格分开，不然会被当做字符串，不会进行运算，一些meta字符比如&amp; %等，必须转义才可以执行。</p>
+
+<p><code>let</code>:  后面跟随数学表达式并进行运算</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ a</span><span class="o">=</span>2
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ b</span><span class="o">=</span>2
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span><span class="nv">result</span><span class="o">=</span>a+b
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>4
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span>result++
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>5
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">let </span>result--
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>4
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>同样，在计算的时候需要用空格分隔。</p>
+
+<p><code>(( ))</code> 和<code>[]</code>也可以起到类似的作用。参加如下的例子:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ a</span><span class="o">=</span>1
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ b</span><span class="o">=</span>2
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="nv">$[</span> a + b <span class="o">]</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>3
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="nv">$[</span> <span class="nv">$a</span> + b <span class="o">]</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>3
+</span><span class='line'>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="k">$((</span><span class="nv">$a</span> <span class="o">+</span> <span class="m">50</span><span class="k">))</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>51
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ result</span><span class="o">=</span><span class="k">$((</span><span class="nv">$a</span> <span class="o">-</span> <span class="m">50</span><span class="k">))</span>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$result</span>
+</span><span class='line'>-49
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="k">$((</span><span class="m">16#2</span>a<span class="k">))</span>  <span class="c">#进制转换,将16进制的”2a”转换为十进制的数字, 相当酷帅吊炸天</span>
+</span><span class='line'><span class="m">42</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="k">$((</span><span class="m">2#1111</span><span class="k">))</span>
+</span><span class='line'>15
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>(())</code>或者<code>[]</code>中的变量也可以加或者不加$符号从表达式外获取。以上这些命令只能处理整数运算，如果想要进行浮点数运算，就得求助<code>bc</code>命令了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost shell<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;5 * 0.86&quot;</span> <span class="p">|</span> bc
+</span><span class='line'>4.30
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ n</span><span class="o">=</span>40
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span> <span class="nb">echo</span> <span class="s2">&quot;$n * 0.86&quot;</span> <span class="p">|</span> bc
+</span><span class='line'>34.40
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;scale=3;4/7&quot;</span> <span class="p">|</span> bc   <span class="c">#指定十进制浮点运算的精度</span>
+</span><span class='line'>.571
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">umask</span>
+</span><span class='line'>0002
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;obase=8;$(( 8#666 &amp; (8#777 ^ 8#$(umask)) ))&quot;</span> <span class="p">|</span> bc
+</span><span class='line'>664
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ no</span><span class="o">=</span>100
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;obase=2;$no&quot;</span> <span class="p">|</span> bc   <span class="c">#进制转换, 10进制-&gt; 2进制</span>
+</span><span class='line'>1100100
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;sqrt(100)&quot;</span> <span class="p">|</span> bc <span class="c">#开方</span>
+</span><span class='line'>10
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;10^10&quot;</span> <span class="p">|</span> bc   <span class="c">#次方计算</span>
+</span><span class='line'>10000000000
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>bc</code>的功能远超上面所列举的例子，想仔细研究的话就 <code>man bc</code>…., enjoy。</p>
+
+<p>references:<a href="http://www.sal.ksu.edu/faculty/tim/unix_sg/bash/math.html">1</a>, <a href="http://bbs.chinaunix.net/forum.php?mod=viewthread&amp;tid=218853&amp;page=7#pid1617953">2</a>, <a href="http://www.amazon.com/Linux-Scripting-Cookbook-Second-Edition/dp/1782162747">3</a></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1474,67 +1779,6 @@ yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件�
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle">Using Watch to Excecute Commands in Cycle</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2013-03-25T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>项目的集成测试环境以及UAT环境都部署在亚马逊的虚拟云节点上面，早上9点之前，一个cron job会自动将这些节点启动。有时候会遇到当前可用的节点不足而导致节点创建失败, 需要不停的尝试启动节点的命令，看看什么时候运气垂青，碰到有其他节点被destroy时，可以抢到这样的“token”去启动我们的节点。
-这个effort显然过大了，作为懒人是不能接受的，同事介绍了watch这个工具，它可以周期性的执行一个命令，同时将结果输出，轻松的解决了问题。</p>
-
-<p><em>安装:</em>
-大部分的linux发行版应该都包括了这个应用，MAC下面需要自己安装，用brew也很方便。</p>
-
-<p><em>+brew install watch+</em></p>
-
-<p><em>用法介绍:</em></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Usage: watch <span class="o">[</span>-dhntv<span class="o">]</span> <span class="o">[</span>--differences<span class="o">[=</span>cumulative<span class="o">]]</span> <span class="o">[</span>--help<span class="o">]</span> <span class="o">[</span>--interval<span class="o">=</span>&lt;n&gt;<span class="o">]</span> <span class="o">[</span>--no-title<span class="o">]</span> <span class="o">[</span>--version<span class="o">]</span> &lt;<span class="nb">command</span>&gt;
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>+-n, &ndash;interval = <seconds>+ : 设定相隔多长时间重新运行下监控的命令并输出结果
-+-d, &ndash;differences[=cumulative]+ : 高亮显示监控的命令输出相比上次输出变化的区域
-+-v, &ndash;version+ : 显示watch的版本号
-注: mac 下的watch版本略低，0.3.0的版本提供了更多的功能，比如彩色输出，退出响铃之类的
-<em>使用场景:</em></p>
-
-<p>watch 的帮助文档中，给出了一些使用的场景， 比如:</p>
-
-<p>   # 监控当前目录中某些用户的文件变化:   @watch -d ‘ls -l | grep root’@</p>
-
-<p>   #_ 偷窥其他用户的窗口行为:  @watch tty7@ (假设tty7有用户登陆)</p>
-
-<p>能想到的还有一个,当时还想自己实现这样的一个脚本，后来看到watch，就放弃了……:</p>
-
-<p>   #_ 正在编辑haml文件，同时想在浏览器上面看到更改后的html文件: @watch -d &lsquo;haml input.haml input.html&rsquo;@</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/7">&larr; Older</a>
@@ -1552,6 +1796,10 @@ yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
+      </li>
+    
+      <li class="post">
         <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
       </li>
     
@@ -1565,10 +1813,6 @@ yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件�
     
       <li class="post">
         <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
       </li>
     
   </ul>

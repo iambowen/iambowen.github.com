@@ -9,9 +9,9 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="客户公司的前任CEO有次来办公室访问，提到一个很有意思的话题，就是公司的任何一个员工或者管理者，都要从
-一个公司“One Company”整体的利益出发去考虑问题。看上去是任何一家公司或者党政机关领导冠冕堂皇的话，实际上
-是很难做到这点的。已知的一个比较成功的例子是中国共产党，在高达的帮助下， &hellip;">
+  <meta name="description" content="客户很多老的(legacy)系统都部署在租用的数据中心中，其中部署的方式大多是通过puppet去做zero-downtime
+或者blue-green部署。绝大多数服务器都使用基于Centos的base image,其中包含基础架构需要的软件，如
+nagios agent, splunk &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +81,141 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2015/06/02/a-good-lesson-on-security-when-provisioning">A Good Lesson on Security When Provisioning</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-06-02T00:00:00+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2015/06/02/a-good-lesson-on-security-when-provisioning#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2015/06/02/a-good-lesson-on-security-when-provisioning">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>客户很多老的(legacy)系统都部署在租用的数据中心中，其中部署的方式大多是通过puppet去做zero-downtime
+或者blue-green部署。绝大多数服务器都使用基于Centos的base image,其中包含基础架构需要的软件，如
+nagios agent, splunk agent等。应用程序通过流水线打包为rpm package，上传到<a href="http://fedoraproject.org/wiki/Koji/ServerHowTo">Koji</a>, Koji将repo
+分为三类，dev,staging,production，大致的持续交付流程如下:</p>
+
+<ol>
+<li>代码提交后触发ci的build job，通过所有测试后生成package，上传到Koji，并tag在dev repo下面；</li>
+<li>自动化部署测试环境，服务器的<code>yum repo</code>的配置中缺省enable dev，所以<code>yum install</code>即可更新package；</li>
+<li>接受测试结束后，运行build去promote这个package到staging repo；</li>
+<li>在部署的build中执行deploy staging 的<code>dry-run</code>job和实际应用的job，由于staging服务器缺省
+enable的repo是staging，所以它也会自动安装最新的package，并不需要你在puppet脚本中指定package的
+版本号，<code>ensure =&gt; latest</code>即可。</li>
+<li>产品环境的部署过程同staging类似。</li>
+</ol>
+
+
+<p>看上去还不错，然而这里面有几个问题:</p>
+
+<ol>
+<li>每次上传新的rpm包到koji时，它需要重新indexing去更新metadata，这个时间很长，可能有10几分钟，
+会极大的影响持续交付流水线的时间</li>
+<li>现在没有专门的团队去照看它，一旦koji出现问题，会极大的影响应用的部署上线时间</li>
+</ol>
+
+
+<p>按道理说我们应该去解决Koji的indexing的问题，这样比较一劳永逸。但是客户的重心逐渐都转移到了AWS上，
+所以不愿意再投入时间去修复这个问题，加之CI工具，Bamboo或者Jenkins都可以host rpm artifact，所以
+后来的解决方案就是直接从Bamboo或者Jenkins取package，然后安装更新。我们在应用的部署上已经采取了这样
+的方式，提交跑完流水线加部署到产品环境大概需要20分钟多点的时间，是以前的一半，当然这不是完美的解决方案，
+如其中有安全问题，如产品环境(数据中心)需要通过代理去访问AWS部署的CI的artifact。不过作为过渡方案，
+目前来说大家还都能接受。</p>
+
+<p>好，该说到今天的问题了，Koji服务器不能显示导入的package，致使一个应用不能部署最新的package，其中
+包含一个比较紧急的bug修复，于是客户问我试试通过Jenkins去获取rpm包进行部署，绕过Koji。</p>
+
+<p>首先，我做了如下的测试:</p>
+
+<ol>
+<li>下载Jenkins host的rpm包是否需要验证(用户名/密码)，答案是否定的，Bamboo需要验证，Jenkins的
+安全性比较差，but anyway.</li>
+<li>是否能在staging和production服务器上下载在Jenkins上的package，答案也是可以。</li>
+</ol>
+
+
+<p>那么我就有了一个大致的思路，通过传入buildnumber, 用puppet脚本调用wget等命令将package下载到服
+务器的/tmp下，然后在package定义中，通过指定rpm文件，进行local install.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">package</span> <span class="p">{</span> <span class="s">&quot;my-app&quot;</span><span class="p">:</span>
+</span><span class='line'>   <span class="na">provider</span> <span class="o">=&gt;</span> <span class="s">&quot;rpm&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="na">ensure</span> <span class="o">=&gt;</span> <span class="s">&quot;$version&quot;</span><span class="p">,</span>
+</span><span class='line'>   <span class="na">source</span> <span class="o">=&gt;</span> <span class="k">File</span><span class="p">[</span><span class="s">&quot;/tmp/$package_name&quot;</span><span class="p">],</span>
+</span><span class='line'>   <span class="na">require</span> <span class="o">=&gt;</span> <span class="k">File</span><span class="p">[</span><span class="s">&quot;/tmp/$package_name&quot;</span><span class="p">]</span>
+</span><span class='line'> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因为对puppet的type理解不足，我总以为<code>File["/tmp/$package_name"]</code> 返回的是文件的路径，但是
+没想到返回的却是一个字符串，类似这样<code>"file /tmp/my-app-version.rpm"</code>，所以rpm update总是
+失败。因为有点着急，我就开始各种hack，通过<code>Exec</code>类型，执行<code>yum localinstall</code>的方式更新，然后，
+我就被客户的安全专家怒喷……，针对我的puppet修改提交，他提出的几点关于安全方面的原因如下:</p>
+
+<ol>
+<li>puppet脚本不应该用root账号去执行，而是应该用一个专用的限定权限的账号，如puppet,并且只授予安装
+删除以及在某些特定目录下修改文件的权限，这样它就不能执行一些其他的命令；</li>
+<li>将文件放在/tmp下是非常危险的，因为当黑客通过web应用程序漏洞获得<code>www</code>用户权限时，他可以将一些
+恶意的文件(如包含恶意脚本的rpm包)放在/tmp下，这时候如果我安装rpm包，很有可能中招。</li>
+</ol>
+
+
+<p>大神在喷完我后给出了几点建议:</p>
+
+<ol>
+<li>鉴于情况比较特殊，所以可以沿用当前的方式，但是可以将文件下载到如/opt之类只有root用户组才能访问的
+目录中；</li>
+<li>可以考虑使用S3作为yum的repository(这个以前我们就有讨论过，以后应该就是这种方式了)</li>
+</ol>
+
+
+<p>我觉得他说的很有道理，所以先静下心来，找到了为什么source文件找不到的原因，然后修改了保存pacakge的
+目录，最后的<code>package</code>定义脚本如下:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">package</span> <span class="p">{</span> <span class="s">&quot;my-app&quot;</span><span class="p">:</span>
+</span><span class='line'>  <span class="na">provider</span> <span class="o">=&gt;</span> <span class="s">&quot;rpm&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="na">ensure</span> <span class="o">=&gt;</span> <span class="s">&quot;$version&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;/opt/$package_name&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="na">require</span> <span class="o">=&gt;</span> <span class="k">File</span><span class="p">[</span><span class="s">&quot;/opt/$package_name&quot;</span><span class="p">]</span>
+</span><span class='line'> <span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>虽然被喷有点尴尬，但是学到了东西感觉还是很开心的，以后要更加稳重些，多找下root cause和best
+practice。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1941,100 +2076,6 @@ Anyway,还是觉得curl要比wget好用些-_-!</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/nginx/2015/01/21/solve-request-entity-too-large-issue">Solve Request Entity Too Large Issue</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-01-21T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>21</span><span class='date-suffix'>st</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/nginx/2015/01/21/solve-request-entity-too-large-issue#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/nginx/2015/01/21/solve-request-entity-too-large-issue">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://www.sonatype.org/">Sonatype Nexus</a>是一个Maven的仓库管理器。它的好处在于:</p>
-
-<ol>
-<li>作为其他Maven仓库的镜像或者代理，加快本地构建速度，同时节省带宽</li>
-<li>作为私有仓库，可以保存自定义的artifacts，支持多种文件类型，jar，rpm等</li>
-</ol>
-
-
-<p>最近我们将nexus从美西的AWS数据中心迁移到了悉尼的数据中心，迁移后的Nexus架构如下:</p>
-
-<ol>
-<li>新建一个<code>t2.micro</code>的instance，挂载一个100GB大小的EBS block，并nexus工作目录放在其中</li>
-<li>新建一个ELB，指向该instance，并限制访问的IP地址来源</li>
-<li>在R53中建立域名的记录，并将其指向该ELB</li>
-</ol>
-
-
-<p>为了保证Nexus环境在遇到问题时可以快速恢复，我们做了两件事情:</p>
-
-<ol>
-<li>保证用代码可以重现整个Nexus的基础架构，这点通过CloudFormation结合AWS CLI工具实现</li>
-<li>为了保证数据的完整性，我们在Nexus上运行cron job，每天给EBS block做一次snapshot</li>
-</ol>
-
-
-<p>最近在更新了Nexus 上传artifact用户的credential之后，有其他组反馈往Nexus上publish artifact失败。
-我和同事开始以为是有人又修改了密码，重新设置后依然不行。</p>
-
-<blockquote><p>这里要说一下Nexus的用户权限管理，它的权限可以细化到能不能用网页的方式登陆，可不可以往某个
-repository中上传文件等。所以，如果发现有credential不能网页登陆Nexus，不代表这个用户不能够上传
-artifact。</p></blockquote>
-
-<p>于是我和同事登陆到了Nexus的instance上面，一边执行上传artifact的任务，一边查看log。发现Nginx的
-access log返回的是<code>413 - Request Entity Too Large</code>。原来，Nginx配置中<code>client_max_body_size</code>
-这项可以限制请求的body大小，我们要上传的jar文件大概有19Mb，远超其默认的大小，所以请求出错，难怪本地也会返回<code>java.net.SocketException</code>.
-于是，先在Nginx的配置文件的<code>http</code>部分添加:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='nginx'><span class='line'><span class="k">client_max_body_size</span> <span class="s">50M</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>保存之后，检查Nginx配置，reload:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>root@aws nginx <span class="c"># nginx -t</span>
-</span><span class='line'>nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
-</span><span class='line'>nginx: configuration file /etc/nginx/nginx.conf <span class="nb">test </span>is successful
-</span><span class='line'>
-</span><span class='line'>root@aws nginx <span class="c"># nginx -s reload</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>再次尝试上传，果然成功了。</p>
-
-<p>之所以以前没有出现过这样的问题，是因为构建工具直接访问的是Nexus的8081端口，而其本身是没有这样的上传
-文件大小限制的。我们在做migration时用了Nginx只是为了做代理，映射80->8081。但是在有ELB的前提下，
-已经没有必要再使用Nginx了。所以下一步要做的事情就是更新cloudformation stack，让ELB的80和8081
-端口都指向Nexus instance的8081端口即可。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -2052,6 +2093,10 @@ access log返回的是<code>413 - Request Entity Too Large</code>。原来，Ngi
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
+      </li>
+    
+      <li class="post">
         <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
       </li>
     
@@ -2065,10 +2110,6 @@ access log返回的是<code>413 - Request Entity Too Large</code>。原来，Ngi
     
       <li class="post">
         <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
       </li>
     
   </ul>

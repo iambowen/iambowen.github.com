@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>更加安全和简单的方式通过堡垒机ssh - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="理想情况下的运维，是不需要ops去ssh到服务器上检查问题(包括安全问题)/日志等，这些是可以通过更好
+监控,如使用newrelic,或者更好的日志收集系统，如splunk等去避免。不过现实不总是完美的，加上历史
+遗留的原因，ops总是会ssh到堡垒机(bastion host)， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/ssh/security/2015/12/19/ssh-securely-and-handy">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">更加安全和简单的方式通过堡垒机ssh</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-12-19T14:24:30+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:24 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>理想情况下的运维，是不需要ops去ssh到服务器上检查问题(包括安全问题)/日志等，这些是可以通过更好
+监控,如使用newrelic,或者更好的日志收集系统，如splunk等去避免。不过现实不总是完美的，加上历史
+遗留的原因，ops总是会ssh到堡垒机(bastion host)，然后跳转到目标服务器去做操作。</p>
+
+<p>于是，就有很多人(包括我)在堡垒机上生成key/pair, 而且private key很少加密(包括我)，这个存在
+很严重的安全风险。</p>
+
+<p>一个比较合理的方式是通过ssh proxy的方式去访问目标服务器，这样不需要把key暴露给bastion，比如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; ssh -L 3333:destination_host:22 user@bastion
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后再启动一个新的ssh进程去通过proxy连接:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; ssh -p <span class="m">3333</span> user@0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>每次这么操作略麻烦，可以通过在ssh配置文件简化：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host bastion
+</span><span class='line'>        HostName 192.168.1.1
+</span><span class='line'>        HostKeyAlias bastion
+</span><span class='line'>        LocalForward <span class="m">9999</span> target:22
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>那么建立proxy就只是<code>ssh user@bastion</code>就可以了，然后同理去<code>ssh -p 9999 user@0</code>。
+这么做的坏处在于<code>~/.ssh/config</code>配置可能会迅速膨胀，同时，每次还是启动两个进程去完成这件事情，不开心。</p>
+
+<p>于是，我们的安全大神介绍一个更加简单的方法，在<code>~/.ssh/config</code>中，加入下面的内容:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host */*
+</span><span class='line'>        ProxyCommand ssh <span class="k">$(</span>dirname %h<span class="k">)</span> -W <span class="k">$(</span>basename %h<span class="k">)</span>:%
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如此我就可以通过<code>ssh user@bastion/target</code>的方式直接ssh到远程主机，<code>ProxyCommand</code>指令会
+生成两个进程，后台proxy进程，前台的进程直接通过proxy连接到目标主机。这样从命令行窗口看来我只
+是打开了一个会话。同时，你可以链接很多个主机，如<code>ssh user@bastion/targetA/targetB/targetC</code>。
+依次通过前一个主机建立的proxy连接到后面的主机上。</p>
+
+<p>这个方法有一些局限：</p>
+
+<ol>
+<li>不能在主机链上指定不同的端口；</li>
+<li>不能对不同的主机使用不同的登录用户名；</li>
+<li>不同链上建立的连接不能重用已经建立的连接，这可能会导致连接的速度减缓；</li>
+<li>其实还有个问题就是不能很容易的从<code>targetC</code>退出到 <code>targetB</code>…… (我想的)</li>
+</ol>
+
+
+<p>为了解决这些问题，大神想出了终极解决方案:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host */*
+</span><span class='line'>    ControlMaster auto
+</span><span class='line'>    ControlPath   ~/.ssh/.sessions/%r@%h:%p
+</span><span class='line'>    ProxyCommand /bin/sh -c <span class="s1">&#39;mkdir -p -m700 ~/.ssh/.sessions/&quot;%r@$(dirname %h)&quot; &amp;&amp; exec ssh -o &quot;ControlMaster auto&quot; -o &quot;ControlPath   ~/.ssh/.sessions/%r@$(dirname %h):%p&quot; -o &quot;ControlPersist 120s&quot; -l %r -p %p $(dirname %h) -W $(basename %h):%p&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li><code>Host */*</code>: 匹配ssh到<code>A/B/X</code>这样的主机类型，然后递归的ssh到链中的主机；</li>
+<li><code>ControlMaster auto</code>: 这个指令的意思是指ssh应当复用已有的control channel连接远程主
+机，如果这样的channel不存在，则重新创建，以便以后的链接复用；</li>
+<li><code>ControlPath ~/.ssh/.sessions/%r@%h:%p</code>: 这个指令告诉ssh control channel socket
+文件的位置。对于每个远程主机，socket文件应该是唯一的，如此我们可以重用已有连接并且跳过验证。所
+以我们用<code>%r</code>(remote login name),<code>%h</code>(remote host name)和<code>%p</code>(端口)作为文件名的部分。
+唯一的问题是因为路径中的<code>/</code>，这里会在<code>%h</code>被当成一个目录，但是ssh不会自动创建目录；</li>
+<li><code>ProxyCommand blah</code>: 命令开始时就先创建了所有必须的目录。 <code>ControlPersist</code>的意思是如果
+control channel 2分钟内没有活动则停止ssh进程。如果你有两个会话<code>bastion/HostA</code>和
+<code>bastion/HostB</code>，如果不配置<code>ControlPersist</code>，结束第一个进程时第二进程也会同时被干掉。</li>
+</ol>
+
+
+<p>所以，当你用上面的配置去<code>ssh user@bastion/A/B/C</code>时:</p>
+
+<ol>
+<li>ssh 匹配到了<code>*/*</code>模式</li>
+<li>ssh 尝试重用<code>~/.ssh/.sessions/user@bastion/A/B/C:22</code>的socket，如果成功则建立连接，
+没有则继续执行</li>
+<li>ssh执行<code>ProxyCommand</code>中的内容， 创建目录同时递归的ssh到最终的主机C</li>
+<li>然后ssh在主机C上进行身份验证，成功则创建<code>~/.ssh/.sessions/user@bastion/A/B/C:22</code>的
+control channel socket文件，并且成为control channel的master</li>
+<li>显示命令行提示符</li>
+</ol>
+
+
+<p>你现在有没有和我一样晕，在和大神交流一番后，大神告诉我一个改进版的配置:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host */*
+</span><span class='line'>        ControlMaster auto
+</span><span class='line'>        ProxyCommand    /usr/bin/ssh -o <span class="s2">&quot;ControlMaster auto&quot;</span> -o <span class="s2">&quot;ControlPath ~/.ssh/.sessions/%%C&quot;</span> -o <span class="s2">&quot;ControlPersist 120s&quot;</span> -l %r -p %p <span class="k">$(</span>dirname %h<span class="k">)</span> -W <span class="k">$(</span>basename %h<span class="k">)</span>:%p
+</span><span class='line'>
+</span><span class='line'>Host *
+</span><span class='line'>        ControlPath     ~/.ssh/.sessions/%C
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这个配置要简单些，不过他假设你已经创建了<code>~/.ssh/.sessions</code>目录。</p>
+
+<p>荣耀归于Dmitry大神，虽然那个ssh keypair我还没有删除……。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2015-12-19T14:24:30+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:24 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/security/'>security</a>, <a class='category' href='/blog/categories/ssh/'>ssh</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/ssh/security/2015/12/19/ssh-securely-and-handy" data-via="boweniam" data-counturl="http://iambowen.github.com/ssh/security/2015/12/19/ssh-securely-and-handy" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools" title="Previous Post: don't copy/paste keys from chatting tools">&laquo; don't copy/paste keys from chatting tools</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
+      </li>
+    
+      <li class="post">
+        <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
+      </li>
+    
+      <li class="post">
+        <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://iambowen.github.com/ssh/security/2015/12/19/ssh-securely-and-handy';
+        var disqus_url = 'http://iambowen.github.com/ssh/security/2015/12/19/ssh-securely-and-handy';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

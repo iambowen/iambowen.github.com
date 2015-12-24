@@ -9,10 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="Recently, the ci build has failed with the following error message: 1
-2
-3
-_ODBC::Error: 37000 (9002) [unixODBC][FreeTDS][SQL Server]The transaction &hellip;">
+  <meta name="description" content="项目的集成测试环境以及UAT环境都部署在亚马逊的虚拟云节点上面，早上9点之前，一个cron job会自动将这些节点启动。有时候会遇到当前可用的节点不足而导致节点创建失败, 需要不停的尝试启动节点的命令，看看什么时候运气垂青，碰到有其他节点被destroy时，可以抢到这样的“token” &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -82,6 +79,67 @@ _ODBC::Error: 37000 (9002) [unixODBC][FreeTDS][SQL Server]The transaction &helli
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle">Using Watch to Excecute Commands in Cycle</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-25T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>项目的集成测试环境以及UAT环境都部署在亚马逊的虚拟云节点上面，早上9点之前，一个cron job会自动将这些节点启动。有时候会遇到当前可用的节点不足而导致节点创建失败, 需要不停的尝试启动节点的命令，看看什么时候运气垂青，碰到有其他节点被destroy时，可以抢到这样的“token”去启动我们的节点。
+这个effort显然过大了，作为懒人是不能接受的，同事介绍了watch这个工具，它可以周期性的执行一个命令，同时将结果输出，轻松的解决了问题。</p>
+
+<p><em>安装:</em>
+大部分的linux发行版应该都包括了这个应用，MAC下面需要自己安装，用brew也很方便。</p>
+
+<p><em>+brew install watch+</em></p>
+
+<p><em>用法介绍:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Usage: watch <span class="o">[</span>-dhntv<span class="o">]</span> <span class="o">[</span>--differences<span class="o">[=</span>cumulative<span class="o">]]</span> <span class="o">[</span>--help<span class="o">]</span> <span class="o">[</span>--interval<span class="o">=</span>&lt;n&gt;<span class="o">]</span> <span class="o">[</span>--no-title<span class="o">]</span> <span class="o">[</span>--version<span class="o">]</span> &lt;<span class="nb">command</span>&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>+-n, &ndash;interval = <seconds>+ : 设定相隔多长时间重新运行下监控的命令并输出结果
++-d, &ndash;differences[=cumulative]+ : 高亮显示监控的命令输出相比上次输出变化的区域
++-v, &ndash;version+ : 显示watch的版本号
+注: mac 下的watch版本略低，0.3.0的版本提供了更多的功能，比如彩色输出，退出响铃之类的
+<em>使用场景:</em></p>
+
+<p>watch 的帮助文档中，给出了一些使用的场景， 比如:</p>
+
+<p>   # 监控当前目录中某些用户的文件变化:   @watch -d ‘ls -l | grep root’@</p>
+
+<p>   #_ 偷窥其他用户的窗口行为:  @watch tty7@ (假设tty7有用户登陆)</p>
+
+<p>能想到的还有一个,当时还想自己实现这样的一个脚本，后来看到watch，就放弃了……:</p>
+
+<p>   #_ 正在编辑haml文件，同时想在浏览器上面看到更改后的html文件: @watch -d &lsquo;haml input.haml input.html&rsquo;@</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -982,6 +1040,10 @@ detail</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
+      </li>
+    
+      <li class="post">
         <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
       </li>
     
@@ -995,10 +1057,6 @@ detail</p>
     
       <li class="post">
         <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a>
       </li>
     
   </ul>
