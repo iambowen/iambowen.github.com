@@ -9,7 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="项目的集成测试环境以及UAT环境都部署在亚马逊的虚拟云节点上面，早上9点之前，一个cron job会自动将这些节点启动。有时候会遇到当前可用的节点不足而导致节点创建失败, 需要不停的尝试启动节点的命令，看看什么时候运气垂青，碰到有其他节点被destroy时，可以抢到这样的“token” &hellip;">
+  <meta name="description" content="Just trying to use Go for I find it looks like C, and the cost of writing a hello world is quite small, plus the tutorial is petty easy to fetch. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,80 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/go/2013/03/28/using-go-tutorial">Using Go Tutorial</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-28T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/go/2013/03/28/using-go-tutorial#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/go/2013/03/28/using-go-tutorial">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Just trying to use Go for I find it looks like C, and the cost of writing a hello world is quite small, plus the tutorial is petty easy to fetch. Just list what I&rsquo;ve done to get the tutorial and write the hello world example, which already posted thousands time in the internet.</p>
+
+<p><em>Install hg:</em></p>
+
+<p>  # brew install hg  (mac)</p>
+
+<p>  #_ apt-get install mercurial (ubuntu)</p>
+
+<p><em>Download go:</em></p>
+
+<p>  # wget <a href="https://go.googlecode.com/files/go1.0.3.darwin-amd64.tar.gz">https://go.googlecode.com/files/go1.0.3.darwin-amd64.tar.gz</a></p>
+
+<p>  #_ wget <a href="https://go.googlecode.com/files/go1.0.3.linux-amd64.tar.gz">https://go.googlecode.com/files/go1.0.3.linux-amd64.tar.gz</a></p>
+
+<p><em>Install go:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   *  tar -C /usr/local/ -zxf go1.0.3.darwin-amd64.tar.gz
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Export path:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   * <span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/usr/local/go/bin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Get go tutorial:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   * go get code.google.com/p/go-tour/gotour
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Run go tour:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   *  gotour
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After run the hello world program, you can leave this alone and declare that you can actually play with go now&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1040,6 +1114,10 @@ detail</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
+      </li>
+    
+      <li class="post">
         <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
       </li>
     
@@ -1053,10 +1131,6 @@ detail</p>
     
       <li class="post">
         <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
       </li>
     
   </ul>

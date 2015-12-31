@@ -9,7 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="Hubot 是一个github开源的机器人项目，可以集成到众多的聊天工具中，如IRC, Hipchat, Skype，QQ等。你可以用它来搞笑，也可以用它来进行自动化的管理，比如自动化部署等。这几天花了点时间，在OSX和Centos上分别尝试搭了下Hubot，详细过程如下: 安装Hubot, &hellip;">
+  <meta name="description" content=" ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,52 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2014/01/28/install-python-27-under-centos-64">Install Python 2.7 Under Centos 6.4</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-01-28T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2014/01/28/install-python-27-under-centos-64#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2014/01/28/install-python-27-under-centos-64">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><script type="text/javascript" src="https://gist.github.com/iambowen/8661285.js"></script>
+
+
+
+
+<div id="test">
+    <script> 
+    var changeStyle = function(){
+        console.log("hello")
+        document.querySelector(".line-pre").style.color="black";
+    };
+    window.setTimeout(changeStyle(), 5000); 
+    </script>
+</div>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -935,88 +981,6 @@ For the  first step, say <code>curl -O download_link</code> for people don&rsquo
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/linux/2013/11/04/record-and-play-back-terminal-session">Record and Play Back Terminal Session</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2013-11-04T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/linux/2013/11/04/record-and-play-back-terminal-session#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/linux/2013/11/04/record-and-play-back-terminal-session">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Nowadays, lots of people would use video to record a tutorial for demonstrating. It&rsquo;s cool for vividly showing everything to people. The only issue is that file size of video is relatively large. From this point of view, the old way of recording actions from console might be a better idea.</p>
-
-<p><code>script</code> and <code>scriptreplay</code> are console recording/playing tools. <code>script</code> would record time and actions of current session in two different files. And <code>scriptreplay</code> would play those actions again in the console。 It&rsquo;s quite easy to use these tools, just like the following:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@bogon shell<span class="o">]</span><span class="nv">$ </span>script -t 2&gt;timing.log -a output.session
-</span><span class='line'>Script started, file is output.session
-</span><span class='line'><span class="o">[</span>vagrant@bogon shell<span class="o">]</span><span class="nv">$ </span>ls -al .
-</span><span class='line'>total 24
-</span><span class='line'>drwxrwxr-x <span class="m">2</span> vagrant vagrant <span class="m">4096</span> Nov  <span class="m">5</span> 09:37 .
-</span><span class='line'>drwx------ <span class="m">4</span> vagrant vagrant <span class="m">4096</span> Nov  <span class="m">4</span> 12:15 ..
-</span><span class='line'>-rw-rw-r-- <span class="m">1</span> vagrant vagrant <span class="m">4400</span> Nov  <span class="m">5</span> 09:42 output.session
-</span><span class='line'>-rw-rw-r-- <span class="m">1</span> vagrant vagrant   <span class="m">55</span> Nov  <span class="m">4</span> 12:16 test.txt
-</span><span class='line'>-rw-rw-r-- <span class="m">1</span> vagrant vagrant  <span class="m">111</span> Nov  <span class="m">5</span> 16:21 timing.log
-</span><span class='line'><span class="o">[</span>vagrant@bogon shell<span class="o">]</span><span class="nv">$ </span><span class="nb">cd</span> /tmp/
-</span><span class='line'><span class="o">[</span>vagrant@bogon tmp<span class="o">]</span><span class="nv">$ </span>ls
-</span><span class='line'>input.txt  ks-script-iuQ695  ks-script-iuQ695.log  output.txt  stderr  try.txt  vboxguest-Module.symvers  yum.log
-</span><span class='line'><span class="o">[</span>vagrant@bogon tmp<span class="o">]</span><span class="nv">$ </span>touch something.txt
-</span><span class='line'><span class="o">[</span>vagrant@bogon tmp<span class="o">]</span><span class="nv">$ </span><span class="nb">exit</span>
-</span><span class='line'><span class="nb">exit</span>
-</span><span class='line'>Script <span class="k">done</span>, file is output.session
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>So the <code>-t</code> would record the time and <code>-a</code> would record actions to different files. In the command below, we also redirect the error message to <code>timing.log</code> file.
-And if we want to replay it, just use the <code>scriptreplay</code> command, like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>scriptreplay timing.log output.session
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Then it would play what you have done before.
-The thing you need to pay attention to is that such recording just happen in a session, so actions like switching user to do something would break that, to my understanding. Personally, I would use <code>su user -c 'commands'</code> to solve this issue.</p>
-
-<p>It might not be a feature used often times, but it probably would help if you want to share or show actions you&rsquo;ve done to others.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/6">&larr; Older</a>
@@ -1034,6 +998,10 @@ The thing you need to pay attention to is that such recording just happen in a s
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
+      </li>
+    
+      <li class="post">
         <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
       </li>
     
@@ -1047,10 +1015,6 @@ The thing you need to pay attention to is that such recording just happen in a s
     
       <li class="post">
         <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
       </li>
     
   </ul>

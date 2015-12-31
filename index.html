@@ -9,9 +9,9 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="理想情况下的运维，是不需要ops去ssh到服务器上检查问题(包括安全问题)/日志等，这些是可以通过更好
-监控,如使用newrelic,或者更好的日志收集系统，如splunk等去避免。不过现实不总是完美的，加上历史
-遗留的原因，ops总是会ssh到堡垒机(bastion host)， &hellip;">
+  <meta name="description" content="大概4-5年前，客户开始使用AWS作为他们的开发和测试环境，因为澳洲当时没有亚马逊的数据中心，所以只好
+使用us-east, us-west这些region。后来澳洲有了AWS的数据中心，应用的产品就都迁移到新的region
+和新的AWS账户下。由于这个历史原因，一部分bake &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +81,88 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-12-28T22:24:42+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:24 pm</span></time>
+        
+           | <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/aws/practice/2015/12/28/stopping-creating-new-wheels">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>大概4-5年前，客户开始使用AWS作为他们的开发和测试环境，因为澳洲当时没有亚马逊的数据中心，所以只好
+使用us-east, us-west这些region。后来澳洲有了AWS的数据中心，应用的产品就都迁移到新的region
+和新的AWS账户下。由于这个历史原因，一部分bake AMI的任务以及部署的任务，都是跨账户以及region
+的。</p>
+
+<p>这些任务的工具，都是用ruby的<code>aws-sdk</code>包装的，从表面上看，这么做有如下的好处:</p>
+
+<ol>
+<li>更细粒度去控制这些任务以及过程</li>
+<li>代码可测试</li>
+<li>打包/发布/共享会更加容易些</li>
+<li>只要SDK支持，你都可以用自己熟悉的语言去实现这些工具</li>
+<li>写代码实现感觉很牛逼</li>
+</ol>
+
+
+<p>对于程序员来说，这么做感觉棒棒哒，写完很有满足感。但是实际中会带来很大的问题，具体表现在维护方面。
+我举两个例子：</p>
+
+<ol>
+<li>不是所有人都喜欢这个工具，有些人会提交patch，改进这个工具，有些人会重新实现一个类似功能的工
+具，比如我喜欢用Java，但是现有的工具是用Ruby实现，我表示不服，重头写一个。维护的难度在这种分散
+的项目和语言中增大了。</li>
+<li>实现者没有在对工具进行维护，其中依赖的sdk已经过期，而作为工具的使用者，并没有察觉到这件事情，
+在实际的使用中会遇到问题，面对非常深的stacktrace，debug的难度较高。</li>
+</ol>
+
+
+<p>最近，我和同事就碰到了这样的问题。我们AMI构建和部署的工具是用Ruby的<code>aws-sdk</code>实现，我们要做的工
+作是把构建AMI和部署的任务从一个AWS Account移到另外一个Account，原本的验证方式是通过Hard
+Code的Credentials如<code>AWS_SECRET_ACCESS_KEY/AWS_ACCESS_KEY_ID</code>。更好的实践是通过STS服务
+，用AssumeRole的方式去获得临时的Credential。听上去并没有什么太大的难度，但是当我们去迁移的时
+候，发现始终提示权限不足，而仔细检查role的权限后发现没有任何不妥，于是百思不得其解，尝试追踪
+stacktrace也没什么结果。</p>
+
+<p>无意中看了眼<code>Gemfile</code>，感觉<code>aws-sdk</code>的版本有点低，随手升了个级，然后试了下，竟然可以通过验证
+了……。</p>
+
+<p>多花了两个小时，就是因为没有再去维护这个工具。而这个工具实际实现的功能，用<code>aws-cli</code>也可
+以很容易实现，而且依赖更少：</p>
+
+<ol>
+<li>本地使用，只需要有<code>aws-cli</code>(可能还有python，除了windows，一般的系统默认都会有)和bash就可
+以了</li>
+<li>CI的slave上使用，可以让<code>aws-cli</code>在镜像启动时自动更新，这样就完全不需要维护</li>
+<li>如果cli参数有变动，提示会更加直接些，也容易追踪</li>
+</ol>
+
+
+<p>所以，如果大家要针对AWS做一些开发，比如镜像构建，清理或者自动化部署，推荐使用CLI的方式，而不是
+SDK去实现，从使用的角度，依赖更少，从维护的角度，成本更低。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1193,177 +1275,6 @@ NetScaler VIP的地址而不是DB服务器的地址…………，shit。</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2015/07/05/make-everything-production-like">Make Everything Production Like - (1/2)</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-07-05T00:00:00+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/2015/07/05/make-everything-production-like#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/2015/07/05/make-everything-production-like">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>一般来说，软件生命周期涉及到的环境的典型划分如下：</p>
-
-<ol>
-<li>Development</li>
-<li>Test</li>
-<li>Staging</li>
-<li>Production</li>
-</ol>
-
-
-<p>通常Staging和Production的环境非常的接近，差别可能只在于服务器的性能、数量以及数据的完整性等方面，
-而且Staging/Production也会得到更多的照顾，什么<code>DR</code>,<code>Infrastructure as code</code>。各种monitoring，Active崩了有Inactive顶着，Master挂了，Slave顶上来，出了问题分分钟就有人来修好。
-反观于Dev和Test环境，真是各种苦逼，14年Java经验的工程师设置了三天还没有把Ruby开发环境搞好，一
-个前端工程师去解决为什么用Phantomjs在bamboo centos agent上运行测试不稳定，痛苦的要自尽。</p>
-
-<p>除了这些，开发环境的不一致也会带来一些问题。最有名的就是“It works on my machine”。不过
-这也不稀奇，毕竟不是所有人的开发环境和产品环境都是一致的。可能你在用Mac开发Ruby程序，但是在它
-产品环境它却需要在Centos的机器上去运行。</p>
-
-<p>对于开发环境来说，这些痛点总结来说，大概有如下几种场景:</p>
-
-<ol>
-<li>开发环境和系统环境混在一起, 任何对于开发环境的修改可能会影响系统环境。</li>
-<li>开发环境和产品环境的不一致。</li>
-<li>本地开发时，除了运行必要的测试，还要启动多个依赖的服务，做一些手工的验证测试。
-针对这些问题，有如下的解决办法。</li>
-</ol>
-
-
-<hr />
-
-<h3>使用环境隔离的工具</h3>
-
-<p>可以使用一些类似沙盒的工具去管理开发环境，比如，</p>
-
-<ol>
-<li><a href="http://rbenv.org/">rbenv</a></li>
-<li><a href="http://rvm.io/">rvm</a></li>
-<li><a href="https://github.com/postmodern/chruby">chruby</a></li>
-<li><a href="https://virtualenv.pypa.io/en/latest/">virtualenv</a></li>
-<li><a href="http://jenv.io/">jenv</a></li>
-</ol>
-
-
-<p>前三个工具都是针对Ruby语言版本管理，开发环境下常用的是rbenv和rvm，测试和产品环境有可能用到chruby，
-因为它更加轻量。这些工具本质上都是修改BIN PATH，cd等，以rvm为例，推荐的使用方式如下：
-安装开发环境需要的ruby版本如2.0</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>rvm install 2.0.0
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>安装bundler，用来管理项目依赖</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>rvm use 2.0.0
-</span><span class='line'>gem install bundler
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>对于ruby的项目，将依赖的gem安装在工程的<code>vendor/bundle</code>下，而不是装在<code>~/.rvm</code>的gemsets目录下。
-进一步将环境隔离到工程内，同时最好将<code>vendor/bundle</code>加在<code>.gitignore</code>的列表中，这样不会将gem提交
-到repository中。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>bundle install --path<span class="o">=</span>vendor/bundle
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>virtualenv针对的是Python的环境管理，Jenv针对的是JVM系列的语言，Java/Scala/Clojure。
-这些工具最大的作用在于项目和系统环境的隔离，不能用来保证环境一致性，一旦有系统环境变动，如，
-mysql版本升级，OpenSSL升级等，就得重新编译链接类库，很不方便。</p>
-
-<hr />
-
-<h3>用Vagrant解决环境一致性问题</h3>
-
-<p>我们很容易能够想到用虚拟机来解决环境一致性的问题，不用说，就是<a href="https://www.vagrantup.com/">vagrant</a>
-这个工具。vagrant是一个跨平台的虚拟机管理工具，通过Vagrantfile，可以配置：</p>
-
-<ol>
-<li>管理virtualbox或者VMware的虚拟机</li>
-<li>以headless/gui的方式运行虚拟机</li>
-<li>配置私有/NAT网络</li>
-<li>bash/puppet/chef/ansible多种provision的方式</li>
-<li>共享/同步host/guest machine目录内容</li>
-</ol>
-
-
-<p>Vagrantfile本身也可以看做是ruby文件，可以用ruby语言编写更加复杂的配置文件。<a href="https://vagrantcloud.com">vagrantcloud</a>
-提供了现成的base box，可以很方便的下载和发布box，比如，在vagrantcloud找到最新的Ubuntu14.04的box<code>ubuntu/trusty64</code>，
-在工程中运行命令:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant init ubuntu/trusty64
-</span><span class='line'>vagrant up
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>即可生成Vagrantfile并且启动虚拟机。对于一些开发环境要求比较复杂的项目，可以先用bash/chef/puppet
-自动化配置的过程，然后运行<code>vagrant provision</code>配置即可。假设当前为gradle/java项目，guest共享的
-目录为<code>/vagrant</code>，运行:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant -c <span class="s1">&#39;cd /vagrant &amp;&amp; ./gradlew test&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>即可在虚拟机中运行测试。<code>vagrant package</code>命令可以将当前的配置好的虚拟机打包为新的镜像，共享给团队的其他同事。这里有一点要注意的地方，虚拟机<code>/etc/udev/rule.d/70-persistent-net.rules</code>保存了当前虚拟机持久化网络设备udev规则。创建新的虚拟机时，新分配的设备和规则不符，导致网络出问题。所以在打包镜像之前，需要删除这个文件。</p>
-
-<hr />
-
-<h3>vagrant+docker解决依赖多个服务的问题</h3>
-
-<p>在微服务大行其道的今天，一个前端的工程可能会依赖多个微服务。前几天参加会议，还有人说微服务就是大家用
-自己喜欢的语言/框架实现一个简单的服务。我替各位前端工程师们送他一句cnm，走好不送。
-即便有类似<a href="https://github.com/realestate-com-au/pact">Pact</a>
-这样的基于<a href="http://martinfowler.com/articles/consumerDrivenContracts.html">CDC</a>的更加轻量的集成测试方式，还是需要真实的启动浏览器，
-请求真实的服务去在本地做测试，尽快的获得反馈。在本地配置这样的e2e或者模拟产品环境，大致有如下的几种思路：</p>
-
-<ol>
-<li>clone所有依赖的工程，配置每个工程的环境，在不同的端口启动服务，覆写<code>hosts</code>配置，并且可能还需要
-安装<code>nginx</code>做反向代理。这样做的成本比较高，而且对全局的环境影响比较大，也太过复杂。</li>
-<li>用vagrant为其它微服务配置好虚拟机，同样可能需要覆写<code>hosts</code>或者安装<code>nginx</code>做反向代理。这样
-启动多台虚拟机，开销太高，还能不能愉快的开发。</li>
-<li>用vagrant+docker在一台虚拟机的多个容器上运行微服务，同时在虚拟机上用<code>nginx</code>作反向代理。</li>
-<li>修改<code>hosts</code>,将其他微服务指向测试环境或者staging环境，这样做的代价较小，但是公用环境可能会导致
-数据问题。而且如果同时修改前端项目和其中一个微服务，这样做可能就比较困难了。</li>
-</ol>
-
-
-<p>不卖关子了，第三种方案也就是我一年前在项目中使用过的方案，剥离了业务相关内容后放在了<a href="https://github.com/iambowen/leviathan">github</a>。设计思路可以参见下面的架构图，以及项目中的文档。
-<img src="https://dl.dropboxusercontent.com/u/92660221/images/Screen%20Shot%202014-07-30%20at%2012.53.05%20AM.png" style="width:800px;height=600px;">
-这个设计相对是比较灵活，因为可以根据<code>nginx</code>配置的不同，选择使用哪个环境上的微服务，同时host环境几乎不需要做任何修改。当时没有选择使用<code>vagrant package</code>的方式去打包配置好的镜像，因为这样生成的镜像太大，客户的程序员下载太慢。所以选择从头provision的方式，但是当时的docker版本较低，docker-registry的性能也比较差，pull image的速度确实慢，所以真正的用户只有我同事一个人o(╯□╰)o，现在要好很多了。
-我想说的是这样的方式是可行的，当然还需要继续改进。</p>
-
-<p>下一节，我会继续介绍如何让测试环境更加接近产品环境。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1379,6 +1290,10 @@ mysql版本升级，OpenSSL升级等，就得重新编译链接类库，很不�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
+      </li>
+    
+      <li class="post">
         <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
       </li>
     
@@ -1392,10 +1307,6 @@ mysql版本升级，OpenSSL升级等，就得重新编译链接类库，很不�
     
       <li class="post">
         <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
-      </li>
-    
-      <li class="post">
-        <a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a>
       </li>
     
   </ul>
