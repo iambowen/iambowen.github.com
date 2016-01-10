@@ -9,7 +9,8 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="Nowadays, lots of people would use video to record a tutorial for demonstrating. It&rsquo;s cool for vividly showing everything to people. The only &hellip;">
+  <meta name="description" content="The common way install a new app in osx is like: Install from AppStore;
+Download *.dmg file and open it then click install script; For the App that &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +80,70 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/osx/2013/11/06/automately-install-dmg-package-under-osx">Automately Install Dmg Package Under OSX</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-11-06T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/osx/2013/11/06/automately-install-dmg-package-under-osx#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/osx/2013/11/06/automately-install-dmg-package-under-osx">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>The common way install a new app in osx is like:</p>
+
+<ol>
+<li>Install from AppStore;</li>
+<li>Download *.dmg file and open it then click install script;</li>
+</ol>
+
+
+<p>For the App that can only be installed from *.dmg file, there&rsquo;s a better way to automate the install process.
+The second way includes following steps:</p>
+
+<ol>
+<li>Download the package-*.dmg file;</li>
+<li>Mount *.dmg file to file system- e.g /Volumes/app_name</li>
+<li>Install app with the installer or *.pkg file</li>
+</ol>
+
+
+<p>Given we want to install <a href="www.vagrantup.com">vagrant</a>:
+For the  first step, say <code>curl -O download_link</code> for people don&rsquo;t have tools like <code>wget</code>. If you have <code>wget</code>, say installed through brew <code>brew install wget</code>, you can just use <code>wget</code>.</p>
+
+<p>For the second step, we can use <code>hdiutil</code> command to mount the dmg file to <code>/Volumes</code>.</p>
+
+<p>For the last step, the <code>installer</code> in osx perfectly solve the issue. Command like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo installer -store -pkg /Volumes/Vagrant/Vagrant.pkg -target /
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And it would use the administrator previlidge to install the package.</p>
+
+<p>For the whole install process, the only thing you need to do is type in the password. And <a href="https://raw.github.com/iambowen/vagrant_wrapper/master/install.sh">this</a> is an example for fulfilling the automation. Surely it can be improved more genericly, for I only use this for vagrant session.^_^</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1720,73 +1785,6 @@ yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件�
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix">Ubuntu 12.04 Compile Ruby Enterprise Error Fix</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2013-04-23T00:00:00+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Recently I&rsquo;ve been learn to use <a href="http://vagrantup.com">Vagrant</a>. to set up a production like env under ubuntu 12.04. However, when I tried to compile REE- ruby enterprise version, I caught into the following error:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>./libtool: line 983: warning: setlocale: LC_CTYPE: cannot change locale <span class="o">(</span>UTF-8<span class="o">)</span>
-</span><span class='line'>src/tcmalloc.cc:1672:54: error: conflicting declaration <span class="s1">&#39;void * (* __memalign_hook)(size_t, size_t, const void *)&#39;</span>
-</span><span class='line'>/usr/include/malloc.h:183:39: error: <span class="s2">&quot;__memalign_hook&quot;</span> has a previous declaration as <span class="s1">&#39;void * (* volatile __memalign_hook) (size_t, size_t, const void *)&#39;</span>
-</span><span class='line'>src/tcmalloc.cc: In <span class="k">function</span> <span class="s1">&#39;void PrintStats(int)&#39;</span>:
-</span><span class='line'>src/tcmalloc.cc:523:47: warning: ignoring <span class="k">return</span> value of <span class="s1">&#39;ssize_t write(int, const void *, size_t)&#39;</span>, declared with attribute warn_unused_result <span class="o">(</span>-Wunused-result<span class="o">)</span>
-</span><span class='line'>src/tcmalloc.cc: In <span class="k">function</span> <span class="s1">&#39;void {anonymous}::ReportLargeAlloc(Length, void *)&#39;</span><span class="p">;</span>
-</span><span class='line'>src/tcmalloc.cc:1010:47: warning: ignoring <span class="k">return</span> value of <span class="s1">&#39;ssize_t write(int, const void *, size_t)&#39;</span>, declared with attribute warn_unused_result <span class="o">[</span>-Wunused-result<span class="o">]</span>
-</span><span class='line'>make: *** <span class="o">(</span>libtcmalloc_minimal_la-tcmalloc.lo<span class="o">)</span> Error 1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I dig a little throught google and it turns out to be a very easy solution. Just redefine the fucntion name</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>void *<span class="o">(</span>* __memalign_hook<span class="o">)</span> <span class="o">(</span>size_t, size_t, const void *<span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>to be</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>void *<span class="o">(</span>*  volatile  __memalign_hook<span class="o">)</span> <span class="o">(</span>size_t, size_t, const void *<span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>in the tcmalloc.cc src file . To declare it to be volatile type function can solve that issue and keep the compiling on. Actually, I could have found the reason because as to what the log says, the issue is pretty clear. Seems like I depend on google too much&hellip;.. it&rsquo;s not good.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/7">&larr; Older</a>
@@ -1804,6 +1802,10 @@ yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
+      </li>
+    
+      <li class="post">
         <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
       </li>
     
@@ -1817,10 +1819,6 @@ yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件�
     
       <li class="post">
         <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
-      </li>
-    
-      <li class="post">
-        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
       </li>
     
   </ul>
@@ -1874,7 +1872,7 @@ yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件�
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Bowen Ma -
+  Copyright &copy; 2016 - Bowen Ma -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

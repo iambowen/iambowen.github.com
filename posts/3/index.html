@@ -9,8 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="前几周给一个客户介绍了关于持续交付的内容，他们特别关注概念以及细节，当时我在介绍自动化测试的时候，
-分类比较简单，感觉回答的不是很好，于是重新整理下思路，总结成文。 软件测试的定义 对于软件测试的定义不尽相同，其经典定义是:在规定的条件下对程序进行操作，以发现程序错误，衡量软件质量， &hellip;">
+  <meta name="description" content="什么是Apache Apache是一款开源的HTTP服务器，长期占据服务器市场第一名的位置。 什么是URL rewriting 有时候，为了让URL对用户友好，方便记忆，或是SEO优化，我们会使用更加简单的URL，比如http://example.com/help.html &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +79,184 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/apache/2015/01/27/apache-rewrite-rules">Apache Rewrite Rules</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-01-27T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/apache/2015/01/27/apache-rewrite-rules#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/apache/2015/01/27/apache-rewrite-rules">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>什么是Apache</h3>
+
+<hr />
+
+<p><a href="http://httpd.apache.org/">Apache</a>是一款开源的HTTP服务器，长期占据服务器市场第一名的位置。</p>
+
+<h3>什么是URL rewriting</h3>
+
+<hr />
+
+<p>有时候，为了让URL对用户友好，方便记忆，或是SEO优化，我们会使用更加简单的URL，比如<a href="http://example.com/help.html">http://example.com/help.html</a>
+但是实际开发人员命名的静态html文件名为help_2014_12_12.html,在这种情况下，就需要重写URL，让服务器
+返回正确的页面(只是个例子)，亦或是原来的页面更换了新的域名，需要告诉搜索引擎或者浏览器新的地址，都需要
+重写URL。URL重写后，会返回给浏览器重写后的链接以及3xx的返回码，然后浏览器会请求重写后链接的内容。</p>
+
+<h3>301 和 302的区别</h3>
+
+<hr />
+
+<ul>
+<li><em>301</em>: 永久性转移(Permanently Moved)</li>
+<li><em>302</em>: 暂时性转移(Temporarily Moved)</li>
+</ul>
+
+
+<p>从效果上来讲它们都会造成跳转，区别在于SEO。如果是301跳转，那么搜索引擎将A页面的Pagerank导入
+到跳转后的B页面，搜索引擎以后会忽略A页面，只在搜索结果中显示B页面。如果是302跳转，搜索引擎会保留A页面
+的PR，但是显示的内容可能B页面的。</p>
+
+<h3>Apache rewrite module</h3>
+
+<hr />
+
+<p><a href="http://httpd.apache.org/docs/current/mod/mod_rewrite.html">mod_rewrite</a>是Apache中提供得基于规则的rewriting引擎，加载模块后重启apache就可以使用了。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>apachectl -t -D DUMP_MODULES <span class="p">|</span> grep rewrite
+</span><span class='line'><span class="c"># 如果没有加载</span>
+</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>a2enmod rewrite
+</span><span class='line'>Enabling module rewrite.
+</span><span class='line'>Could not create /etc/apache2/mods-enabled/rewrite.load: Permission denied
+</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>sudo a2enmod rewrite
+</span><span class='line'>Enabling module rewrite.
+</span><span class='line'>To activate the new configuration, you need to run:
+</span><span class='line'>service apache2 restart
+</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>less /etc/apache2/mods-enabled/rewrite.load
+</span><span class='line'>LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在<code>http.conf</code>文件中可以引用具体的rewrite规则文件，如下</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>RewriteEngine on
+</span><span class='line'>RewriteLog /var/log/www/server.rewrite.log
+</span><span class='line'>RewriteLogLevel 1
+</span><span class='line'>Include /web/conf/httpd/conf.d/rewrites.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>根据需求将rewrite的规则写入<code>rewrites.conf</code>中即可。</p>
+
+<h3>rewrite配置文件的写法</h3>
+
+<p>基本上来说，重写URL就是在<code>􏰭􏰆􏰖􏰉􏰃􏰏􏰆􏰓􏰊􏰕􏰌RewriteCond</code>下，执行自定义的<code>RewriteRule</code>，通过Server Variables
+以及正则等匹配的方式，返回结果以及正确的返回码。</p>
+
+<h2>域名的转换</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span>  %{HTTP_HOST}   ^www\.example\.com$  [NC]
+</span><span class='line'><span class="nb">RewriteRule</span>  ^(.*)$         http://www.example2.com/$1  [R=301,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第一行是触发URL重写的条件，Flag <code>NC</code> 表示匹配时无视大小写，第二行表示在前一个条件满足时重写URL，
+同时返回<code>301</code>, <code>L</code>表示本次重写URL的行为结束。</p>
+
+<h3>临时更改页面地址</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteRule</span> ^page.html$   new_page.html   [R=302,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>更改 Query String</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} a=something
+</span><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} b=(else1|else2)
+</span><span class='line'><span class="nb">RewriteRule</span> ^/some_query_here$ http://www.example3.com/redirect? [R=301,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在Query String匹配 &ldquo;a=something"的前提下，如果后面的Query String匹配<code>b=else1</code>或者<code>b=else2</code>
+则重写URL，<code>?</code>表示截断URL。</p>
+
+<p>最近在做一张卡的时候，要重写的URL类似</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="err">http://www</span>.<span class="err">example</span>.<span class="err">com/</span><span class="c">#category=Water Ball</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果直接将URL写在RewriteRule里面，Apache缺省会将URL中的特殊字符转义，比如会变成</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="err">http://www</span>.<span class="err">example</span>.<span class="err">com/%23category=Water%20</span><span class="nb">Ball</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>要防止Apache将其转义，可以在Flag中加<code>NE</code>，同时注意Flag之间不能有空格。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} b=something
+</span><span class='line'><span class="nb">RewriteRule</span> ^/some_query_here$ http://www.example.com/#category=Walter\ Ball? [R=301,NE,L]
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>体会</h3>
+
+<p>Apache的URL重写规则感觉还是比较简单，而且很强大。</p>
+
+<h3>references</h3>
+
+<ol>
+<li><a href="https://www.addedbytes.com/articles/for-beginners/url-rewriting-for-beginners/">rewriting for beginners</a></li>
+<li><a href="http://www.addedbytes.com/apache/mod_rewrite-cheat-sheet/">rewrite cheat sheet</a></li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1689,41 +1866,6 @@ PPT如下:</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/ops/2014/08/30/introduction-to-nagios">Introduction to Nagios</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2014-08-30T00:00:00+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/ops/2014/08/30/introduction-to-nagios#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/ops/2014/08/30/introduction-to-nagios">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>最近接了张从Nagios移植到<a href="http://www.pagerduty.com/">PagerDuty</a>的卡，活都让同事干了，自己就利用这个时间，看了看文档，基本理解了Nagios的监控的原理以及配置的方法，总结成PPT，在组内做了分享，如下。</p>
-
-<script async class="speakerdeck-embed" data-id="a3f91d1011c90132ea3636ee7b6c2ab8" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -1741,6 +1883,10 @@ PPT如下:</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
+      </li>
+    
+      <li class="post">
         <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
       </li>
     
@@ -1754,10 +1900,6 @@ PPT如下:</p>
     
       <li class="post">
         <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
-      </li>
-    
-      <li class="post">
-        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
       </li>
     
   </ul>
@@ -1811,7 +1953,7 @@ PPT如下:</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Bowen Ma -
+  Copyright &copy; 2016 - Bowen Ma -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

@@ -9,7 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="Just trying to use Go for I find it looks like C, and the cost of writing a hello world is quite small, plus the tutorial is petty easy to fetch. &hellip;">
+  <meta name="description" content="Recently I&rsquo;ve been learn to use Vagrant. to set up a production like env under ubuntu 12.04. However, when I tried to compile REE- ruby &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,73 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix">Ubuntu 12.04 Compile Ruby Enterprise Error Fix</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-04-23T00:00:00+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Recently I&rsquo;ve been learn to use <a href="http://vagrantup.com">Vagrant</a>. to set up a production like env under ubuntu 12.04. However, when I tried to compile REE- ruby enterprise version, I caught into the following error:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./libtool: line 983: warning: setlocale: LC_CTYPE: cannot change locale <span class="o">(</span>UTF-8<span class="o">)</span>
+</span><span class='line'>src/tcmalloc.cc:1672:54: error: conflicting declaration <span class="s1">&#39;void * (* __memalign_hook)(size_t, size_t, const void *)&#39;</span>
+</span><span class='line'>/usr/include/malloc.h:183:39: error: <span class="s2">&quot;__memalign_hook&quot;</span> has a previous declaration as <span class="s1">&#39;void * (* volatile __memalign_hook) (size_t, size_t, const void *)&#39;</span>
+</span><span class='line'>src/tcmalloc.cc: In <span class="k">function</span> <span class="s1">&#39;void PrintStats(int)&#39;</span>:
+</span><span class='line'>src/tcmalloc.cc:523:47: warning: ignoring <span class="k">return</span> value of <span class="s1">&#39;ssize_t write(int, const void *, size_t)&#39;</span>, declared with attribute warn_unused_result <span class="o">(</span>-Wunused-result<span class="o">)</span>
+</span><span class='line'>src/tcmalloc.cc: In <span class="k">function</span> <span class="s1">&#39;void {anonymous}::ReportLargeAlloc(Length, void *)&#39;</span><span class="p">;</span>
+</span><span class='line'>src/tcmalloc.cc:1010:47: warning: ignoring <span class="k">return</span> value of <span class="s1">&#39;ssize_t write(int, const void *, size_t)&#39;</span>, declared with attribute warn_unused_result <span class="o">[</span>-Wunused-result<span class="o">]</span>
+</span><span class='line'>make: *** <span class="o">(</span>libtcmalloc_minimal_la-tcmalloc.lo<span class="o">)</span> Error 1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I dig a little throught google and it turns out to be a very easy solution. Just redefine the fucntion name</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>void *<span class="o">(</span>* __memalign_hook<span class="o">)</span> <span class="o">(</span>size_t, size_t, const void *<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>to be</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>void *<span class="o">(</span>*  volatile  __memalign_hook<span class="o">)</span> <span class="o">(</span>size_t, size_t, const void *<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>in the tcmalloc.cc src file . To declare it to be volatile type function can solve that issue and keep the compiling on. Actually, I could have found the reason because as to what the log says, the issue is pretty clear. Seems like I depend on google too much&hellip;.. it&rsquo;s not good.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -934,172 +1001,9 @@ because it is not standard SQL grammar.</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/git/2011/11/09/dont-panic-when-you-used-git-reset-hard">Don't Panic When You Use Git Reset --hard</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2011-11-09T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/git/2011/11/09/dont-panic-when-you-used-git-reset-hard#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/git/2011/11/09/dont-panic-when-you-used-git-reset-hard">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>It&rsquo;s not a problem when you use to <code>git reset --hard</code> to throw away commit. But often times, you need to first check whether there&rsquo;s still useful stuff to keeOf course, &ndash;soft is the best choice, however, what if you use <code>git reset --hard</code> without realizing that the commit you just throw is useful. And the following should be one solution to this accident.</p>
-
-<p>Given i reset the commit:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git reset --hard HEAD^@
-</span><span class='line'>
-</span><span class='line'>HEAD is now at 43856d7 modify <span class="nb">test </span>to raise conflict
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Then i use ref the log:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git reflog -4@
-</span><span class='line'>
-</span><span class='line'>43856d7 HEAD@<span class="o">{</span>0<span class="o">}</span>: HEAD^: updating HEAD
-</span><span class='line'>3378cf7 HEAD@<span class="o">{</span>1<span class="o">}</span>: commit: that part is easy.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And i see 3378cf7 is the commit i just reset, i use git show to see commit
-detail</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git show 3378cf7@
-</span><span class='line'>
-</span><span class='line'>commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
-</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
-</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
-</span><span class='line'>    that part is easy.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And i check out the commit:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git checkout 3378cf7f1c8a197492796b3cdb2c79f0183c9efe@
-</span><span class='line'>
-</span><span class='line'>Note: checking out <span class="s1">&#39;3378cf7f1c8a197492796b3cdb2c79f0183c9efe&#39;</span>.
-</span><span class='line'>You are in <span class="s1">&#39;detached HEAD&#39;</span> state. You can look around, make experimental
-</span><span class='line'>changes and commit them, and you can discard any commits you make in this
-</span><span class='line'>state without impacting any branches by performing another checkout.
-</span><span class='line'>
-</span><span class='line'>If you want to create a new branch to retain commits you create, you may
-</span><span class='line'><span class="k">do</span> so <span class="o">(</span>now or later<span class="o">)</span> by using -b with the checkout <span class="nb">command </span>again. Example:
-</span><span class='line'>
-</span><span class='line'>  git checkout -b new_branch_name
-</span><span class='line'>
-</span><span class='line'>HEAD is now at 3378cf7... that part is easy.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Then I follow the notification to create a new branch and check log:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>git checkout -b recover
-</span><span class='line'><span class="nv">$ </span>git log
-</span><span class='line'>
-</span><span class='line'>commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
-</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
-</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
-</span><span class='line'>
-</span><span class='line'>    that part is easy.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And i find the commit is in this branch, then i go back to master branch merge recover branch:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$git</span> co master
-</span><span class='line'><span class="nv">$git</span> merge recover
-</span><span class='line'>
-</span><span class='line'>Updating 43856d7..3378cf7
-</span><span class='line'>Fast-forward
-</span><span class='line'> README   <span class="p">|</span>    <span class="m">1</span> -
-</span><span class='line'> whatever <span class="p">|</span>    <span class="m">1</span> +
-</span><span class='line'> <span class="m">2</span> files changed, <span class="m">1</span> insertions<span class="o">(</span>+<span class="o">)</span>, <span class="m">1</span> deletions<span class="o">(</span>-<span class="o">)</span>
-</span><span class='line'> create mode <span class="m">100644</span> whatever
-</span><span class='line'>
-</span><span class='line'><span class="nv">$ </span>git log -1
-</span><span class='line'>
-</span><span class='line'>bc. commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
-</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
-</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
-</span><span class='line'>    that part is easy.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And we can see the reseted commit is coming back, that part is easy.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
+    
+      <a class="prev" href="/posts/8">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -1112,6 +1016,10 @@ detail</p>
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
+      </li>
     
       <li class="post">
         <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
@@ -1127,10 +1035,6 @@ detail</p>
     
       <li class="post">
         <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
-      </li>
-    
-      <li class="post">
-        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
       </li>
     
   </ul>
@@ -1184,7 +1088,7 @@ detail</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Bowen Ma -
+  Copyright &copy; 2016 - Bowen Ma -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

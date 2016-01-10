@@ -9,9 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="大概4-5年前，客户开始使用AWS作为他们的开发和测试环境，因为澳洲当时没有亚马逊的数据中心，所以只好
-使用us-east, us-west这些region。后来澳洲有了AWS的数据中心，应用的产品就都迁移到新的region
-和新的AWS账户下。由于这个历史原因，一部分bake &hellip;">
+  <meta name="description" content="上次在Melbourne Infrastructure-Coders上介绍过一次，比较惨，改进了一遍后，这次重新在GDG Xi'an讲了下，还是中文讲起来比较6。 屁屁踢如下: Demo的环境是在本地实现的，repo在这里:https://github.com/iambowen/ansible- &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +79,47 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-10T14:33:29+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:33 pm</span></time>
+        
+           | <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>上次在<a href="http://www.meetup.com/Infrastructure-Coders/">Melbourne Infrastructure-Coders</a>上介绍过一次，比较惨，改进了一遍后，这次重新在<a href="http://gdgxian.org/">GDG Xi'an</a>讲了下，还是中文讲起来比较6。</p>
+
+<p>屁屁踢如下:</p>
+
+<script async class="speakerdeck-embed" data-id="f32cb7fad8ec4785b1b48c91eaccd8db" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+
+
+<p>Demo的环境是在本地实现的，repo在这里:<a href="https://github.com/iambowen/ansible-mesos">https://github.com/iambowen/ansible-mesos</a></p>
+
+<p>看不到屁屁踢的，请设置DNS为8.8.8.8或者翻墙……</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1201,80 +1240,6 @@ NetScaler VIP的地址而不是DB服务器的地址…………，shit。</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/docker/2015/08/03/speed-up-downloading-docker-images-by-using-daocloud-mirror">Speed Up Downloading Docker Images by Using Daocloud Mirror</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-08-03T00:00:00+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/docker/2015/08/03/speed-up-downloading-docker-images-by-using-daocloud-mirror#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/docker/2015/08/03/speed-up-downloading-docker-images-by-using-daocloud-mirror">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>因为要试用下<a href="http://hyper.sh/">hyper</a>这个新工具，不得不去下载docker镜像，不过官方的registry
-简直慢如狗，加了VPN也很慢。以前有个docker.cn的镜像源也不见了，不过在搜索的时候发现了国内的一家容器
-公司<a href="http://daocloud.io/">daocloud</a>提供了免费的镜像服务。抱着试一试的态度，注册了个账号，在个人
-的dashboard页面点击“加速器”，就可以看到定制的镜像链接，如“<a href="http://xxxxxxxx.m.daocloud.io%E2%80%9D%E3%80%82">http://xxxxxxxx.m.daocloud.io%E2%80%9D%E3%80%82</a>
-下面的文档中给出了不同系统下配置镜像的方法，我的host是Ubuntu系统，需要做如下的修改:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s2">&quot;DOCKER_OPTS=\&quot;\$DOCKER_OPTS --registry-mirror=http://d32e3878.m.daocloud.io\&quot;&quot;</span> <span class="p">|</span> sudo tee -a /etc/default/docker
-</span><span class='line'>sudo service docker restart
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>再试着pull一下新的image.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span><span class="nb">time </span>docker pull ubuntu
-</span><span class='line'>Pulling repository ubuntu
-</span><span class='line'>d2a0ecffe6fa: Download <span class="nb">complete</span>
-</span><span class='line'>83e4dde6b9cf: Download <span class="nb">complete</span>
-</span><span class='line'>b670fb0c7ecd: Download <span class="nb">complete</span>
-</span><span class='line'>29460ac93442: Download <span class="nb">complete</span>
-</span><span class='line'>Status: Downloaded newer image <span class="k">for</span> ubuntu:latest
-</span><span class='line'>
-</span><span class='line'>real  2m0.469s
-</span><span class='line'>user  0m0.034s
-</span><span class='line'>sys   0m0.034s
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这是我在公司里面下载70m左右的容器镜像所耗时间，其实在家只要30s左右，公司网络太差了。</p>
-
-<p>Anyway, 虽然镜像流量使用配额只有1000GB，但是一般情况下应该是够用了，为daocloud公司点个赞，良心企业。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1290,6 +1255,10 @@ NetScaler VIP的地址而不是DB服务器的地址…………，shit。</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
+      </li>
+    
+      <li class="post">
         <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
       </li>
     
@@ -1303,10 +1272,6 @@ NetScaler VIP的地址而不是DB服务器的地址…………，shit。</p>
     
       <li class="post">
         <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
-      </li>
-    
-      <li class="post">
-        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
       </li>
     
   </ul>
@@ -1360,7 +1325,7 @@ NetScaler VIP的地址而不是DB服务器的地址…………，shit。</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Bowen Ma -
+  Copyright &copy; 2016 - Bowen Ma -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

@@ -9,11 +9,9 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="一般来说，软件生命周期涉及到的环境的典型划分如下： Development
-Test
-Staging
-Production 通常Staging和Production的环境非常的接近，差别可能只在于服务器的性能、数量以及数据的完整性等方面，
-而且Staging/Production也会得到更多的照顾 &hellip;">
+  <meta name="description" content="因为要试用下hyper这个新工具，不得不去下载docker镜像，不过官方的registry
+简直慢如狗，加了VPN也很慢。以前有个docker.cn的镜像源也不见了，不过在搜索的时候发现了国内的一家容器
+公司daocloud提供了免费的镜像服务。抱着试一试的态度，注册了个账号，在个人 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -83,6 +81,80 @@ Production 通常Staging和Production的环境非常的接近，差别可能只�
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/docker/2015/08/03/speed-up-downloading-docker-images-by-using-daocloud-mirror">Speed Up Downloading Docker Images by Using Daocloud Mirror</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-08-03T00:00:00+08:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/docker/2015/08/03/speed-up-downloading-docker-images-by-using-daocloud-mirror#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/docker/2015/08/03/speed-up-downloading-docker-images-by-using-daocloud-mirror">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>因为要试用下<a href="http://hyper.sh/">hyper</a>这个新工具，不得不去下载docker镜像，不过官方的registry
+简直慢如狗，加了VPN也很慢。以前有个docker.cn的镜像源也不见了，不过在搜索的时候发现了国内的一家容器
+公司<a href="http://daocloud.io/">daocloud</a>提供了免费的镜像服务。抱着试一试的态度，注册了个账号，在个人
+的dashboard页面点击“加速器”，就可以看到定制的镜像链接，如“<a href="http://xxxxxxxx.m.daocloud.io%E2%80%9D%E3%80%82">http://xxxxxxxx.m.daocloud.io%E2%80%9D%E3%80%82</a>
+下面的文档中给出了不同系统下配置镜像的方法，我的host是Ubuntu系统，需要做如下的修改:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s2">&quot;DOCKER_OPTS=\&quot;\$DOCKER_OPTS --registry-mirror=http://d32e3878.m.daocloud.io\&quot;&quot;</span> <span class="p">|</span> sudo tee -a /etc/default/docker
+</span><span class='line'>sudo service docker restart
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>再试着pull一下新的image.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span><span class="nb">time </span>docker pull ubuntu
+</span><span class='line'>Pulling repository ubuntu
+</span><span class='line'>d2a0ecffe6fa: Download <span class="nb">complete</span>
+</span><span class='line'>83e4dde6b9cf: Download <span class="nb">complete</span>
+</span><span class='line'>b670fb0c7ecd: Download <span class="nb">complete</span>
+</span><span class='line'>29460ac93442: Download <span class="nb">complete</span>
+</span><span class='line'>Status: Downloaded newer image <span class="k">for</span> ubuntu:latest
+</span><span class='line'>
+</span><span class='line'>real  2m0.469s
+</span><span class='line'>user  0m0.034s
+</span><span class='line'>sys   0m0.034s
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这是我在公司里面下载70m左右的容器镜像所耗时间，其实在家只要30s左右，公司网络太差了。</p>
+
+<p>Anyway, 虽然镜像流量使用配额只有1000GB，但是一般情况下应该是够用了，为daocloud公司点个赞，良心企业。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1770,184 +1842,6 @@ Anyway,还是觉得curl要比wget好用些-_-!</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/apache/2015/01/27/apache-rewrite-rules">Apache Rewrite Rules</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-01-27T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/apache/2015/01/27/apache-rewrite-rules#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/apache/2015/01/27/apache-rewrite-rules">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>什么是Apache</h3>
-
-<hr />
-
-<p><a href="http://httpd.apache.org/">Apache</a>是一款开源的HTTP服务器，长期占据服务器市场第一名的位置。</p>
-
-<h3>什么是URL rewriting</h3>
-
-<hr />
-
-<p>有时候，为了让URL对用户友好，方便记忆，或是SEO优化，我们会使用更加简单的URL，比如<a href="http://example.com/help.html">http://example.com/help.html</a>
-但是实际开发人员命名的静态html文件名为help_2014_12_12.html,在这种情况下，就需要重写URL，让服务器
-返回正确的页面(只是个例子)，亦或是原来的页面更换了新的域名，需要告诉搜索引擎或者浏览器新的地址，都需要
-重写URL。URL重写后，会返回给浏览器重写后的链接以及3xx的返回码，然后浏览器会请求重写后链接的内容。</p>
-
-<h3>301 和 302的区别</h3>
-
-<hr />
-
-<ul>
-<li><em>301</em>: 永久性转移(Permanently Moved)</li>
-<li><em>302</em>: 暂时性转移(Temporarily Moved)</li>
-</ul>
-
-
-<p>从效果上来讲它们都会造成跳转，区别在于SEO。如果是301跳转，那么搜索引擎将A页面的Pagerank导入
-到跳转后的B页面，搜索引擎以后会忽略A页面，只在搜索结果中显示B页面。如果是302跳转，搜索引擎会保留A页面
-的PR，但是显示的内容可能B页面的。</p>
-
-<h3>Apache rewrite module</h3>
-
-<hr />
-
-<p><a href="http://httpd.apache.org/docs/current/mod/mod_rewrite.html">mod_rewrite</a>是Apache中提供得基于规则的rewriting引擎，加载模块后重启apache就可以使用了。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>apachectl -t -D DUMP_MODULES <span class="p">|</span> grep rewrite
-</span><span class='line'><span class="c"># 如果没有加载</span>
-</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>a2enmod rewrite
-</span><span class='line'>Enabling module rewrite.
-</span><span class='line'>Could not create /etc/apache2/mods-enabled/rewrite.load: Permission denied
-</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>sudo a2enmod rewrite
-</span><span class='line'>Enabling module rewrite.
-</span><span class='line'>To activate the new configuration, you need to run:
-</span><span class='line'>service apache2 restart
-</span><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span>less /etc/apache2/mods-enabled/rewrite.load
-</span><span class='line'>LoadModule rewrite_module /usr/lib/apache2/modules/mod_rewrite.so
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在<code>http.conf</code>文件中可以引用具体的rewrite规则文件，如下</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>RewriteEngine on
-</span><span class='line'>RewriteLog /var/log/www/server.rewrite.log
-</span><span class='line'>RewriteLogLevel 1
-</span><span class='line'>Include /web/conf/httpd/conf.d/rewrites.conf
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>根据需求将rewrite的规则写入<code>rewrites.conf</code>中即可。</p>
-
-<h3>rewrite配置文件的写法</h3>
-
-<p>基本上来说，重写URL就是在<code>􏰭􏰆􏰖􏰉􏰃􏰏􏰆􏰓􏰊􏰕􏰌RewriteCond</code>下，执行自定义的<code>RewriteRule</code>，通过Server Variables
-以及正则等匹配的方式，返回结果以及正确的返回码。</p>
-
-<h2>域名的转换</h2>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span>  %{HTTP_HOST}   ^www\.example\.com$  [NC]
-</span><span class='line'><span class="nb">RewriteRule</span>  ^(.*)$         http://www.example2.com/$1  [R=301,L]
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>第一行是触发URL重写的条件，Flag <code>NC</code> 表示匹配时无视大小写，第二行表示在前一个条件满足时重写URL，
-同时返回<code>301</code>, <code>L</code>表示本次重写URL的行为结束。</p>
-
-<h3>临时更改页面地址</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteRule</span> ^page.html$   new_page.html   [R=302,L]
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>更改 Query String</h3>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} a=something
-</span><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} b=(else1|else2)
-</span><span class='line'><span class="nb">RewriteRule</span> ^/some_query_here$ http://www.example3.com/redirect? [R=301,L]
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在Query String匹配 &ldquo;a=something"的前提下，如果后面的Query String匹配<code>b=else1</code>或者<code>b=else2</code>
-则重写URL，<code>?</code>表示截断URL。</p>
-
-<p>最近在做一张卡的时候，要重写的URL类似</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="err">http://www</span>.<span class="err">example</span>.<span class="err">com/</span><span class="c">#category=Water Ball</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果直接将URL写在RewriteRule里面，Apache缺省会将URL中的特殊字符转义，比如会变成</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="err">http://www</span>.<span class="err">example</span>.<span class="err">com/%23category=Water%20</span><span class="nb">Ball</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>要防止Apache将其转义，可以在Flag中加<code>NE</code>，同时注意Flag之间不能有空格。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='apache'><span class='line'><span class="nb">RewriteCond</span> %{QUERY_STRING} b=something
-</span><span class='line'><span class="nb">RewriteRule</span> ^/some_query_here$ http://www.example.com/#category=Walter\ Ball? [R=301,NE,L]
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>体会</h3>
-
-<p>Apache的URL重写规则感觉还是比较简单，而且很强大。</p>
-
-<h3>references</h3>
-
-<ol>
-<li><a href="https://www.addedbytes.com/articles/for-beginners/url-rewriting-for-beginners/">rewriting for beginners</a></li>
-<li><a href="http://www.addedbytes.com/apache/mod_rewrite-cheat-sheet/">rewrite cheat sheet</a></li>
-</ol>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -1965,6 +1859,10 @@ Anyway,还是觉得curl要比wget好用些-_-!</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
+      </li>
+    
+      <li class="post">
         <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
       </li>
     
@@ -1978,10 +1876,6 @@ Anyway,还是觉得curl要比wget好用些-_-!</p>
     
       <li class="post">
         <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
-      </li>
-    
-      <li class="post">
-        <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a>
       </li>
     
   </ul>
@@ -2035,7 +1929,7 @@ Anyway,还是觉得curl要比wget好用些-_-!</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Bowen Ma -
+  Copyright &copy; 2016 - Bowen Ma -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 

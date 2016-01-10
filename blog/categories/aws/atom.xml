@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Aws | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2015-12-31T15:17:01+08:00</updated>
+  <updated>2016-01-10T14:44:57+08:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -12,6 +12,24 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Ci Solution With Mesos]]></title>
+    <link href="http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos"/>
+    <updated>2016-01-10T14:33:29+08:00</updated>
+    <id>http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos</id>
+    <content type="html"><![CDATA[<p>上次在<a href="http://www.meetup.com/Infrastructure-Coders/">Melbourne Infrastructure-Coders</a>上介绍过一次，比较惨，改进了一遍后，这次重新在<a href="http://gdgxian.org/">GDG Xi'an</a>讲了下，还是中文讲起来比较6。</p>
+
+<p>屁屁踢如下:</p>
+
+<script async class="speakerdeck-embed" data-id="f32cb7fad8ec4785b1b48c91eaccd8db" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+
+
+<p>Demo的环境是在本地实现的，repo在这里:<a href="https://github.com/iambowen/ansible-mesos">https://github.com/iambowen/ansible-mesos</a></p>
+
+<p>看不到屁屁踢的，请设置DNS为8.8.8.8或者翻墙……</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Stop Wrapping AWS SDK to Create Tools]]></title>
