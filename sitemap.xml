@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://iambowen.github.com/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api</loc>
+    <lastmod>2016-01-19T13:32:46+08:00</lastmod>
+  </url>
+  <url>
     <loc>http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos</loc>
     <lastmod>2016-01-10T14:33:29+08:00</lastmod>
   </url>
@@ -367,5 +371,11 @@
   </url>
   <url>
     <loc>http://iambowen.github.com/blog/categories/mesos/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/blog/categories/akamai/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/blog/categories/diagnostic/</loc>
   </url>
 </urlset>

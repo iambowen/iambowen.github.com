@@ -9,7 +9,8 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="Recently I&rsquo;ve been learn to use Vagrant. to set up a production like env under ubuntu 12.04. However, when I tried to compile REE- ruby &hellip;">
+  <meta name="description" content="在如下两种情况下，你需要重新配置git commit 的author。 在一个新的repo上面工作;
+用别人的机器(或者pair machine上)提交代码，而关于你的author信息并未添加在git配置中; 假设你global git config ~/.gitconfg 中配置信息如下: 1 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +80,110 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/git/2013/06/19/reset-commit-author">Reset Commit Author</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-06-19T00:00:00+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/git/2013/06/19/reset-commit-author#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/git/2013/06/19/reset-commit-author">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在如下两种情况下，你需要重新配置git commit 的author。</p>
+
+<ul>
+<li>在一个新的repo上面工作;</li>
+<li>用别人的机器(或者pair machine上)提交代码，而关于你的author信息并未添加在git配置中;</li>
+</ul>
+
+
+<p>假设你global git config ~/.gitconfg 中配置信息如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
+</span><span class='line'>     name = example
+</span><span class='line'>     email = example@example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>别人的机器(或者pair机器)的repo中git 配置信息如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
+</span><span class='line'>     name = pair
+</span><span class='line'>     email = pair@pair.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而你期望的提交信息为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>name = serious
+</span><span class='line'>email = serious@serious.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在第一种情况下，当你修改完代码提交后，log中对应的author信息为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Author: example &lt;example@example.com&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在第二种情况下，当你修改完代码提交后，log中对应的author信息为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Author: pair &lt;pair@pair.com&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>两种情况下，想要修改提交中的author信息，都可以通过:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git commit --amend --author=“serious &lt;serious@serious.com&gt;”</span></code></pre></td></tr></table></div></figure>
+
+
+<p>来重新设置。</p>
+
+<p>第一种情况，如果你需要将来长期在这个repo上工作的话。首先，修改repo下的.git/config文件，添加</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
+</span><span class='line'>     name = serious
+</span><span class='line'>     email = serious@serious.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后重新设置提交的author信息:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git commit --amend -C HEAD --reset-author</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Done</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -921,86 +1026,6 @@ because it is not standard SQL grammar.</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/tools/2011/11/09/set-up-github-pages">Set Up Github Page</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2011-11-09T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/tools/2011/11/09/set-up-github-pages#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/tools/2011/11/09/set-up-github-pages">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>创建一个<a href="www.github.com">github</a>账户</h1>
-
-<h1>设置好用户名，email和github的token</h1>
-
-<h1>创建一个新的repository，命名规则为username.github.com, 比如我创建的就是iambowen.github.com</h1>
-
-<h1>设置好remote的repos后在本地创建同样的repos，然后添加README和index.html文件,本地提交</h1>
-
-<h1>@git push -u origin master@,大约10分钟之后访问username.github.com,就可以看到新添加的index页面，比如<a href="http://iambowen.github.com">我的</a></h1>
-
-<h1>安装<a href="https://github.com/mojombo/jekyll/wiki/install">jekyll模版</a>, @gem install jekyll@</h1>
-
-<p>jekyll 是一个文本转换引擎(text transformation engine),
-它可以将Texttile/Markdown的标记语言转换为html的layout.通常的site基本结构如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>|-- _config.yml
-</span><span class='line'>|-- _includes
-</span><span class='line'>|-- _layouts
-</span><span class='line'>|   |-- default.html
-</span><span class='line'>|   `-- post.html
-</span><span class='line'>|-- _posts
-</span><span class='line'>|   |-- 2007-10-29-why-every-programmer-should-play-nethack.textile
-</span><span class='line'>|   `-- 2009-04-26-barcamp-boston-4-roundup.textile
-</span><span class='line'>|-- _site `-- index.html</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>_config.yml</code></p>
-
-<p>保存配置的文件.</p>
-
-<p><em>_includes</em>
-这里保存公用的patilal文件，在 <em>layouts 和 </em>posts 的文件中可以复用这些文件。</p>
-
-<p><em>_layout</em> 这里保存文章的模版文件</p>
-
-<p><em>_posts</em> 这里保存blog的文章,文件的格式通常使用YEAR-MONTH-DATE-title.MARKUP,然后github会自动的将这些文件转换.
-<em>_site</em>
-这里的文件可以由命令 @jekyll &ndash;pygments@生成之后在命令行启动 jekyll的服务器,@jekyll &ndash;server@.通过访问<a href="http://127.0.0.1/4000%E5%8E%BB%E9%A2%84%E8%A7%88post._site%E6%96%87%E4%BB%B6%E4%B8%8D%E9%9C%80%E8%A6%81push%E5%88%B0remote">http://127.0.0.1/4000%E5%8E%BB%E9%A2%84%E8%A7%88post._site%E6%96%87%E4%BB%B6%E4%B8%8D%E9%9C%80%E8%A6%81push%E5%88%B0remote</a> repos上,把它加到.gitignore文件中就可以了.</p>
-
-<p>写完一篇blog，预览后，就可以本地提交，push到远程主机上了。过几分钟，应该就能看到博文^_^了.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/8">&larr; Older</a>
@@ -1018,6 +1043,10 @@ because it is not standard SQL grammar.</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api">Using Akamai Diagnostic tools/API</a>
+      </li>
+    
+      <li class="post">
         <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
       </li>
     
@@ -1031,10 +1060,6 @@ because it is not standard SQL grammar.</p>
     
       <li class="post">
         <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
-      </li>
-    
-      <li class="post">
-        <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
       </li>
     
   </ul>

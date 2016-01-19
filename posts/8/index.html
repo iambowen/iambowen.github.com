@@ -9,7 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="It&rsquo;s not a problem when you use to git reset --hard to throw away commit. But often times, you need to first check whether there&rsquo;s still &hellip;">
+  <meta name="description" content="创建一个github账户 设置好用户名，email和github的token 创建一个新的repository，命名规则为username.github.com, 比如我创建的就是iambowen.github.com 设置好remote的repos后在本地创建同样的repos， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,86 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/tools/2011/11/09/set-up-github-pages">Set Up Github Page</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-11-09T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/tools/2011/11/09/set-up-github-pages#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/tools/2011/11/09/set-up-github-pages">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>创建一个<a href="www.github.com">github</a>账户</h1>
+
+<h1>设置好用户名，email和github的token</h1>
+
+<h1>创建一个新的repository，命名规则为username.github.com, 比如我创建的就是iambowen.github.com</h1>
+
+<h1>设置好remote的repos后在本地创建同样的repos，然后添加README和index.html文件,本地提交</h1>
+
+<h1>@git push -u origin master@,大约10分钟之后访问username.github.com,就可以看到新添加的index页面，比如<a href="http://iambowen.github.com">我的</a></h1>
+
+<h1>安装<a href="https://github.com/mojombo/jekyll/wiki/install">jekyll模版</a>, @gem install jekyll@</h1>
+
+<p>jekyll 是一个文本转换引擎(text transformation engine),
+它可以将Texttile/Markdown的标记语言转换为html的layout.通常的site基本结构如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>|-- _config.yml
+</span><span class='line'>|-- _includes
+</span><span class='line'>|-- _layouts
+</span><span class='line'>|   |-- default.html
+</span><span class='line'>|   `-- post.html
+</span><span class='line'>|-- _posts
+</span><span class='line'>|   |-- 2007-10-29-why-every-programmer-should-play-nethack.textile
+</span><span class='line'>|   `-- 2009-04-26-barcamp-boston-4-roundup.textile
+</span><span class='line'>|-- _site `-- index.html</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>_config.yml</code></p>
+
+<p>保存配置的文件.</p>
+
+<p><em>_includes</em>
+这里保存公用的patilal文件，在 <em>layouts 和 </em>posts 的文件中可以复用这些文件。</p>
+
+<p><em>_layout</em> 这里保存文章的模版文件</p>
+
+<p><em>_posts</em> 这里保存blog的文章,文件的格式通常使用YEAR-MONTH-DATE-title.MARKUP,然后github会自动的将这些文件转换.
+<em>_site</em>
+这里的文件可以由命令 @jekyll &ndash;pygments@生成之后在命令行启动 jekyll的服务器,@jekyll &ndash;server@.通过访问<a href="http://127.0.0.1/4000%E5%8E%BB%E9%A2%84%E8%A7%88post._site%E6%96%87%E4%BB%B6%E4%B8%8D%E9%9C%80%E8%A6%81push%E5%88%B0remote">http://127.0.0.1/4000%E5%8E%BB%E9%A2%84%E8%A7%88post._site%E6%96%87%E4%BB%B6%E4%B8%8D%E9%9C%80%E8%A6%81push%E5%88%B0remote</a> repos上,把它加到.gitignore文件中就可以了.</p>
+
+<p>写完一篇blog，预览后，就可以本地提交，push到远程主机上了。过几分钟，应该就能看到博文^_^了.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -260,6 +340,10 @@ detail</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api">Using Akamai Diagnostic tools/API</a>
+      </li>
+    
+      <li class="post">
         <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
       </li>
     
@@ -273,10 +357,6 @@ detail</p>
     
       <li class="post">
         <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
-      </li>
-    
-      <li class="post">
-        <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
       </li>
     
   </ul>

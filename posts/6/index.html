@@ -9,8 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="The common way install a new app in osx is like: Install from AppStore;
-Download *.dmg file and open it then click install script; For the App that &hellip;">
+  <meta name="description" content="找不到共享文件是我们在native build的时候经常遇到的问题，有一种情况是操作系统上确实没有该共享文件，还有一种是含有该共享文件的目录没有被加入到library 查询的路径中。 假设现在我们需要把 /opt/lib/lib.test.so 加入到library path中. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +79,104 @@ Download *.dmg file and open it then click install script; For the App that &hel
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/11/18/change-system-library-path">Change System Library Path</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-11-18T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/11/18/change-system-library-path#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/11/18/change-system-library-path">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>找不到共享文件是我们在native build的时候经常遇到的问题，有一种情况是操作系统上确实没有该共享文件，还有一种是含有该共享文件的目录没有被加入到library 查询的路径中。</p>
+
+<p>假设现在我们需要把 <code>/opt/lib/lib.test.so</code> 加入到library path中.
+在不想影响到系统配置的情况下，我们可以修改环境变量:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">export </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span>/opt/lib:<span class="nv">$LD_LIBRARY_PATH</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>easy right?
+如果你确信你是想一劳永逸的把<code>/opt/lib/</code>加入到library path中，那么可以直接修改ldconfig的配置:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo ldconfig <span class="p">|</span> grep opt
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>目前尚未出现<code>/opt/</code>。
+怎么办呢？直接去修改<code>/etc/ld.so.conf.d/</code> 下的配置文件。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>ls -al /etc/ld.so.conf.d/
+</span><span class='line'>total 16
+</span><span class='line'>drwxr-xr-x.  <span class="m">2</span> root root <span class="m">4096</span> Mar  <span class="m">9</span>  <span class="m">2013</span> .
+</span><span class='line'>drwxr-xr-x. <span class="m">65</span> root root <span class="m">4096</span> Nov <span class="m">18</span> 10:04 ..
+</span><span class='line'>-r--r--r--.  <span class="m">1</span> root root  <span class="m">324</span> Feb <span class="m">22</span>  <span class="m">2013</span> kernel-2.6.32-358.el6.x86_64.conf
+</span><span class='line'>-rw-r--r--.  <span class="m">1</span> root root   <span class="m">17</span> Dec  <span class="m">7</span>  <span class="m">2012</span> mysql-x86_64.conf
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>less /etc/ld.so.conf.d/mysql-x86_64.conf
+</span><span class='line'>/usr/lib64/mysql
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>看上去规则很简单，第一步为app添加配置文件，第二步在文件中写入library的路径。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo <span class="nb">echo</span> “/opt/lib” &gt; /etc/ld.so.conf.d/opt.conf
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>make it happen</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ld.so.conf.d<span class="o">]</span><span class="nv">$ </span>sudo ldconfig
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>vagrant@localhost ld.so.conf.d<span class="o">]</span><span class="nv">$ </span>ldconfig -v <span class="p">|</span> grep opt
+</span><span class='line'>/opt/lib:
+</span><span class='line'>ldconfig: File /opt/lib/lib.test.so is empty, not checked.    <span class="c">#测试文件</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So, are you happy now?</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1681,110 +1778,6 @@ yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件�
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/git/2013/06/19/reset-commit-author">Reset Commit Author</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2013-06-19T00:00:00+08:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/git/2013/06/19/reset-commit-author#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/git/2013/06/19/reset-commit-author">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>在如下两种情况下，你需要重新配置git commit 的author。</p>
-
-<ul>
-<li>在一个新的repo上面工作;</li>
-<li>用别人的机器(或者pair machine上)提交代码，而关于你的author信息并未添加在git配置中;</li>
-</ul>
-
-
-<p>假设你global git config ~/.gitconfg 中配置信息如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
-</span><span class='line'>     name = example
-</span><span class='line'>     email = example@example.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p>别人的机器(或者pair机器)的repo中git 配置信息如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
-</span><span class='line'>     name = pair
-</span><span class='line'>     email = pair@pair.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p>而你期望的提交信息为:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>name = serious
-</span><span class='line'>email = serious@serious.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在第一种情况下，当你修改完代码提交后，log中对应的author信息为:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Author: example &lt;example@example.com&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在第二种情况下，当你修改完代码提交后，log中对应的author信息为:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>Author: pair &lt;pair@pair.com&gt;</span></code></pre></td></tr></table></div></figure>
-
-
-<p>两种情况下，想要修改提交中的author信息，都可以通过:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git commit --amend --author=“serious &lt;serious@serious.com&gt;”</span></code></pre></td></tr></table></div></figure>
-
-
-<p>来重新设置。</p>
-
-<p>第一种情况，如果你需要将来长期在这个repo上工作的话。首先，修改repo下的.git/config文件，添加</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
-</span><span class='line'>     name = serious
-</span><span class='line'>     email = serious@serious.com</span></code></pre></td></tr></table></div></figure>
-
-
-<p>然后重新设置提交的author信息:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>git commit --amend -C HEAD --reset-author</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Done</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/7">&larr; Older</a>
@@ -1802,6 +1795,10 @@ yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件�
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api">Using Akamai Diagnostic tools/API</a>
+      </li>
+    
+      <li class="post">
         <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
       </li>
     
@@ -1815,10 +1812,6 @@ yum 依赖libcurl, 所以下载的时候，是单线程的，在不使用插件�
     
       <li class="post">
         <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
-      </li>
-    
-      <li class="post">
-        <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
       </li>
     
   </ul>

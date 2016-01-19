@@ -4,7 +4,7 @@
   <title><![CDATA[Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-01-10T14:44:57+08:00</updated>
+  <updated>2016-01-19T15:21:08+08:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -12,6 +12,104 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Using Akamai Diagnostic tools/API]]></title>
+    <link href="http://iambowen.github.com/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api"/>
+    <updated>2016-01-19T13:32:46+08:00</updated>
+    <id>http://iambowen.github.com/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api</id>
+    <content type="html"><![CDATA[<p>有时候在Akamai上提交应用修改后，因为配置的问题，可能出现错误，像下面这样：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>#30.657008d1.1452737568.1e40544</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过日志查找的方式去发现具体的问题可能会很耗时，因为需要等待akamai把日志上传。Akamai自己提供了解码错误代码的工具和API，具体的用法如下：</p>
+
+<h3>Lunar Control Centre 的 Diagnostic Tools</h3>
+
+<hr />
+
+<p>这个比较容易，从<code>Luna Control Center</code>选择<code>Resolve</code> => <code>Diagnostic Tools</code>。在<code>Service Debugging Tools</code>部分选择<code>Error Translator (Reference#)</code>，然后在<code>Error String:</code>的input中输入错误码的字符串，点击<code>Analyze</code>，等待一会就可以看到详细的错误信息以及原因。</p>
+
+<h3>使用Akamai Diagnostic API</h3>
+
+<hr />
+
+<ol>
+<li>Akamai提供了Sample Client去调用API，除了clone client的repo，还可以直接使用docker，直接运行<code>docker run -it akamaiopen/api-kickstart /bin/bash</code>既可。</li>
+<li>生成新的client请求的token。首先在<code>Luna Control Center</code>选择<code>CONFIGURE</code> => <code>Manage APIs</code>进入Open API 管理页面。在<code>Luna APIs</code>下面添加新的collection，然后在该collection添加新的client，就可以拿到新的tokens，点击右上角的导出按钮，就可以将其导出到一个文本文件中，如名为<code>api-kickstart.txt</code>的文件。</li>
+<li>在client端设置token。在client的目录下运行<code>python gen_edgerc.py -s default -f api-kickstart.txt</code>, 它会在用户根目录生成<code>~/.edgerc</code>的credential文件。通过<code>python verify_creds.py</code> 可以验证credential的有效性。<code>.edgerc</code>文件中的token其实也就是api请求时authorization的headers。</li>
+<li>测试请求。<code>.edgerc</code>文件设置验证完成后，可以使用<code>python diagnostic_tools.py</code>来测试，它实际请求的API endpoint是<code>/diagnostic-tools/v1/locations</code>和<code>/diagnostic-tools/v1/dig</code>,返回如下：</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>root@16119b2d4eb8:/opt/examples/python# python diagnostic_tools.py
+</span><span class='line'>
+</span><span class='line'>Requesting locations that support the diagnostic-tools API.
+</span><span class='line'>
+</span><span class='line'>There are 72 locations that can run dig in the Akamai Network
+</span><span class='line'>We will make our call from Adelaide, Australia
+</span><span class='line'>
+</span><span class='line'>; &lt;&lt;&gt;&gt; DiG 9.8.1-P1 &lt;&lt;&gt;&gt; developer.akamai.com -t A
+</span><span class='line'>;; global options: +cmd
+</span><span class='line'>;; Got answer:
+</span><span class='line'>;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 12919
+</span><span class='line'>;; flags: qr rd ra; QUERY: 1, ANSWER: 3, AUTHORITY: 8, ADDITIONAL: 8
+</span><span class='line'>
+</span><span class='line'>;; QUESTION SECTION:
+</span><span class='line'>;developer.akamai.com.        IN  A
+</span><span class='line'>
+</span><span class='line'>;; ANSWER SECTION:
+</span><span class='line'>developer.akamai.com. 300 IN  CNAME   san-developer.akamai.com.edgekey.net.
+</span><span class='line'>san-developer.akamai.com.edgekey.net. 21600 IN CNAME e4777.dscx.akamaiedge.net.
+</span><span class='line'>e4777.dscx.akamaiedge.net. 20 IN  A   23.4.164.144
+</span><span class='line'>
+</span><span class='line'>;; AUTHORITY SECTION:
+</span><span class='line'>dscx.akamaiedge.net.  4000    IN  NS  n6dscx.akamaiedge.net.
+</span><span class='line'>...............
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Akamai的diagnostic API的列表在<a href="https://developer.akamai.com/api/luna/diagnostic-tools/uses.html">这里</a>。ErrorCode解释的endpoint是<code>/diagnostic-tools/v1/errortranslator{?errorCode}</code>，通过重用例子中的python代码即可发起这样的请求，比如把<code>diagnostic_tools.py</code>修改如下（我就是这么懒）：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>+ location_result = httpCaller.getResult('/diagnostic-tools/v1/errortranslator?errorCode=30.657008d1.1452737568.1e40544')
+</span><span class='line'>- location_result = httpCaller.getResult('/diagnostic-tools/v1/locations')
+</span><span class='line'>+ print location_result["errorTranslator"]["reasonForFailure"]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>之后就可以看到错误的原因是<code>ERR_FWD_SSL_HANDSHAKE&amp;#x7c;err_conn_strict_cert</code>，也就是说我没有在CDN设置正确的certificate，导致它和origin的ssl handshake失败了。</p>
+
+<p>如果没有什么特殊的需求，akamai web console中的diagnostic tool就可以满足需求，逼格较高或者有自动化需求的可以从命令行调用API输出错误原因。</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Ci Solution With Mesos]]></title>
@@ -2087,389 +2185,6 @@ cron的这个地方是略坑的, 如果更改比较多，最好是指定完整�
 <p><a href="http://www.ruanyifeng.com/blog/2011/09/curl.html">1</a>
 <a href="https://gist.github.com/303182519/132568fd0e58cae57202">2</a>
 <a href="http://httpkit.com/resources/HTTP-from-the-Command-Line/">3</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Essential Wget]]></title>
-    <link href="http://iambowen.github.com/ops/2015/02/06/essential-wget"/>
-    <updated>2015-02-06T00:00:00+08:00</updated>
-    <id>http://iambowen.github.com/ops/2015/02/06/essential-wget</id>
-    <content type="html"><![CDATA[<h3>什么wget</h3>
-
-<hr />
-
-<p><a href="https://www.gnu.org/software/wget/">wget</a>是*nix下常用的下载文件或者测试web服务的工具，
-wget支持多种网络协议，但是从介绍看，wget更像是一个文件下载工具。</p>
-
-<h3>获取网页源码</h3>
-
-<hr />
-
-<p><code>wget</code>默认会将网页或者文件直接下载保存,所以直接显示返回内容的话，可以用 <code>-q</code>关闭<code>wget</code>的输出,然后用<code>-O -</code>
-将输出重定向到标准输出，然后用<code>cat</code>将内容打印出来。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget echo.httpkit.com
-</span><span class='line'>--2015-02-10 11:01:50--  http://echo.httpkit.com/
-</span><span class='line'>Resolving echo.httpkit.com... 50.112.251.120
-</span><span class='line'>Connecting to echo.httpkit.com<span class="p">|</span>50.112.251.120<span class="p">|</span>:80... connected.
-</span><span class='line'>HTTP request sent, awaiting response... <span class="m">200</span> OK
-</span><span class='line'>Length: <span class="m">374</span> <span class="o">[</span>application/json<span class="o">]</span>
-</span><span class='line'>Saving to: ‘index.html’
-</span><span class='line'>
-</span><span class='line'>~&gt; wget -qO - echo.httpkit.com <span class="p">|</span> cat
-</span><span class='line'>......
-</span><span class='line'> <span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
-</span><span class='line'>   <span class="s2">&quot;x-forwarded-for&quot;</span>: <span class="s2">&quot;210.74.157.146&quot;</span>,
-</span><span class='line'>   <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
-</span><span class='line'>   <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Wget/1.14 (darwin12.5.0)&quot;</span>,
-</span><span class='line'>   <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>
-</span><span class='line'> <span class="o">}</span>,
-</span><span class='line'> ......
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>文件下载</h3>
-
-<hr />
-
-<p><code>wget</code>缺省会将url中最后的文件作为文件名并且将文件保存在本地，用下面的命令可以将文件保存到指定的目录，这点比<code>curl</code>要好。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget -P /opt http://ergonlogic.com/files/boxes/debian-current.box
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>通过代理访问资源</h3>
-
-<hr />
-
-<p>有两种方式可以让<code>wget</code>时使用proxy，第一种是通过设置环境变量，<code>http_proxy, https_proxy</code>。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; <span class="nb">export </span><span class="nv">http_proxy</span><span class="o">=</span><span class="s2">&quot;http://proxy:3128&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>让proxy对一些地址无效。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; <span class="nb">export </span><span class="nv">no_proxy</span><span class="o">=</span><span class="s2">&quot;127.0.0.1,localhost.localdomain&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>另外一种是在运行命令时直接指定使用的proxy或者不使用proxy。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget  -e <span class="nv">http_proxy</span><span class="o">=</span>127.0.0.1:8080 www.baidu.com
-</span><span class='line'>~&gt; wget --no-proxy www.baidu.com
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>同样是不使用proxy，curl的<code>--noproxy</code>是需要指定一个exclude的列表，但是wget的<code>--no-proxy</code>就是
-针对当前访问资源，不使用proxy。</p>
-
-<h3>花式下载和断点续传</h3>
-
-<hr />
-
-<p>对于wildcard支持，wget的介绍感觉有点乱，提供的参数看上去不怎么友好，想实现和<code>curl</code>中一样的效果，可能要换个方式。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget  http://iambowen.github.io/images/<span class="o">{</span>1..3<span class="o">}</span>.png
-</span><span class='line'>--2015-02-17 14:19:35--  http://iambowen.github.io/images/1.png
-</span><span class='line'>Resolving iambowen.github.io... 103.245.222.133
-</span><span class='line'>Connecting to iambowen.github.io<span class="p">|</span>103.245.222.133<span class="p">|</span>:80... connected.
-</span><span class='line'>HTTP request sent, awaiting response... <span class="m">200</span> OK
-</span><span class='line'>Length: <span class="m">227632</span> <span class="o">(</span>222K<span class="o">)</span> <span class="o">[</span>image/png<span class="o">]</span>
-</span><span class='line'>Saving to: ‘1.png’
-</span><span class='line'>--2015-02-17 14:19:35--  http://iambowen.github.io/images/2.png
-</span><span class='line'>Reusing existing connection to iambowen.github.io:80.
-</span><span class='line'>HTTP request sent, awaiting response... <span class="m">200</span> OK
-</span><span class='line'>Length: <span class="m">350735</span> <span class="o">(</span>343K<span class="o">)</span> <span class="o">[</span>image/png<span class="o">]</span>
-</span><span class='line'>Saving to: ‘2.png’
-</span><span class='line'>.....
-</span><span class='line'>Saving to: ‘3.png’
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>获取headers信息</h3>
-
-<hr />
-
-<p>wget可以用<code>-S</code>参数来查看返回的header信息。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget -qS www.baidu.com
-</span><span class='line'> HTTP/1.1 <span class="m">200</span> OK
-</span><span class='line'> Date: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 08:27:27 GMT
-</span><span class='line'> Content-Type: text/html<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>utf-8
-</span><span class='line'> Transfer-Encoding: chunked
-</span><span class='line'> Connection: Keep-Alive
-</span><span class='line'> ......
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>返回redirection信息</h3>
-
-<hr />
-
-<p>不同于curl，wget缺省就是follow redirections。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget -qS www.google.com
-</span><span class='line'> HTTP/1.1 <span class="m">302</span> Found
-</span><span class='line'> Location: http://www.google.com.hk/url?sa<span class="o">=</span>p<span class="p">&amp;</span><span class="nv">hl</span><span class="o">=</span>zh-CN<span class="p">&amp;</span><span class="nv">pref</span><span class="o">=</span>hkredirect<span class="p">&amp;</span><span class="nv">pval</span><span class="o">=</span>yes<span class="p">&amp;</span><span class="nv">q</span><span class="o">=</span>http://www.google.com.hk/%3Fgws_rd%3Dcr<span class="p">&amp;</span><span class="nv">ust</span><span class="o">=</span>1423559992840904<span class="p">&amp;</span><span class="nv">usg</span><span class="o">=</span>AFQjCNFkDUqlbUFFIcVDOEXMELBQnEsZIA
-</span><span class='line'> Cache-Control: private
-</span><span class='line'> Content-Type: text/html<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>UTF-8
-</span><span class='line'> ......
-</span><span class='line'> HTTP/1.1 <span class="m">302</span> Found
-</span><span class='line'> Location: http://www.google.com.hk/?gws_rd<span class="o">=</span>cr
-</span><span class='line'> Cache-Control: private
-</span><span class='line'> ......
-</span><span class='line'> HTTP/1.1 <span class="m">200</span> OK
-</span><span class='line'> Date: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 09:19:23 GMT
-</span><span class='line'> Expires: -1
-</span><span class='line'> ......
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>加入验证的请求</h3>
-
-<hr />
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget http://user:password@echo.httpkit.com?queryString
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>伪装user agent的请求</h3>
-
-<hr />
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --user-agent<span class="o">=</span><span class="s2">&quot;Mozilla: Gay&quot;</span> -qO- echo.httpkit.com <span class="p">|</span> cat
-</span><span class='line'><span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
-</span><span class='line'>  <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Mozilla: Gay&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>-U</code>的作用和<code>--user-agent</code>一样, wget的option parse是用<code>getopt</code>实现，所以可以理解<code>-U</code>的存在。</p>
-
-<h3>request with HTTP header</h3>
-
-<hr />
-
-<p>使用<code>--header=String</code>去添加header,可以在一个请求中设置多次。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --header<span class="o">=</span><span class="s2">&quot;Cartman: is bitch&quot;</span>  --header<span class="o">=</span><span class="s2">&quot;JB: stands for Justin Bieber&quot;</span> -qO- echo.httpkit.com <span class="p">|</span> cat
-</span><span class='line'>.....
-</span><span class='line'> <span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
-</span><span class='line'>   <span class="s2">&quot;x-forwarded-for&quot;</span>: <span class="s2">&quot;210.74.157.146&quot;</span>,
-</span><span class='line'>   <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
-</span><span class='line'>   <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Wget/1.14 (darwin12.5.0)&quot;</span>,
-</span><span class='line'>   <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>,
-</span><span class='line'>   <span class="s2">&quot;cartman&quot;</span>: <span class="s2">&quot;is bitch&quot;</span>,
-</span><span class='line'>   <span class="s2">&quot;jb&quot;</span>: <span class="s2">&quot;stands for Justin Bieber&quot;</span>
-</span><span class='line'> <span class="o">}</span>,
-</span><span class='line'>.....
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>HTTP 请求</h3>
-
-<hr />
-
-<p><code>wget</code>支持自定义HTTP请求类型，可以用<code>--method=</code>去指定HTTP请求的方法，注意，比较老的版本中没有提供这项功能。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --method<span class="o">=</span><span class="s2">&quot;PUT&quot;</span> --header<span class="o">=</span><span class="s1">&#39;Content-Type: application/json&#39;</span> --body-data<span class="o">=</span><span class="s2">&quot;firstName=Kris&amp;lastName=Jordan&quot;</span> echo.httpkit.com
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'><span class="s2">&quot;method&quot;</span>: <span class="s2">&quot;PUT&quot;</span>,
-</span><span class='line'>......
-</span><span class='line'><span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
-</span><span class='line'>  <span class="s2">&quot;x-forwarded-for&quot;</span>: <span class="s2">&quot;210.74.157.146&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Wget/1.16.1 (darwin14.0.0)&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;accept-encoding&quot;</span>: <span class="s2">&quot;identity&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;content-type&quot;</span>: <span class="s2">&quot;application/json&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;content-length&quot;</span>: <span class="s2">&quot;30&quot;</span>
-</span><span class='line'><span class="o">}</span>,
-</span><span class='line'><span class="s2">&quot;body&quot;</span>: <span class="s2">&quot;firstName=Kris&amp;lastName=Jordan&quot;</span>,
-</span><span class='line'>......
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如果是用POST方法则简单了许多，直接指定请求的body string就可以。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --header<span class="o">=</span><span class="s1">&#39;Content-Type: application/json&#39;</span> --post-data<span class="o">=</span><span class="s2">&quot;firstName=Kris&amp;lastName=Jordan&quot;</span> -qO- echo.httpkit.com <span class="p">|</span> cat
-</span><span class='line'><span class="o">{</span>
-</span><span class='line'><span class="s2">&quot;method&quot;</span>: <span class="s2">&quot;POST&quot;</span>,
-</span><span class='line'>......
-</span><span class='line'><span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
-</span><span class='line'>  <span class="s2">&quot;x-forwarded-for&quot;</span>: <span class="s2">&quot;210.74.157.146&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Wget/1.16.1 (darwin14.0.0)&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;accept-encoding&quot;</span>: <span class="s2">&quot;identity&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;content-type&quot;</span>: <span class="s2">&quot;application/json&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;content-length&quot;</span>: <span class="s2">&quot;30&quot;</span>
-</span><span class='line'><span class="o">}</span>,
-</span><span class='line'><span class="s2">&quot;body&quot;</span>: <span class="s2">&quot;firstName=Kris&amp;lastName=Jordan&quot;</span>,
-</span><span class='line'>......
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>组装body的方式比curl要稍微简单些，但是不太直观，不是很喜欢。</p>
-
-<h3>处理cookies</h3>
-
-<hr />
-
-<p>保存cookie到本地</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --save-cookies cookies.txt -q www.baidu.com
-</span><span class='line'>~&gt; less cookies.txt
-</span><span class='line'><span class="c"># HTTP cookie file.</span>
-</span><span class='line'><span class="c"># Generated by Wget on 2015-02-17 16:05:04.</span>
-</span><span class='line'><span class="c"># Edit at your own risk.</span>
-</span><span class='line'>
-</span><span class='line'>.baidu.com      TRUE    /       FALSE   <span class="m">3571643951</span>      BAIDUPSID       3603BF98B1056E609FE72D7D976C0235
-</span><span class='line'>.baidu.com      TRUE    /       FALSE   <span class="m">3571643951</span>      BAIDUID 3603BF98B1056E609FE72D7D976C0235:FG<span class="o">=</span>1
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>请求时携带cookie</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; wget --load-cookies cookies.txt  -q www.baidu.com
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>除此之外，还可以在请求时的header中添加cookie信息。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>wget --no-cookies --header <span class="s2">&quot;Cookie: name=value&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>FYI</h3>
-
-<hr />
-
-<p>wget还有一些其他的黑科技，比如可以下载整个网站之类的，不过平常应该不太会用到。
-Anyway,还是觉得curl要比wget好用些-_-!</p>
 ]]></content>
   </entry>
   

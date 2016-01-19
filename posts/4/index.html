@@ -9,7 +9,8 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="最近接了张从Nagios移植到PagerDuty的卡，活都让同事干了，自己就利用这个时间，看了看文档，基本理解了Nagios的监控的原理以及配置的方法，总结成PPT，在组内做了分享，如下。 ">
+  <meta name="description" content="最近做数据中心应用运维的工作比较多，接触到了puppet这个工具。看了下官方文档，了解了基本语法，原理。直观的感觉puppet是一个使用起来比较简单的配置管理工具，跨平台方面做的也挺好的，还支持osx，比起chef来，概念要少一些。
+PPT如下: ">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +80,42 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/puppet,ops/2014/09/29/introduction-to-puppet">Introduction to Puppet</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-09-29T00:00:00+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/puppet,ops/2014/09/29/introduction-to-puppet#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/puppet,ops/2014/09/29/introduction-to-puppet">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近做数据中心应用运维的工作比较多，接触到了puppet这个工具。看了下官方文档，了解了基本语法，原理。直观的感觉puppet是一个使用起来比较简单的配置管理工具，跨平台方面做的也挺好的，还支持osx，比起chef来，概念要少一些。
+PPT如下:</p>
+
+<script async class="speakerdeck-embed" data-id="1b0421b029f201329590166834114127" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1180,220 +1217,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2014/03/17/learning-scala-environment-setup">Learning Scala: Prepare Development Environment</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2014-03-17T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/2014/03/17/learning-scala-environment-setup#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/2014/03/17/learning-scala-environment-setup">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>最近开始翻译<a href="http://shop.oreilly.com/product/0636920026914.do">Scala Cookbook</a>, 希望能为Scala这门语言的推广做出些贡献。就我自己的学习语言和阅读教材经验来看，教材无法覆盖很多实际的使用过程中碰到的问题，比如环境问题等。于是想写一些列总结性blog，也算是自己的总结了。</p>
-
-<h2>Scala的安装:</h2>
-
-<p>安装前先确保机器上已经有java的环境，因为Scala同样需要JVM虚拟机。
-<a href="http://www.scala-lang.org/">Scala</a>最新的版本是2.10.x, 安装的方法很简单，下载解压安装包，把<code>scala/bin</code>目录加入到<code>PATH</code>环境变量中即可，如下的脚本在OSX和*nux下适用。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">link</span><span class="o">=</span><span class="s2">&quot;http://www.scala-lang.org/files/archive/scala-2.10.3.tgz&quot;</span>
-</span><span class='line'>curl -O <span class="nv">$link</span> <span class="o">&amp;&amp;</span> tar xvzf scala-2.10.3.tgz ~/ <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">&quot;export PATH=~/scala/bin/:$PATH&quot;</span>  &gt;&gt; ~/.bash_profile <span class="o">&amp;&amp;</span> <span class="nb">source</span> ~/.bash_profile
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在命令行敲入<code>scala</code>就可以进入Scala的console(解释器)了。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; scala
-</span><span class='line'>Welcome to Scala version 2.10.3 <span class="o">(</span>Java HotSpot<span class="o">(</span>TM<span class="o">)</span> 64-Bit Server VM, Java 1.7.0_51<span class="o">)</span>.
-</span><span class='line'>Type in expressions to have them evaluated.
-</span><span class='line'>Type :help <span class="k">for</span> more information.
-</span><span class='line'>scala&gt;
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>还有一种办法是安装<a href="http://www.scala-sbt.org/">SBT</a>, Scala工程的构建工具，OSX下直接用<a href="http://brew.sh/">Homebrew</a>就可以安装.
-<code>brew install sbt</code>
-可能需要修改java虚拟机的启动参数，否则可能出错:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s2">&quot;export JAVA_OPTS=\&quot;-XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:PermSize=256M -XX:MaxPermSize=512M\&quot;&quot;</span> &gt;&gt; ~/.bash_profile <span class="o">&amp;&amp;</span> <span class="nb">source</span> ~/.bash_profile
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>用<code>sbt console</code>进入Scala的REPL console。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; sbt console
-</span><span class='line'><span class="o">[</span>info<span class="o">]</span> Starting scala interpreter...
-</span><span class='line'><span class="o">[</span>info<span class="o">]</span>
-</span><span class='line'>Welcome to Scala version 2.10.3 <span class="o">(</span>Java HotSpot<span class="o">(</span>TM<span class="o">)</span> 64-Bit Server VM, Java 1.7.0_51<span class="o">)</span>.
-</span><span class='line'>Type in expressions to have them evaluated.
-</span><span class='line'>Type :help <span class="k">for</span> more information.
-</span><span class='line'>
-</span><span class='line'>scala&gt;
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Scala REPL 的使用</h2>
-
-<p><code>:help</code>可以告诉你想要的关于Scala REPL的一切信息，个人觉得几个比较有用的命令有<code>:paste</code>, <code>:load</code>, <code>:sh</code>, <code>:history</code>等。
-<code>:paste</code>,直接在Scala console里面编辑代码相对来说不是很方便，你可以选择自己熟悉的编辑器，完成代码，使用<code>:paste</code>命令，<code>Command + V</code>将代码拷贝到Scala REPL中，之后按<code>Ctrl + D</code>退出，对应的代码就被load到当前的进程当中了。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; :paste
-</span><span class='line'>// Entering paste mode <span class="o">(</span>ctrl-D to finish<span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'>def hello<span class="o">()</span> <span class="o">=</span> println<span class="o">(</span><span class="s2">&quot;hello, world&quot;</span><span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'>// Exiting paste mode, now interpreting.
-</span><span class='line'>
-</span><span class='line'>hello: <span class="o">()</span>Unit
-</span><span class='line'>
-</span><span class='line'>scala&gt; hello
-</span><span class='line'>hello, world
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>在Scala console中也可以执行shell的命令，结果会被保存到一个list中，如下</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; :sh ls
-</span><span class='line'>res15: scala.tools.nsc.interpreter.ProcessResult <span class="o">=</span> <span class="sb">`</span>ls<span class="sb">`</span> <span class="o">(</span><span class="m">6</span> lines, <span class="nb">exit </span>0<span class="o">)</span>
-</span><span class='line'>
-</span><span class='line'>scala&gt; res15.toArray
-</span><span class='line'>res16: Array<span class="o">[</span>String<span class="o">]</span> <span class="o">=</span> Array<span class="o">(</span>README.md, cn, code_examples, conventions.yml, en, target<span class="o">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>用<code>:load</code>命令+文件路径，可以加载Scala文件，导入你自定义的类/代码。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; :load ./code_examples/chap1/hello.scala
-</span><span class='line'>Loading ./code_examples/chap1/hello.scala...
-</span><span class='line'>hello, world
-</span><span class='line'>
-</span><span class='line'>scala&gt;
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Scala的console支持和shell类似的history功能，你可以用<code>Ctrl + R</code>去搜寻前面执行过的代码再来一次，用<code>:history</code>查看所有的曾经运行过的代码。比较尴尬的是，虽然SBT文档里面注明是可以用shebang的方式去执行历史代码，我在REPL中却没有试验成功。Anyway，这个不是特别重要了。
-还有些命令诸如<code>:implicits</code>，显示当前scope中的隐式定义，<code>:imports</code>可以显示导入类库的记录。
-我好像没有说明console的最重要的作用。。。，那就是解释scala代码并返回结果，这个时候的Scala代码就像脚本一样，支持自动补齐，不过功能不是很强大。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; val <span class="nv">x</span> <span class="o">=</span> <span class="m">1</span> + 2
-</span><span class='line'>x: <span class="nv">Int</span> <span class="o">=</span> 3
-</span><span class='line'>scala&gt; <span class="s2">&quot;hello &quot;</span> * <span class="m">5</span>   <span class="c">#如果没有显式的赋值，scala解释器会给把结果指定一个变量名</span>
-</span><span class='line'>res1: <span class="nv">String</span> <span class="o">=</span> <span class="s2">&quot;hello hello hello hello hello &quot;</span>
-</span><span class='line'>scala&gt; println<span class="o">(</span>res1<span class="o">)</span>
-</span><span class='line'>hello hello hello hello hello
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>编译运行一个Scala文件</h2>
-
-<p>用<code>scalac</code>和<code>scala</code>命令，和使用<code>javac</code>和<code>java</code>命令很像，都会生成class文件。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='scala'><span class='line'><span class="cm">/*helloworld, example, helloworld.scala*/</span>
-</span><span class='line'><span class="k">object</span> <span class="nc">HelloWorld</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
-</span><span class='line'>   <span class="n">println</span><span class="o">(</span><span class="s">&quot;Hello, World&quot;</span><span class="o">);</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>用<code>scalac</code>命令编译</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; scalac helloworld.scala
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>用<code>scala</code>命令运行</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; scala HelloWorld
-</span><span class='line'>Hello, World
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h2>Scala IDE</h2>
-
-<p>Intelij, NetBeads和Eclipse都提供了Scala支持，看个人喜欢，可以随意选择。Netbeans的Scala插件是由国内的一个程序员邓草原开发的。当然，你也可以考虑其他的工具比如Emacs，Vim，Sublime或者Atom。</p>
-
-<ul>
-<li><a href="http://scala-ide.org/">eclipse</a></li>
-<li><a href="http://www.jetbrains.com/idea/download/">intelij + Scala plugin</a></li>
-<li><a href="https://github.com/dcaoyuan/nbscala">netbeans scala</a></li>
-<li><a href="https://github.com/derekwyatt/vim-scala">VIM with Scala</a></li>
-<li><a href="https://github.com/sublimescala/sublime-ensime">Sublime with scala</a></li>
-</ul>
-
-
-<p>关于开发环境，基本就是这些了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/5">&larr; Older</a>
@@ -1411,6 +1234,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api">Using Akamai Diagnostic tools/API</a>
+      </li>
+    
+      <li class="post">
         <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
       </li>
     
@@ -1424,10 +1251,6 @@
     
       <li class="post">
         <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
-      </li>
-    
-      <li class="post">
-        <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a>
       </li>
     
   </ul>
