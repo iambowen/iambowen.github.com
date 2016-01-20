@@ -9,7 +9,8 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="创建一个github账户 设置好用户名，email和github的token 创建一个新的repository，命名规则为username.github.com, 比如我创建的就是iambowen.github.com 设置好remote的repos后在本地创建同样的repos， &hellip;">
+  <meta name="description" content="On duplicate key update is to stop the duplication in unique index or primary
+key, and try to update the row with new value.And it only functions &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +80,160 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/mysql/2011/11/26/on-duplicate-key-update">Mysql--on Duplicate Key Update</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-11-26T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/mysql/2011/11/26/on-duplicate-key-update#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/mysql/2011/11/26/on-duplicate-key-update">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>On duplicate key update is to stop the duplication in unique index or primary
+key, and try to update the row with new value.And it only functions with mysql
+because it is not standard SQL grammar.</p>
+
+<p>Create database and choose it</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; create database <span class="nb">test</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">1</span> row affected <span class="o">(</span>0.00 sec<span class="o">)</span>
+</span><span class='line'>mysql&gt; use <span class="nb">test</span><span class="p">;</span>
+</span><span class='line'>Database changed
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Create a table with primary key</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; create table pet<span class="o">(</span>a CHAR<span class="o">(</span>1<span class="o">)</span>, b CHAR<span class="o">(</span>1<span class="o">)</span>, primary key<span class="o">(</span>a<span class="o">))</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">0</span> rows affected <span class="o">(</span>0.06 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And initialize a row</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; insert into pet values<span class="o">(</span><span class="s1">&#39;1&#39;</span>, <span class="s1">&#39;2&#39;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">1</span> row affected <span class="o">(</span>0.00 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>insert new value with the same primary key</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; insert into pet values<span class="o">(</span><span class="s1">&#39;1&#39;</span>, <span class="s1">&#39;3&#39;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'>ERROR <span class="m">1062</span> <span class="o">(</span>23000<span class="o">)</span>: Duplicate entry <span class="s1">&#39;1&#39;</span> <span class="k">for</span> key <span class="s1">&#39;PRIMARY&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>drop primary key property</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; alter table pet drop PRIMARY KEY<span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">1</span> row affected <span class="o">(</span>0.06 sec<span class="o">)</span>
+</span><span class='line'>Records: <span class="m">1</span>  Duplicates: <span class="m">0</span>  Warnings: 0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>insert again, cool, done</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; insert into pet values<span class="o">(</span><span class="s1">&#39;1&#39;</span>, <span class="s1">&#39;3&#39;</span><span class="o">)</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">1</span> row affected <span class="o">(</span>0.00 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>what we have now? values with duplicated key</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; <span class="k">select</span> * from pet<span class="p">;</span>
+</span><span class='line'>+---+------+
+</span><span class='line'><span class="p">|</span> a <span class="p">|</span> b    <span class="p">|</span>
+</span><span class='line'>+---+------+
+</span><span class='line'><span class="p">|</span> <span class="m">1</span> <span class="p">|</span> <span class="m">2</span>    <span class="p">|</span>
+</span><span class='line'><span class="p">|</span> <span class="m">1</span> <span class="p">|</span> <span class="m">3</span>    <span class="p">|</span>
+</span><span class='line'>+---+------+
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>change the primary key back</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; alter table pet add primary key<span class="o">(</span>b<span class="o">)</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">2</span> rows affected <span class="o">(</span>0.11 sec<span class="o">)</span>
+</span><span class='line'>Records: <span class="m">2</span>  Duplicates: <span class="m">0</span>  Warnings: 0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>insert the value with  on duplicate key update</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; insert into pet values<span class="o">(</span><span class="s1">&#39;4&#39;</span>, <span class="s1">&#39;3&#39;</span><span class="o">)</span> on duplicate key update <span class="nv">a</span> <span class="o">=</span> values<span class="o">(</span>a<span class="o">)</span><span class="p">;</span>
+</span><span class='line'>Query OK, <span class="m">2</span> rows affected <span class="o">(</span>0.00 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>the result:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mysql&gt; <span class="k">select</span> * from pet<span class="p">;</span>
+</span><span class='line'>+---+---+
+</span><span class='line'><span class="p">|</span> a <span class="p">|</span> b <span class="p">|</span>
+</span><span class='line'>+---+---+
+</span><span class='line'><span class="p">|</span> <span class="m">1</span> <span class="p">|</span> <span class="m">2</span> <span class="p">|</span>
+</span><span class='line'><span class="p">|</span> <span class="m">4</span> <span class="p">|</span> <span class="m">3</span> <span class="p">|</span>
+</span><span class='line'>+---+---+
+</span><span class='line'><span class="m">2</span> rows in <span class="nb">set</span> <span class="o">(</span>0.00 sec<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -340,6 +495,10 @@ detail</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox">Hand Over DNS Resolve to VirutalBox</a>
+      </li>
+    
+      <li class="post">
         <a href="/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api">Using Akamai Diagnostic tools/API</a>
       </li>
     
@@ -353,10 +512,6 @@ detail</p>
     
       <li class="post">
         <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
-      </li>
-    
-      <li class="post">
-        <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
       </li>
     
   </ul>

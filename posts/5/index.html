@@ -9,7 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="最近开始翻译Scala Cookbook, 希望能为Scala这门语言的推广做出些贡献。就我自己的学习语言和阅读教材经验来看，教材无法覆盖很多实际的使用过程中碰到的问题，比如环境问题等。于是想写一些列总结性blog，也算是自己的总结了。 Scala的安装: 安装前先确保机器上已经有java的环境， &hellip;">
+  <meta name="description" content="简单介绍Scala一些基本的概念，主要参考书籍为高宇翔翻译的《快学Scala》第一章。 声明变量:val和var的区别 val 是Scala中用来申明常量(常量变量)的关键字，对应的 var 是用来申明变量的关键字。当我们知道这个概念的时候，对它们区别应该就比较清晰了。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +79,300 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2014/03/24/learning-scala-some-basics">Learning Scala: Some Basics</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-03-24T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2014/03/24/learning-scala-some-basics#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2014/03/24/learning-scala-some-basics">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>简单介绍Scala一些基本的概念，主要参考书籍为高宇翔翻译的<a href="http://url6.org/ovN">《快学Scala》</a>第一章。</p>
+
+<h4>声明变量:val和var的区别</h4>
+
+<p><code>val</code> 是Scala中用来申明常量(常量变量)的关键字，对应的 <code>var</code> 是用来申明变量的关键字。当我们知道这个概念的时候，对它们区别应该就比较清晰了。Scala中的常量字面量必须是全大写字母。有例为证:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#申明常量变量</span>
+</span><span class='line'>scala&gt; val <span class="nv">a</span> <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>
+</span><span class='line'>a: <span class="nv">String</span> <span class="o">=</span> hello
+</span><span class='line'>
+</span><span class='line'>scala&gt; <span class="nv">a</span> <span class="o">=</span> <span class="s2">&quot;hello, world&quot;</span>
+</span><span class='line'>&lt;console&gt;:8: error: reassignment to val
+</span><span class='line'>       <span class="nv">a</span> <span class="o">=</span> <span class="s2">&quot;hello, world&quot;</span>
+</span><span class='line'>         ^
+</span><span class='line'><span class="c">#声明变量</span>
+</span><span class='line'>scala&gt; var <span class="nv">b</span> <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>
+</span><span class='line'>b: <span class="nv">String</span> <span class="o">=</span> hello
+</span><span class='line'>
+</span><span class='line'><span class="c">#声明常量字面量</span>
+</span><span class='line'>scala&gt; <span class="nv">b</span> <span class="o">=</span> <span class="s2">&quot;hello, world&quot;</span>
+</span><span class='line'>b: <span class="nv">String</span> <span class="o">=</span> hello, world
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; val <span class="nv">A</span> <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>
+</span><span class='line'>A: <span class="nv">String</span> <span class="o">=</span> hello
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Scala会根据初始化的值，自动推断出常量/变量的类型，这个叫做<a href="http://scala.wisdomfish.org/scala-research/type-inference">“类型推断”</a>，能想到的类似的概念是Ruby的duck typing，不过Scala是静态语言，并且类型安全(TypeSafe)。
+当然你也可以显式的指明变量的类型，用过pascal的同学应该很熟悉这种方式:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; val c:String <span class="o">=</span> <span class="s2">&quot;hello, world&quot;</span>
+</span><span class='line'>c: <span class="nv">String</span> <span class="o">=</span> hello, world
+</span><span class='line'>scala&gt; val c:String <span class="o">=</span> null
+</span><span class='line'>c: <span class="nv">String</span> <span class="o">=</span> null
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Scala支持同时为多个变量赋同一个值，或者像Ruby一样并行赋值，只不过语法略有不同，:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; val d, <span class="nv">e</span> <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>
+</span><span class='line'>d: <span class="nv">String</span> <span class="o">=</span> hello
+</span><span class='line'>e: <span class="nv">String</span> <span class="o">=</span> hello
+</span><span class='line'><span class="c">#类型不匹配会报错</span>
+</span><span class='line'>scala&gt; val d, e:Int <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>
+</span><span class='line'>&lt;console&gt;:7: error: <span class="nb">type </span>mismatch<span class="p">;</span>
+</span><span class='line'> found   : String<span class="o">(</span><span class="s2">&quot;hello&quot;</span><span class="o">)</span>
+</span><span class='line'> required: Int
+</span><span class='line'>       val d, e:Int <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>
+</span><span class='line'>                      ^
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>并行赋值的例子，实际上是模式匹配:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; val <span class="o">(</span>a: String, b: Int<span class="o">)</span> <span class="o">=</span> <span class="o">(</span><span class="s2">&quot;hello&quot;</span>, 100<span class="o">)</span>
+</span><span class='line'>a: <span class="nv">String</span> <span class="o">=</span> hello
+</span><span class='line'>b: <span class="nv">Int</span> <span class="o">=</span> 100
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>对比下Ruby的代码:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>irb<span class="o">(</span>main<span class="o">)</span>:004:0&gt; a, <span class="nv">b</span> <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>, <span class="nv">100</span>
+</span><span class='line'><span class="o">=</span>&gt; <span class="o">[</span><span class="s2">&quot;hello&quot;</span>, 100<span class="o">]</span>
+</span><span class='line'>irb<span class="o">(</span>main<span class="o">)</span>:005:0&gt; <span class="nv">a</span>
+</span><span class='line'><span class="o">=</span>&gt; <span class="s2">&quot;hello&quot;</span>
+</span><span class='line'>irb<span class="o">(</span>main<span class="o">)</span>:006:0&gt; <span class="nv">b</span>
+</span><span class='line'><span class="o">=</span>&gt; 100
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>常用类型</h4>
+
+<p>和Java一样，Scala有7种基本的数值类型(Byte, Char, Short, Double, Int, Long, Boolean)，不同之处在于它们不是基本类型(Primary Type)，全部都是Class。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; 1.getClass
+</span><span class='line'>res4: Class<span class="o">[</span>Int<span class="o">]</span> <span class="o">=</span> int
+</span><span class='line'>scala&gt; <span class="s2">&quot;hello&quot;</span>.getClass
+</span><span class='line'>res1: Class<span class="o">[</span>_ &lt;: String<span class="o">]</span> <span class="o">=</span> class java.lang.String
+</span><span class='line'>scala&gt; 1.5.getClass
+</span><span class='line'>res2: Class<span class="o">[</span>Double<span class="o">]</span> <span class="o">=</span> double
+</span><span class='line'>scala&gt; 1.to<span class="o">(</span>5<span class="o">)</span>
+</span><span class='line'>res6: scala.collection.immutable.Range.Inclusive <span class="o">=</span> Range<span class="o">(</span>1, 2, 3, 4, 5<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Scala对这些数值类型做了扩展，功能远比Java的对应类型强大，比如在处理String对象的时候，Scala可以将String对象隐式转换成StringOps对象，使用一些高级的方法：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; <span class="s2">&quot;hello&quot;</span>.intersect<span class="o">(</span><span class="s2">&quot;world&quot;</span><span class="o">)</span>
+</span><span class='line'>res3: <span class="nv">String</span> <span class="o">=</span> lo
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Scala中用方法进行类型转换，而不是和Java一样去强制类型转换。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; 1.1.toInt
+</span><span class='line'>res7: <span class="nv">Int</span> <span class="o">=</span> 1
+</span><span class='line'>scala&gt; 107.toChar
+</span><span class='line'>res8: <span class="nv">Char</span> <span class="o">=</span> k
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>算术符和操作符重载</h4>
+
+<p>就结果和使用来说，Scala中的算术符(+-*/%&amp;|^>>&lt;&lt;)和Java/c/c++/ruby没什么区别，不过Scala的算术/操作符本质上是方法，刚开始觉得奇怪，后来想想这样做可以保证一致性，也很不错：</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; <span class="m">1</span> + 2
+</span><span class='line'>res9: <span class="nv">Int</span> <span class="o">=</span> 3
+</span><span class='line'>
+</span><span class='line'>scala&gt; 1.+<span class="o">(</span>2<span class="o">)</span>
+</span><span class='line'>res10: <span class="nv">Double</span> <span class="o">=</span> 3.0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Scala也没有提供++或者&ndash;操作符，+=和-=是等价的代替方式。为什么没有呢？书中给出的理由是实现这个特性不值得……不能理解，是觉得会像c++或者Java一样带来副作用么？</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; var <span class="nv">b</span> <span class="o">=</span> 1
+</span><span class='line'>b: <span class="nv">Int</span> <span class="o">=</span> 1
+</span><span class='line'>
+</span><span class='line'>scala&gt; b +<span class="o">=</span> 1
+</span><span class='line'>
+</span><span class='line'>scala&gt; b
+</span><span class='line'>res20: <span class="nv">Int</span> <span class="o">=</span> 2
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在Scala中，操作符重载功能没有实现，给出的理由比较牵强，不明白为什么那么想。</p>
+
+<h4>定义和使用方法</h4>
+
+<p>Scala中用<code>def</code>关键字定义方法，可以显示的制定输入参数以及返回的类型。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">def</span> <span class="nf">max</span><span class="o">(</span><span class="nl">a:</span> <span class="n">Int</span><span class="o">,</span> <span class="nl">b:</span> <span class="n">Int</span><span class="o">):</span> <span class="n">Int</span> <span class="o">=</span> <span class="o">{</span>
+</span><span class='line'>  <span class="k">if</span> <span class="o">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="n">b</span><span class="o">)</span> <span class="n">a</span>
+</span><span class='line'>  <span class="k">else</span> <span class="n">b</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="nl">max:</span> <span class="o">(</span><span class="nl">a:</span> <span class="n">Int</span><span class="o">,</span> <span class="nl">b:</span> <span class="n">Int</span><span class="o">)</span><span class="n">Int</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>调用方法</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="n">scala</span><span class="o">&gt;</span> <span class="nf">max</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">)</span>
+</span><span class='line'><span class="nl">res0:</span> <span class="n">Int</span> <span class="o">=</span> <span class="mi">2</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>定义和使用类</h2>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">class</span> <span class="nc">Hello</span> <span class="o">{</span>
+</span><span class='line'>  <span class="n">val</span> <span class="n">str</span> <span class="o">=</span> <span class="s">&quot;hello, world&quot;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'><span class="n">object</span> <span class="n">Hello</span> <span class="o">{</span>
+</span><span class='line'>  <span class="n">def</span> <span class="n">world</span> <span class="o">=</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;hello, world!&quot;</span><span class="o">)</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>类和伴生类必须同时定义，所以，可以进入<code>paste</code>模式，将代码拷贝到Scala的解释器中。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>scala&gt; val <span class="nv">a</span> <span class="o">=</span> new Hello
+</span><span class='line'>a: <span class="nv">Hello</span> <span class="o">=</span> Hello@62150f9e
+</span><span class='line'>
+</span><span class='line'>scala&gt; a.str
+</span><span class='line'>res5: <span class="nv">String</span> <span class="o">=</span> hello, world
+</span><span class='line'>
+</span><span class='line'>scala&gt; Hello.world
+</span><span class='line'>hello, world!
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>能想到的(其实是读过的……)基础就是这些了，下一章介绍控制结构好了。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -964,110 +1258,6 @@ KeePassX是一款跨平台的免费开源的密码管理软件，安装和使用
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2013/12/04/restarting-virtualbox-under-osx">Restarting Virtualbox Under Osx</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2013-12-04T00:00:00+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/2013/12/04/restarting-virtualbox-under-osx#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/2013/12/04/restarting-virtualbox-under-osx">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>使用vagrant启动虚拟机的时候遇到了如下的错误:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; vagrant up
-</span><span class='line'>Bringing machine <span class="s1">&#39;default&#39;</span> up with <span class="s1">&#39;virtualbox&#39;</span> provider...
-</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Clearing any previously <span class="nb">set </span>forwarded ports...
-</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Creating shared folders metadata...
-</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Clearing any previously <span class="nb">set </span>network interfaces...
-</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Available bridged network interfaces:
-</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Preparing network interfaces based on configuration...
-</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Forwarding ports...
-</span><span class='line'><span class="o">[</span>default<span class="o">]</span> -- <span class="nv">22</span> <span class="o">=</span>&gt; <span class="m">2222</span> <span class="o">(</span>adapter 1<span class="o">)</span>
-</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Booting VM...
-</span><span class='line'><span class="o">[</span>default<span class="o">]</span> Waiting <span class="k">for</span> machine to boot. This may take a few minutes...
-</span><span class='line'>The guest machine entered an invalid state <span class="k">while</span> waiting <span class="k">for</span> it
-</span><span class='line'>to boot. Valid states are <span class="s1">&#39;starting, running&#39;</span>. The machine is in the
-</span><span class='line'><span class="s1">&#39;poweroff&#39;</span> state. Please verify everything is configured
-</span><span class='line'>properly and try again.
-</span><span class='line'>
-</span><span class='line'>If the provider you<span class="s1">&#39;re using has a GUI that comes with it,</span>
-</span><span class='line'><span class="s1">it is often helpful to open that and watch the machine, since the</span>
-</span><span class='line'><span class="s1">GUI often has more helpful error messages than Vagrant can retrieve.</span>
-</span><span class='line'><span class="s1">For example, if you&#39;</span>re using VirtualBox, run <span class="sb">`</span>vagrant up<span class="sb">`</span> <span class="k">while</span> the
-</span><span class='line'>VirtualBox GUI is open.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>错误信息提示我虚拟机所处状态(poweroff)，不能启动。原因未知，不过除了信息中给出的解决办法，还可以通过重启VirtualBox来解决。办法如下:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; sudo /Library/StartupItems/VirtualBox/VirtualBox restart
-</span><span class='line'>Password:
-</span><span class='line'>Unloading VBoxUSB.kext
-</span><span class='line'>Unloading VBoxDrv.kext
-</span><span class='line'>/Applications/VirtualBox.app/Contents/MacOS/VBoxAutostart <span class="o">=</span>&gt; /Applications/VirtualBox.app/Contents/MacOS/VBoxAutostart-amd64
-</span><span class='line'>………..
-</span><span class='line'>Loading VBoxDrv.kext
-</span><span class='line'>Loading VBoxUSB.kext
-</span><span class='line'>Loading VBoxNetFlt.kext
-</span><span class='line'>Loading VBoxNetAdp.kext
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>然后就可以顺利的通过Vagrant启动虚拟机了。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/6">&larr; Older</a>
@@ -1085,6 +1275,10 @@ KeePassX是一款跨平台的免费开源的密码管理软件，安装和使用
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox">Hand Over DNS Resolve to VirutalBox</a>
+      </li>
+    
+      <li class="post">
         <a href="/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api">Using Akamai Diagnostic tools/API</a>
       </li>
     
@@ -1098,10 +1292,6 @@ KeePassX是一款跨平台的免费开源的密码管理软件，安装和使用
     
       <li class="post">
         <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
-      </li>
-    
-      <li class="post">
-        <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
       </li>
     
   </ul>

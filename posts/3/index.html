@@ -9,8 +9,16 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="什么wget wget是*nix下常用的下载文件或者测试web服务的工具，
-wget支持多种网络协议，但是从介绍看，wget更像是一个文件下载工具。 获取网页源码 wget默认会将网页或者文件直接下载保存,所以直接显示返回内容的话，可以用 -q关闭wget的输出,然后用-O - &hellip;">
+  <meta name="description" content="什么是curl curl是我们在Linux下常用的下载文件或者测试web服务的工具，罗列下他们常
+用的一些场景，当做总结。curl支持多种网络协议,包括最新的HTTP/2。 获取网页源码 1
+2
+3
+4
+5
+6
+7
+~&gt; curl www.google.com
+&lt;HTML&gt;&lt &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +88,460 @@ wget支持多种网络协议，但是从介绍看，wget更像是一个文件下
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/ops/2015/02/16/essential-curl">Essential Curl</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-02-16T00:00:00+08:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/ops/2015/02/16/essential-curl#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/ops/2015/02/16/essential-curl">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>什么是curl</h3>
+
+<hr />
+
+<p><a href="http://curl.haxx.se/">curl</a>是我们在Linux下常用的下载文件或者测试web服务的工具，罗列下他们常
+用的一些场景，当做总结。curl支持多种网络协议,包括最新的HTTP/2。</p>
+
+<h3>获取网页源码</h3>
+
+<hr />
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl www.google.com
+</span><span class='line'>&lt;HTML&gt;&lt;HEAD&gt;&lt;meta http-equiv<span class="o">=</span><span class="s2">&quot;content-type&quot;</span> <span class="nv">content</span><span class="o">=</span><span class="s2">&quot;text/html;charset=utf-8&quot;</span>&gt;
+</span><span class='line'>&lt;TITLE&gt;302 Moved&lt;/TITLE&gt;&lt;/HEAD&gt;&lt;BODY&gt;
+</span><span class='line'>&lt;H1&gt;302 Moved&lt;/H1&gt;
+</span><span class='line'>The document has moved
+</span><span class='line'>&lt;A <span class="nv">HREF</span><span class="o">=</span><span class="s2">&quot;http://www.google.com.hk/url?sa=p&amp;amp;hl=zh-CN&amp;amp;pref=hkredirect&amp;amp;pval=yes&amp;amp;q=http://www.google.com.hk/%3Fgws_rd%3Dcr&amp;amp;ust=1423205620492528&amp;amp;usg=AFQjCNGJFP3kOpmF9vbNWK_cgRr7G5yffQ&quot;</span>&gt;here&lt;/A&gt;.
+</span><span class='line'>&lt;/BODY&gt;&lt;/HTML&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>文件下载</h3>
+
+<hr />
+
+<p><code>curl</code>缺省会输出文件的内容，用下面的命令可以用<code>curl</code>将文件保存到指定的目录，curl比较苦逼的地方在于，
+如果不是保存当前目录，需要自己指定要保存的文件名。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; <span class="nb">cd</span> /opt/ <span class="o">&amp;&amp;</span> curl -O http://ergonlogic.com/files/boxes/debian-current.box
+</span><span class='line'>~&gt; curl -o /opt/current.box http://ergonlogic.com/files/boxes/debian-current.box
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>多线程下载</h3>
+
+<hr />
+
+<p><code>curl</code>不支持多线程下载，我用过的一个多线程下载的工具是<a href="http://aria2.sourceforge.net/">aria2</a>，蛮好用的，而且这货还支持bt,ed2k等p2p协议下载。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; aria2c -x5 https://github.com/jose-lpa/veewee-openbsd/releases/download/v0.5.5/openbsd55.box
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>通过代理访问资源</h3>
+
+<hr />
+
+<p>有两种方式可以让<code>curl</code>使用proxy，第一种是通过设置环境变量，<code>http_proxy, https_proxy</code>等，用<code>no_proxy</code>去设置屏蔽代理的列表。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; <span class="nb">export </span><span class="nv">http_proxy</span><span class="o">=</span><span class="s2">&quot;http://proxy:3128&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>让proxy对一些地址无效。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; <span class="nb">export </span><span class="nv">no_proxy</span><span class="o">=</span><span class="s2">&quot;127.0.0.1,localhost.localdomain&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>另外一种是在运行命令时直接指定使用的proxy或者不使用proxy。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -x <span class="s2">&quot;http://proxy:3128&quot;</span> www.google.com
+</span><span class='line'>~&gt; curl -x <span class="s2">&quot;socks5://proxy:3128&quot;</span> www.google.com
+</span><span class='line'>~&gt; curl --noproxy * www.google.com
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>curl的<code>--noproxy</code>是需要指定一个exclude的列表。</p>
+
+<h3>花式下载和断点续传</h3>
+
+<hr />
+
+<p>对于很规则的下载url，可以通配符或者正则来处理，比如我想下载自己博客的几个图片。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -O http://iambowen.github.io/images/<span class="o">[</span>1-3<span class="o">]</span>.png
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>1/3<span class="o">]</span>: http://iambowen.github.io/images/1.png --&gt; 1.png
+</span><span class='line'>--_curl_--http://iambowen.github.io/images/1.png
+</span><span class='line'> % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+</span><span class='line'>                                Dload  Upload   Total   Spent    Left  Speed
+</span><span class='line'><span class="m">100</span>  222k  <span class="m">100</span>  222k    <span class="m">0</span>     <span class="m">0</span>  <span class="m">59816</span>      <span class="m">0</span>  0:00:03  0:00:03 --:--:-- 59808
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>2/3<span class="o">]</span>: http://iambowen.github.io/images/2.png --&gt; 2.png
+</span><span class='line'>--_curl_--http://iambowen.github.io/images/2.png
+</span><span class='line'><span class="m">100</span>  342k  <span class="m">100</span>  342k    <span class="m">0</span>     <span class="m">0</span>  <span class="m">33117</span>      <span class="m">0</span>  0:00:10  0:00:10 --:--:-- 48607
+</span><span class='line'>
+</span><span class='line'><span class="o">[</span>3/3<span class="o">]</span>: http://iambowen.github.io/images/3.png --&gt; 3.png
+</span><span class='line'>--_curl_--http://iambowen.github.io/images/3.png
+</span><span class='line'><span class="m">100</span>  208k  <span class="m">100</span>  208k    <span class="m">0</span>     <span class="m">0</span>  <span class="m">32245</span>      <span class="m">0</span>  0:00:06  0:00:06 --:--:-- 39914
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>断点续传,除了保证文件完整性，还可以检查文件是否有变动，如果有变化则更新，没有则保持文件原有状态。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -O -C http://ergonlogic.com/files/boxes/debian-current.box
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>获取headers信息</h3>
+
+<hr />
+
+<p>有时候，我们只需要看到返回的headers信息，查看cache是否命中，或者返回码。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -I www.baidu.com
+</span><span class='line'>HTTP/1.1 <span class="m">200</span> OK
+</span><span class='line'>Date: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 08:25:12 GMT
+</span><span class='line'>Content-Type: text/html<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>utf-8
+</span><span class='line'>Connection: Keep-Alive
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>传说使用<code>telnet</code>命令可能拿到更多的http headers信息，无法验证，方式如下。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; telnet <span class="m">0</span> 4000
+</span><span class='line'>Trying 0.0.0.0...
+</span><span class='line'>Connected to 0.
+</span><span class='line'>Escape character is <span class="s1">&#39;^]&#39;</span>.
+</span><span class='line'>GET / HTTP/1.1
+</span><span class='line'>HOST: 127.0.0.1:4000
+</span><span class='line'>
+</span><span class='line'>HTTP/1.1 <span class="m">200</span> OK
+</span><span class='line'>Etag: 232a2c-320c-54d9ce22
+</span><span class='line'>Content-Type: text/html
+</span><span class='line'>Content-Length: 12812
+</span><span class='line'>Last-Modified: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 09:23:46 GMT
+</span><span class='line'>Server: WEBrick/1.3.1 <span class="o">(</span>Ruby/1.9.3/2014-11-13<span class="o">)</span>
+</span><span class='line'>Date: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 09:29:24 GMT
+</span><span class='line'>Connection: Keep-Alive
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>follow redirection信息</h3>
+
+<hr />
+
+<p>有时候访问的资源，可能被临时或者永久转移，所以会有中间跳转的过程，但是直接去<code>curl</code>是拿不到完整信息的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -I www.google.com
+</span><span class='line'>HTTP/1.1 <span class="m">302</span> Found
+</span><span class='line'>Location: http://www.google.com.hk/url?sa<span class="o">=</span>p<span class="p">&amp;</span><span class="nv">hl</span><span class="o">=</span>zh-CN<span class="p">&amp;</span><span class="nv">pref</span><span class="o">=</span>hkredirect<span class="p">&amp;</span><span class="nv">pval</span><span class="o">=</span>yes<span class="p">&amp;</span><span class="nv">q</span><span class="o">=</span>http://www.google.com.hk/%3Fgws_rd%3Dcr<span class="p">&amp;</span><span class="nv">ust</span><span class="o">=</span>1423564147298386<span class="p">&amp;</span><span class="nv">usg</span><span class="o">=</span>AFQjCNHZ7kXJXOfOQyCSOQ6ZGOPjeVaIYg
+</span><span class='line'>Cache-Control: private
+</span><span class='line'>Content-Type: text/html<span class="p">;</span> <span class="nv">charset</span><span class="o">=</span>UTF-8
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>通过下面的方式可以拿到所有的返回信息。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -LI www.google.com
+</span><span class='line'>HTTP/1.1 <span class="m">302</span> Found
+</span><span class='line'>Location: http://www.google.com.hk/url?sa<span class="o">=</span>p<span class="p">&amp;</span><span class="nv">hl</span><span class="o">=</span>zh-CN<span class="p">&amp;</span><span class="nv">pref</span><span class="o">=</span>hkredirect<span class="p">&amp;</span><span class="nv">pval</span><span class="o">=</span>yes<span class="p">&amp;</span><span class="nv">q</span><span class="o">=</span>http://www.google.com.hk/%3Fgws_rd%3Dcr<span class="p">&amp;</span><span class="nv">ust</span><span class="o">=</span>1423559822825114<span class="p">&amp;</span><span class="nv">usg</span><span class="o">=</span>AFQjCNEEY2qyq9HghaQVZ89ugMv9kvDlLA
+</span><span class='line'>......
+</span><span class='line'>
+</span><span class='line'>HTTP/1.1 <span class="m">302</span> Found
+</span><span class='line'>Location: http://www.google.com.hk/?gws_rd<span class="o">=</span>cr
+</span><span class='line'>......
+</span><span class='line'>
+</span><span class='line'>HTTP/1.1 <span class="m">200</span> OK
+</span><span class='line'>Date: Tue, <span class="m">10</span> Feb <span class="m">2015</span> 09:16:35 GMT
+</span><span class='line'>Expires: -1
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>加入验证的请求</h3>
+
+<hr />
+
+<p>有时候在请求一些资源时，需要通过验证才能完成访问，可以用<code>username:password</code>加URL即可。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl http://user:password@echo.httpkit.com?queryString
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>伪装user agent的请求</h3>
+
+<hr />
+
+<p>有的服务器可能会限制访问的User-Agent类型，用curl测试的时候可以用相应得参数进行伪装。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl  echo.httpkit.com
+</span><span class='line'> <span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
+</span><span class='line'>   <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;curl/7.37.1&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>
+</span><span class='line'><span class="o">}</span>
+</span><span class='line'>
+</span><span class='line'>~&gt;  curl -A <span class="s2">&quot;Bad Ass&quot;</span>  echo.httpkit.com
+</span><span class='line'> <span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
+</span><span class='line'>   <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;Bad Ass&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>
+</span><span class='line'> <span class="o">}</span>,
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>发起HTTP请求</h3>
+
+<hr />
+
+<p>用<code>-X</code>可以指定发起请求的HTTP方法, 如果用<code>POST</code>或者<code>PUT</code>等方法，可以用 <code>-d</code>指定request body，<code>-H</code>可以指定请求的一些Headers。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -X PUT -H <span class="s1">&#39;Content-Type: application/json&#39;</span> -d <span class="s1">&#39;{&quot;firstName&quot;:&quot;Kris&quot;, &quot;lastName&quot;:&quot;Jordan&quot;}&#39;</span> echo.httpkit.com
+</span><span class='line'><span class="o">{</span>
+</span><span class='line'> <span class="s2">&quot;method&quot;</span>: <span class="s2">&quot;PUT&quot;</span>,
+</span><span class='line'> <span class="s2">&quot;uri&quot;</span>: <span class="s2">&quot;/&quot;</span>,
+</span><span class='line'> <span class="s2">&quot;path&quot;</span>: <span class="o">{</span>
+</span><span class='line'>   <span class="s2">&quot;name&quot;</span>: <span class="s2">&quot;/&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;query&quot;</span>: <span class="s2">&quot;&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;params&quot;</span>: <span class="o">{}</span>
+</span><span class='line'> <span class="o">}</span>,
+</span><span class='line'> <span class="s2">&quot;headers&quot;</span>: <span class="o">{</span>
+</span><span class='line'>   <span class="s2">&quot;x-forwarded-for&quot;</span>: <span class="s2">&quot;210.74.157.146&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;host&quot;</span>: <span class="s2">&quot;echo.httpkit.com&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;user-agent&quot;</span>: <span class="s2">&quot;curl/7.37.1&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;accept&quot;</span>: <span class="s2">&quot;*/*&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;content-type&quot;</span>: <span class="s2">&quot;application/json&quot;</span>,
+</span><span class='line'>   <span class="s2">&quot;content-length&quot;</span>: <span class="s2">&quot;41&quot;</span>
+</span><span class='line'> <span class="o">}</span>,
+</span><span class='line'> <span class="s2">&quot;body&quot;</span>: <span class="s2">&quot;{\&quot;firstName\&quot;:\&quot;Kris\&quot;, \&quot;lastName\&quot;:\&quot;Jordan\&quot;}&quot;</span>,
+</span><span class='line'> <span class="s2">&quot;ip&quot;</span>: <span class="s2">&quot;127.0.0.1&quot;</span>,
+</span><span class='line'> <span class="s2">&quot;powered-by&quot;</span>: <span class="s2">&quot;http://httpkit.com&quot;</span>,
+</span><span class='line'> <span class="s2">&quot;docs&quot;</span>: <span class="s2">&quot;http://httpkit.com/echo&quot;</span>
+</span><span class='line'> <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>上传文件</h3>
+
+<hr />
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl --form <span class="s2">&quot;fileupload=@filename.txt&quot;</span> http://hostname/resource
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>处理cookies</h3>
+
+<hr />
+
+<p>保存cookies到本地</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; curl -c echo.cookies  http://www.baidu.com &gt; /dev/null
+</span><span class='line'>  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+</span><span class='line'>                                 Dload  Upload   Total   Spent    Left  Speed
+</span><span class='line'><span class="m">100</span> <span class="m">88672</span>    <span class="m">0</span> <span class="m">88672</span>    <span class="m">0</span>     <span class="m">0</span>   298k      <span class="m">0</span> --:--:-- --:--:-- --:--:--  297k
+</span><span class='line'> ~&gt; less echo.cookies
+</span><span class='line'><span class="c"># Netscape HTTP Cookie File</span>
+</span><span class='line'><span class="c"># http://curl.haxx.se/docs/http-cookies.html</span>
+</span><span class='line'><span class="c"># This file was generated by libcurl! Edit at your own risk.</span>
+</span><span class='line'>
+</span><span class='line'>.baidu.com      TRUE    /       FALSE   <span class="m">3571557287</span>      BAIDUID 287BE3DB1621FDE977C39D21BD02CA45:FG<span class="o">=</span>1
+</span><span class='line'>.baidu.com      TRUE    /       FALSE   <span class="m">3571557287</span>      BAIDUPSID       287BE3DB1621FDE977C39D21BD02CA45
+</span><span class='line'>www.baidu.com   FALSE   /       FALSE   <span class="m">0</span>       BDSVRTM 0
+</span><span class='line'>www.baidu.com   FALSE   /       FALSE   <span class="m">0</span>       BD_HOME 0
+</span><span class='line'>.baidu.com      TRUE    /       FALSE   <span class="m">0</span>       H_PS_PSSID      10422_1449_11089
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>使用cookie 发起请求</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -b echo.cookies  http://www.baidu.com &gt; /dev/null
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>fail on error</h3>
+
+<hr />
+
+<p>对于服务器端错误，http请求没有任何输出，<code>curl</code>的返回为0，使用<code>-f</code>参数可以在遇到服务器错误是返回非0(22)。
+最近在完成一个用Bamboo host的package去部署的任务的时候用到了这个参数，一旦下载package出错，部署会中断。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>~&gt; curl -f http://iambowen.github.io/ksjdkfsjdf
+</span><span class='line'>curl: <span class="o">(</span>22<span class="o">)</span> The requested URL returned error: <span class="m">404</span> Not Found
+</span><span class='line'>~&gt; <span class="nb">echo</span> <span class="nv">$?</span>
+</span><span class='line'>22
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>从浏览器"偷取"curl的命令</h3>
+
+<hr />
+
+<p>觉得<code>curl</code>指令太难记忆，可以直接从浏览器中"偷"取， Chrome提供了这样的功能:</p>
+
+<p><img src="/images/curl.png" alt="chrome" /></p>
+
+<h3>References</h3>
+
+<hr />
+
+<p><a href="http://www.ruanyifeng.com/blog/2011/09/curl.html">1</a>
+<a href="https://gist.github.com/303182519/132568fd0e58cae57202">2</a>
+<a href="http://httpkit.com/resources/HTTP-from-the-Command-Line/">3</a></p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2186,57 +2648,6 @@ So</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2014/11/18/flush-dns-cache">Flush Dns Cache in Local Machine</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2014-11-18T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>18</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/2014/11/18/flush-dns-cache#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/2014/11/18/flush-dns-cache">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Under linux:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>sudo /etc/init.d/nsdc restart
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Under windows:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>ipconfig /flushdns
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Under Mac:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>dscacheutil -flushcache
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/4">&larr; Older</a>
@@ -2254,6 +2665,10 @@ So</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox">Hand Over DNS Resolve to VirutalBox</a>
+      </li>
+    
+      <li class="post">
         <a href="/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api">Using Akamai Diagnostic tools/API</a>
       </li>
     
@@ -2267,10 +2682,6 @@ So</p>
     
       <li class="post">
         <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
-      </li>
-    
-      <li class="post">
-        <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a>
       </li>
     
   </ul>

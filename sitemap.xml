@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://iambowen.github.com/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox</loc>
+    <lastmod>2016-01-20T17:16:12+08:00</lastmod>
+  </url>
+  <url>
     <loc>http://iambowen.github.com/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api</loc>
     <lastmod>2016-01-19T13:32:46+08:00</lastmod>
   </url>
@@ -377,5 +381,35 @@
   </url>
   <url>
     <loc>http://iambowen.github.com/blog/categories/diagnostic/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/blog/categories/virutalbox/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/blog/categories/dns/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/blog/categories/network/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/posts/2/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/posts/3/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/posts/4/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/posts/5/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/posts/6/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/posts/7/</loc>
+  </url>
+  <url>
+    <loc>http://iambowen.github.com/posts/8/</loc>
   </url>
 </urlset>
