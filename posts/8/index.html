@@ -9,8 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="On duplicate key update is to stop the duplication in unique index or primary
-key, and try to update the row with new value.And it only functions &hellip;">
+  <meta name="description" content="In the morning, i was writing a automation sql script for QA. And after move the source file from mac mini to my machine. It met such warning as i &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -80,6 +79,60 @@ key, and try to update the row with new value.And it only functions &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification">Invalid Gemspec Because of the Date Format in Specification</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-11-29T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In the morning, i was writing a automation sql script for QA. And after move the source file from mac mini to my machine. It met such warning as i tried to run the file.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Invalid gemspec in <span class="o">[</span>/Users/twer/.rvm/gems/ree-1.8.7-2011.03@development/specifications/childprocess-0.2.1.gemspec<span class="o">]</span>: invalid date format in specification: <span class="s2">&quot;2011-08-11 00:00:00.000000000Z&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It&rsquo;s ok because it&rsquo;s just warning. But i am just a little bit agnoied by the message. So i decided to kill this warning message. After search in google, i found the <a href="http://stackoverflow.com/questions/5771758/invalid-gemspec-because-of-the-date-format-in-specification">answer</a>.</p>
+
+<p>And the steps should be:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>/Users/twer/.rvm/gems/ree-1.8.7-2011.03@develoment/specifications/childprocess-0.2.1.gemspec
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>Find the spec that is causing the problem, search it in vi with string &ldquo;2011&rdquo; and i found that line.</li>
+<li>Change <code>s.date = %q{2011-08-11 00:00:00.000000000Z}</code> to <code>s.date = %q{2011-08-11}</code></li>
+</ul>
+
+
+<p>Cool, done, no more bothering information.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -503,15 +556,15 @@ detail</p>
       </li>
     
       <li class="post">
+        <a href="/aws/kms/2016/01/15/aws-kms-and-its-usage">AWS KMS and Its Usage</a>
+      </li>
+    
+      <li class="post">
         <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
       </li>
     
       <li class="post">
         <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
-      </li>
-    
-      <li class="post">
-        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
       </li>
     
   </ul>

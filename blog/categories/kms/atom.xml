@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Kms | Bowen's Blog]]></title>
+  <link href="http://iambowen.github.com/blog/categories/kms/atom.xml" rel="self"/>
+  <link href="http://iambowen.github.com/"/>
+  <updated>2016-07-03T14:37:09+08:00</updated>
+  <id>http://iambowen.github.com/</id>
+  <author>
+    <name><![CDATA[Bowen Ma]]></name>
+    <email><![CDATA[iambowen.m@gmail.com]]></email>
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[AWS KMS and Its Usage]]></title>
+    <link href="http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage"/>
+    <updated>2016-01-15T09:33:30+08:00</updated>
+    <id>http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage</id>
+    <content type="html"><![CDATA[<h2>什么是KMS</h2>
+
+<hr />
+
+<p><a href="https://aws.amazon.com/kms/">KMS</a>是AWS提供的中心化的key托管服务，它使用硬件安全模块 (HSM)保护密钥安全。它可以被集成到其它的AWS服务中，如S3, EBS, RDS等，同时所有关于key的使用都会在CloudTrail中记录，以方便审计。</p>
+
+<h2>KMS的优点</h2>
+
+<hr />
+
+<p>基本上来自于<a href="https://aws.amazon.com/kms/">文档</a>，其好处有如下几点：</p>
+
+<ol>
+<li>中心化的key托管服务。举个例子，对于不同的环境(staging/production)，我们需要维护不同private key 去做部署，调试等等，还得考虑定期rotate。出于安全考虑，这些private key不推荐和部署的repo放在一起。一般情况下你得把它们放在一个统一的地方去保存，如<a href="http://rattic.org/">Rattic</a>或者<a href="https://www.vaultproject.io/">Vault</a>去管理。这样的话，你的承担这些工具的维护任务。KMS可以让你免除维护的压力。</li>
+<li>和 AWS 服务的集成。S3，EBS，RDS的数据加密，都可以使用KMS。同时，它也支持命令行或者API去管理key，进行key的rotate，加密解密等。</li>
+<li>可伸缩性、耐用性和高可用性。KMS会自动帮你保存key多份拷贝，耐用性99.999999999%，同时KMS会在多个AZ部署，保证高可用性。</li>
+<li>安全。KMS在服务端通过硬件加密，保证了你在上面存储的key的安全性。其实现的细节在<a href="https://d0.awsstatic.com/whitepapers/KMS-Cryptographic-Details.pdf">这里</a></li>
+<li>审计。对于key的请求，都会被记录在CloudTrail中，方便审计。</li>
+</ol>
+
+
+<p>可以看到的好处有很多，比如直接把加密过后的private key或者密码扔到repo中，再也不用担心被别人拿去干坏事。</p>
+
+<h2>使用 KMS 服务</h2>
+
+<hr />
+
+<p>要使用KMS服务，首先得创建一个新的master key。key是按照region划分， 自己创建key的价格是1刀一个月，每个月的前20000次请求是免费的。</p>
+
+<h3>创建新key</h3>
+
+<hr />
+
+<p>在AWS Console -> IAM界面的<code>Encryption Keys</code>中找到创建Key和Key管理的选项，如key的<code>Enable</code>、<code>Disable</code>或者删除等。当然，我们可以通过AWS CLI来创建key，这样可以将整个过程用代码管理起来:</p>
+
+<ol>
+<li>假设AWS account为<code>123456789</code>,指定key policy并保存到文件(e.g <code>policy.json</code>)中</li>
+</ol>
+
+
+<pre><code class="json">{
+  "Id": "KeyPolicy-1",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Allow access for Admin",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::123456789:root"
+      },
+      "Action": [
+        "kms:Create*",
+        "kms:Describe*",
+        "kms:Enable*",
+        "kms:List*",
+        "kms:Put*",
+        "kms:Update*",
+        "kms:Revoke*",
+        "kms:Disable*",
+        "kms:Get*",
+        "kms:Delete*",
+        "kms:ScheduleKeyDeletion",
+        "kms:CancelKeyDeletion"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+</code></pre>
+
+<ol>
+<li>创建key，并绑定对应的policy</li>
+</ol>
+
+
+<pre><code class="bash"> ~&gt; aws kms create-key --key-usage "encryption key" --description "master key" --policy "$(cat policy.json)"
+</code></pre>
+
+<p>返回的内容可能如下
+<code>json
+{
+  "KeyMetadata": {
+    "KeyId": "aabbccdd-4444-5555-6666-778899001122",
+      "Description": "master key",
+      "Enabled": true,
+      "KeyUsage": "encryption key",
+      "CreationDate": 2433401783.841,
+      "Arn": "arn:aws:kms:ap-southeast-2:123456789:key/aabbccdd-4444-5555-6666-778899001122",
+      "AWSAccountId": "123456789"
+  }
+}
+</code>
+3. 授权IAM user/role去使用或者管理key,这是除了policy之外的另一种访问管理控制的机制。</p>
+
+<pre><code class="bash">{
+  "Sid": "Allow use of the key",
+  "Effect": "Allow",
+  "Principal": {"AWS": [
+    "arn:aws:iam::111122223333:user/KMSUser",
+    "arn:aws:iam::111122223333:role/KMSRole",
+  ]},
+  "Action": [
+    "kms:Encrypt",
+    "kms:Decrypt",
+    "kms:ReEncrypt*",
+    "kms:GenerateDataKey*",
+    "kms:DescribeKey"
+  ],
+  "Resource": "*"
+}
+</code></pre>
+
+<ol>
+<li>创建alias,可以作为keyid的替身使用</li>
+</ol>
+
+
+<pre><code class="bash">aws kms create-alias --alias-name "alias/test-encryption-key" --target-key-id aabbccdd-4444-5555-6666-778899001122
+</code></pre>
+
+<ol>
+<li>使用key去加密文件。加密后的输出为base64编码后的密文，可以进一步解码为二进制文件。</li>
+</ol>
+
+
+<pre><code class="bash">aws kms encrypt --key-id 1234abcd-12ab-34cd-56ef-1234567890ab --plaintext fileb://ExamplePlaintextFile --output text --query CiphertextBlob | base64 --decode &gt; ExampleEncryptedFile
+</code></pre>
+
+<ol>
+<li>解密文件，原理如加密的过程。</li>
+</ol>
+
+
+<pre><code class="bash">aws kms decrypt --ciphertext-blob fileb://ExampleEncryptedFile --output text --query Plaintext | base64 --decode &gt; ExamplePlaintextFile
+</code></pre>
+
+<h3>局限性</h3>
+
+<p>这种使用KMS的方式只能加密最多4KB的数据。想要加密更大的数据可以使用KMS去生成一个<a href="http://docs.aws.amazon.com/kms/latest/developerguide/workflow.html">Data Key</a>，然后利用Data Key去加密数据。</p>
+
+<h3>使用场景举例</h3>
+
+<p>在REA项目中，在AWS上部署的大多数APP都是（尽量）遵循12factors原则的。应用运行时依赖的配置是通过<code>user-data</code>传入环境变量设置。在一个instance上启动服务的过程大致如下：
+1. 在<code>launchConfiguration</code>中为instance添加<code>instanceProfile</code>，对应的role有使用KMS的权限；
+2. 在<code>user-data</code>中设置cypher text并且解密到环境变量中:</p>
+
+<pre><code class="bash">cipher="CiBwo3lXT5T+pTZu7P9Cqkh0Iolpaz9FMzha5jJb6kTdiBKNAQEBAgB4cKN5V0+U/qU2buz/QqpIdCKJaWs/RTM4WuYyW+pE3YgAAABkMGIGCSqGSIb3DQEHBqBVMFMCAQAwTgYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAwIxkIN0TeX1HiWyj0CARCAIVaSfD/spTBFAfBVIp/Wy6TadlwUKKz/oTMWUUob9fcxdg=="
+cipher_blob=$(mktemp /tmp/blob.123)
+echo -n "${cipher}" | base64 -D &gt; cipher_blob
+PASSWORD=$(aws kms decrypt --ciphertext-blob fileb://$cipher_blob \
+             --query "Plaintext"                         \
+             --output text                               \
+             --region ap-southeast-2  | \
+             base64 -D
+)
+
+docker run -d -e PASSWORD=$PASSWORD .......
+</code></pre>
+]]></content>
+  </entry>
+  
+</feed>

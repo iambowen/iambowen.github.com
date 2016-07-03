@@ -9,9 +9,8 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="CTO在slack上给我们通报了一个bug，具体表现为网站请求的一个服务，在接受完请求后，再发起新请求可能会
-返回504. 客户的tech lead和我一起追踪这个问题，出问题的是一个微服务，其架构如下: 1
-Akamai -&gt; ELB -&gt; Instances -&gt; Netty &hellip;">
+  <meta name="description" content="作为一名java的弱鸡，为了在公共的服务器上重现netty的一个bug，我也是很努力的自己setup了一个简单的netty的java工程，然后计划
+部署在heroku上面，这样在github上提交issue的说服力更强一些。 过程 准备netty的项目 比较简单， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -81,6 +80,178 @@ Akamai -&gt; ELB -&gt; Instances -&gt; Netty &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2015-09-02T00:00:00+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2015/09/02/deploy-netty-example-app-to-heroku#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2015/09/02/deploy-netty-example-app-to-heroku">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>作为一名java的弱鸡，为了在公共的服务器上重现netty的一个<a href="http://iambowen.github.io/2015/08/25/tracing-and-production-bug-about-netty/">bug</a>，我也是很努力的自己setup了一个简单的netty的<a href="https://github.com/iambowen/netty-example">java</a>工程，然后计划
+部署在heroku上面，这样在github上提交issue的说服力更强一些。</p>
+
+<h3>过程</h3>
+
+<hr />
+
+<h3>准备netty的项目</h3>
+
+<hr />
+
+<p>比较简单，就是在netty的代码库中抄一些<a href="https://github.com/netty/netty/tree/master/example/src/main/java/io/netty/example">例子</a>就可以了.要注意的有下面几点:</p>
+
+<ol>
+<li>申明对netty的依赖，如下:</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;dependencies&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;dependency&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;groupId&gt;</span>io.netty<span class="nt">&lt;/groupId&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;artifactId&gt;</span>netty-all<span class="nt">&lt;/artifactId&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;version&gt;</span>4.0.24.Final<span class="nt">&lt;/version&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/dependency&gt;</span>
+</span><span class='line'><span class="nt">&lt;/dependencies&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>将依赖的netty jar包copy到target目录下:</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;executions&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;execution&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;id&gt;</span>copy-dependencies<span class="nt">&lt;/id&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;phase&gt;</span>package<span class="nt">&lt;/phase&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;goals&gt;&lt;goal&gt;</span>copy-dependencies<span class="nt">&lt;/goal&gt;&lt;/goals&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/execution&gt;</span>
+</span><span class='line'><span class="nt">&lt;/executions&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>声明应用启动时的main class:</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;configuration&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;archive&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;manifest&gt;</span>
+</span><span class='line'>            <span class="nt">&lt;mainClass&gt;</span>com.tw.httpserver.HttpHelloWorldServer<span class="nt">&lt;/mainClass&gt;</span>
+</span><span class='line'>        <span class="nt">&lt;/manifest&gt;</span>
+</span><span class='line'>    <span class="nt">&lt;/archive&gt;</span>
+</span><span class='line'><span class="nt">&lt;/configuration&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>app的启动端口需要去读取heroku预设的<code>PORT</code>随机端口的环境变量，否则前面的代理服务器无法绑定到后端的netty.
+我个人觉得这是一个非常坑爹的设定，同时在官方的文档中没有特别说明。很容易引发下面的错误:</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='xml'><span class='line'>Error R10 (Boot timeout) -&gt; Web process failed to bind to $PORT within 60 seconds of launch
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>解决的办法就是这样</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">static</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">PORT</span> <span class="o">=</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s">&quot;PORT&quot;</span><span class="o">));</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>声明启动web服务所需命令,在<code>Procfile</code>中加入以下内容：</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>web: java  <span class="nv">$JAVA_OPTS</span> -cp target/classes:target/dependency/* com.tw.httpserver.HttpHelloWorldServer
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>声明系统运行的环境依赖，在 <code>system.properties</code>加入:</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>java.runtime.version<span class="o">=</span>1.7
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>本地测试</h3>
+
+<hr />
+
+<p>用<code>mvn clean install</code>打包到<code>target目录下</code>，然后运行<code>heroku local web</code>,测试应用在本地是否工作正常。</p>
+
+<h3>发布和部署</h3>
+
+<hr />
+
+<ol>
+<li>用<code>heroku create</code>命令新建一个应用。</li>
+<li>本地提交，并将代码提交到heroku，<code>git push heroku master</code>。</li>
+<li><code>heroku ps:scale web=1</code>保证至少有一个实例在运行这个应用。</li>
+<li><code>heroku open</code>可以打开部署后的服务页面。</li>
+</ol>
+
+
+<h3>结论</h3>
+
+<hr />
+
+<p>可能是因为java水平太差，感觉在heroku上部署java应用比部署ruby应用要难一些。部署完成后，发现还是不
+能重现bug，感觉好受伤。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1060,133 +1231,6 @@ operatingsystemrelease => 2.6.32-358.el6.x86_64
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/puppet/2015/04/16/puppet-cron-pitfall">Puppet Cron Pitfall</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-04-16T00:00:00+08:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/puppet/2015/04/16/puppet-cron-pitfall#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/puppet/2015/04/16/puppet-cron-pitfall">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>最近完成了一个任务，内容是更新一个cron运行perl脚本的连接数据库的credential。该脚本用来清除数据库中一些
-过期的匿名用户，脚本部署在一个内网的服务器上，服务器的配置由puppet管理。脚本一直要保持运行，所以在
-脚本中会检查pid的modified time，如果小于一个小时，则进程退出。因此，在脚本第一次运行后，以后的cron
-运行的进程会自动退出。
-所以，我的计划是这样的:</p>
-
-<ol>
-<li>更新puppet管理的脚本内容中数据库连接的credential</li>
-<li>更改puppet中服务器中cron运行的时间为每两分钟运行一次，这样，下次运行时，脚本pick up新的配置</li>
-<li><code>puppet --test</code>应用配置更改</li>
-<li>停止正在运行的脚本，<code>pkill process</code></li>
-<li><code>touch -t some_old_time_stamp</code></li>
-<li>监控log，等待脚本启动</li>
-<li>监控数据库，是否有新的credential连接进程， <code>mysql -e "show full processlist;" | grep new_user</code></li>
-<li>一切运转正常，将puppet中cron的时间改回去并应用</li>
-</ol>
-
-
-<p>关于cron配置的代码原本如下,原本cron运行的时间为23:55:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">cron</span> <span class="p">{</span> <span class="na">test</span><span class="p">:</span>
-</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;some scripts&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="k">user</span> <span class="o">=&gt;</span> <span class="na">root</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">hour</span> <span class="o">=&gt;</span> <span class="mi">23</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">minute</span> <span class="o">=&gt;</span> <span class="mi">55</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>应用后生成的cron应该如此: <code>55 23 * * *  some scripts</code>
-更改后的puppet配置如下:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">cron</span> <span class="p">{</span> <span class="na">test</span><span class="p">:</span>
-</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;some scripts&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="k">user</span> <span class="o">=&gt;</span> <span class="na">root</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">minute</span> <span class="o">=&gt;</span> <span class="s">&quot;*/2&quot;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>期望应用后的cron应该如此: <code>*/2 * * * * some scripts</code>
-一切都非常顺利，直到step 6，等待日志输出时，发现时间过了4分钟还是没有日志，WTF!赶紧看了眼更改后的
-cron运行时间:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="o">*/</span><span class="mi">2</span> <span class="mi">22</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="na">some</span> <span class="na">scripts</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>顿时就震惊了，鉴于是产品环境，不敢担待，于是直接就顺手改了，两分钟后运行，如释重负。由此可见，puppet
-cron的这个地方是略坑的, 如果更改比较多，最好是指定完整的时间配置，如:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">cron</span> <span class="p">{</span> <span class="na">test</span><span class="p">:</span>
-</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;some scripts&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="k">user</span> <span class="o">=&gt;</span> <span class="na">root</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">year</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">month</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">day</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">hour</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">minute</span> <span class="o">=&gt;</span> <span class="s">&quot;*/2&quot;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>话说这还不是最坑的地方，因为脚本还是没有顺利运行，真是日了狗了，不得不手动revert脚本，然后让脚本正常
-运行，然后再重新查看脚本，测试，查找问题在哪里。
-最后的原因实在是让人崩溃:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">die</span> <span class="s">&quot;ERROR: Missing or invalid database username &#39;$dbuser&#39;&quot;</span> <span class="k">unless</span> <span class="p">(</span><span class="nb">defined</span><span class="p">(</span><span class="nv">$dbuser</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nv">$dbuser</span> <span class="o">=~</span> <span class="sr">m/^[a-zA-Z0-9]+$/</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>新的<code>dbuser</code>名字中包含了连接线<code>-</code>，因为不能满足regex检查，所以程序直接退出了。实在是不能理解为什么
-会有这样的约束条件，我只知道mysql数据库用户的名字不能超过16个字符，但是没听说过限制数据库用户名字格式
-是个什么鬼。实在是无语，不过，我能理解，不会挖坑的程序员不是好程序员。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/3">&larr; Older</a>
@@ -1212,15 +1256,15 @@ cron的这个地方是略坑的, 如果更改比较多，最好是指定完整�
       </li>
     
       <li class="post">
+        <a href="/aws/kms/2016/01/15/aws-kms-and-its-usage">AWS KMS and Its Usage</a>
+      </li>
+    
+      <li class="post">
         <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
       </li>
     
       <li class="post">
         <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
-      </li>
-    
-      <li class="post">
-        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
       </li>
     
   </ul>

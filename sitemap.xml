@@ -9,6 +9,10 @@
     <lastmod>2016-01-19T13:32:46+08:00</lastmod>
   </url>
   <url>
+    <loc>http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage</loc>
+    <lastmod>2016-01-15T09:33:30+08:00</lastmod>
+  </url>
+  <url>
     <loc>http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos</loc>
     <lastmod>2016-01-10T14:33:29+08:00</lastmod>
   </url>
@@ -377,6 +381,9 @@
     <loc>http://iambowen.github.com/blog/categories/mesos/</loc>
   </url>
   <url>
+    <loc>http://iambowen.github.com/blog/categories/kms/</loc>
+  </url>
+  <url>
     <loc>http://iambowen.github.com/blog/categories/akamai/</loc>
   </url>
   <url>
@@ -390,26 +397,5 @@
   </url>
   <url>
     <loc>http://iambowen.github.com/blog/categories/network/</loc>
-  </url>
-  <url>
-    <loc>http://iambowen.github.com/posts/2/</loc>
-  </url>
-  <url>
-    <loc>http://iambowen.github.com/posts/3/</loc>
-  </url>
-  <url>
-    <loc>http://iambowen.github.com/posts/4/</loc>
-  </url>
-  <url>
-    <loc>http://iambowen.github.com/posts/5/</loc>
-  </url>
-  <url>
-    <loc>http://iambowen.github.com/posts/6/</loc>
-  </url>
-  <url>
-    <loc>http://iambowen.github.com/posts/7/</loc>
-  </url>
-  <url>
-    <loc>http://iambowen.github.com/posts/8/</loc>
   </url>
 </urlset>

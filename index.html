@@ -267,6 +267,277 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/aws/kms/2016/01/15/aws-kms-and-its-usage">AWS KMS and Its Usage</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-01-15T09:33:30+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:33 am</span></time>
+        
+           | <a href="/aws/kms/2016/01/15/aws-kms-and-its-usage#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>什么是KMS</h2>
+
+<hr />
+
+<p><a href="https://aws.amazon.com/kms/">KMS</a>是AWS提供的中心化的key托管服务，它使用硬件安全模块 (HSM)保护密钥安全。它可以被集成到其它的AWS服务中，如S3, EBS, RDS等，同时所有关于key的使用都会在CloudTrail中记录，以方便审计。</p>
+
+<h2>KMS的优点</h2>
+
+<hr />
+
+<p>基本上来自于<a href="https://aws.amazon.com/kms/">文档</a>，其好处有如下几点：</p>
+
+<ol>
+<li>中心化的key托管服务。举个例子，对于不同的环境(staging/production)，我们需要维护不同private key 去做部署，调试等等，还得考虑定期rotate。出于安全考虑，这些private key不推荐和部署的repo放在一起。一般情况下你得把它们放在一个统一的地方去保存，如<a href="http://rattic.org/">Rattic</a>或者<a href="https://www.vaultproject.io/">Vault</a>去管理。这样的话，你的承担这些工具的维护任务。KMS可以让你免除维护的压力。</li>
+<li>和 AWS 服务的集成。S3，EBS，RDS的数据加密，都可以使用KMS。同时，它也支持命令行或者API去管理key，进行key的rotate，加密解密等。</li>
+<li>可伸缩性、耐用性和高可用性。KMS会自动帮你保存key多份拷贝，耐用性99.999999999%，同时KMS会在多个AZ部署，保证高可用性。</li>
+<li>安全。KMS在服务端通过硬件加密，保证了你在上面存储的key的安全性。其实现的细节在<a href="https://d0.awsstatic.com/whitepapers/KMS-Cryptographic-Details.pdf">这里</a></li>
+<li>审计。对于key的请求，都会被记录在CloudTrail中，方便审计。</li>
+</ol>
+
+
+<p>可以看到的好处有很多，比如直接把加密过后的private key或者密码扔到repo中，再也不用担心被别人拿去干坏事。</p>
+
+<h2>使用 KMS 服务</h2>
+
+<hr />
+
+<p>要使用KMS服务，首先得创建一个新的master key。key是按照region划分， 自己创建key的价格是1刀一个月，每个月的前20000次请求是免费的。</p>
+
+<h3>创建新key</h3>
+
+<hr />
+
+<p>在AWS Console -> IAM界面的<code>Encryption Keys</code>中找到创建Key和Key管理的选项，如key的<code>Enable</code>、<code>Disable</code>或者删除等。当然，我们可以通过AWS CLI来创建key，这样可以将整个过程用代码管理起来:</p>
+
+<ol>
+<li>假设AWS account为<code>123456789</code>,指定key policy并保存到文件(e.g <code>policy.json</code>)中</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;Id&quot;</span><span class="p">:</span> <span class="s2">&quot;KeyPolicy-1&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;Version&quot;</span><span class="p">:</span> <span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;Statement&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;Sid&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow access for Admin&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;Principal&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nt">&quot;AWS&quot;</span><span class="p">:</span> <span class="s2">&quot;arn:aws:iam::123456789:root&quot;</span>
+</span><span class='line'>      <span class="p">},</span>
+</span><span class='line'>      <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Create*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Describe*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Enable*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:List*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Put*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Update*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Revoke*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Disable*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Get*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Delete*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:ScheduleKeyDeletion&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:CancelKeyDeletion&quot;</span>
+</span><span class='line'>      <span class="p">],</span>
+</span><span class='line'>      <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="s2">&quot;*&quot;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>创建key，并绑定对应的policy</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; aws kms create-key --key-usage <span class="s2">&quot;encryption key&quot;</span> --description <span class="s2">&quot;master key&quot;</span> --policy <span class="s2">&quot;$(cat policy.json)&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>返回的内容可能如下</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;KeyMetadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;KeyId&quot;</span><span class="p">:</span> <span class="s2">&quot;aabbccdd-4444-5555-6666-778899001122&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;Description&quot;</span><span class="p">:</span> <span class="s2">&quot;master key&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;Enabled&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;KeyUsage&quot;</span><span class="p">:</span> <span class="s2">&quot;encryption key&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;CreationDate&quot;</span><span class="p">:</span> <span class="mf">2433401783.841</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;Arn&quot;</span><span class="p">:</span> <span class="s2">&quot;arn:aws:kms:ap-southeast-2:123456789:key/aabbccdd-4444-5555-6666-778899001122&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;AWSAccountId&quot;</span><span class="p">:</span> <span class="s2">&quot;123456789&quot;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>授权IAM user/role去使用或者管理key,这是除了policy之外的另一种访问管理控制的机制。</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">{</span>
+</span><span class='line'>  <span class="s2">&quot;Sid&quot;</span>: <span class="s2">&quot;Allow use of the key&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;Effect&quot;</span>: <span class="s2">&quot;Allow&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;Principal&quot;</span>: <span class="o">{</span><span class="s2">&quot;AWS&quot;</span>: <span class="o">[</span>
+</span><span class='line'>    <span class="s2">&quot;arn:aws:iam::111122223333:user/KMSUser&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;arn:aws:iam::111122223333:role/KMSRole&quot;</span>,
+</span><span class='line'>  <span class="o">]}</span>,
+</span><span class='line'>  <span class="s2">&quot;Action&quot;</span>: <span class="o">[</span>
+</span><span class='line'>    <span class="s2">&quot;kms:Encrypt&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;kms:Decrypt&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;kms:ReEncrypt*&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;kms:GenerateDataKey*&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;kms:DescribeKey&quot;</span>
+</span><span class='line'>  <span class="o">]</span>,
+</span><span class='line'>  <span class="s2">&quot;Resource&quot;</span>: <span class="s2">&quot;*&quot;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>创建alias,可以作为keyid的替身使用</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws kms create-alias --alias-name <span class="s2">&quot;alias/test-encryption-key&quot;</span> --target-key-id aabbccdd-4444-5555-6666-778899001122
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>使用key去加密文件。加密后的输出为base64编码后的密文，可以进一步解码为二进制文件。</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws kms encrypt --key-id 1234abcd-12ab-34cd-56ef-1234567890ab --plaintext fileb://ExamplePlaintextFile --output text --query CiphertextBlob <span class="p">|</span> base64 --decode &gt; ExampleEncryptedFile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>解密文件，原理如加密的过程。</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws kms decrypt --ciphertext-blob fileb://ExampleEncryptedFile --output text --query Plaintext <span class="p">|</span> base64 --decode &gt; ExamplePlaintextFile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>局限性</h3>
+
+<p>这种使用KMS的方式只能加密最多4KB的数据。想要加密更大的数据可以使用KMS去生成一个<a href="http://docs.aws.amazon.com/kms/latest/developerguide/workflow.html">Data Key</a>，然后利用Data Key去加密数据。</p>
+
+<h3>使用场景举例</h3>
+
+<p>在REA项目中，在AWS上部署的大多数APP都是（尽量）遵循12factors原则的。应用运行时依赖的配置是通过<code>user-data</code>传入环境变量设置。在一个instance上启动服务的过程大致如下：
+1. 在<code>launchConfiguration</code>中为instance添加<code>instanceProfile</code>，对应的role有使用KMS的权限；
+2. 在<code>user-data</code>中设置cypher text并且解密到环境变量中:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">cipher</span><span class="o">=</span><span class="s2">&quot;CiBwo3lXT5T+pTZu7P9Cqkh0Iolpaz9FMzha5jJb6kTdiBKNAQEBAgB4cKN5V0+U/qU2buz/QqpIdCKJaWs/RTM4WuYyW+pE3YgAAABkMGIGCSqGSIb3DQEHBqBVMFMCAQAwTgYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAwIxkIN0TeX1HiWyj0CARCAIVaSfD/spTBFAfBVIp/Wy6TadlwUKKz/oTMWUUob9fcxdg==&quot;</span>
+</span><span class='line'><span class="nv">cipher_blob</span><span class="o">=</span><span class="k">$(</span>mktemp /tmp/blob.123<span class="k">)</span>
+</span><span class='line'><span class="nb">echo</span> -n <span class="s2">&quot;${cipher}&quot;</span> <span class="p">|</span> base64 -D &gt; cipher_blob
+</span><span class='line'><span class="nv">PASSWORD</span><span class="o">=</span><span class="k">$(</span>aws kms decrypt --ciphertext-blob fileb://<span class="nv">$cipher_blob</span> <span class="se">\</span>
+</span><span class='line'>             --query <span class="s2">&quot;Plaintext&quot;</span>                         <span class="se">\</span>
+</span><span class='line'>             --output text                               <span class="se">\</span>
+</span><span class='line'>             --region ap-southeast-2  <span class="p">|</span> <span class="se">\</span>
+</span><span class='line'>             base64 -D
+</span><span class='line'><span class="k">)</span>
+</span><span class='line'>
+</span><span class='line'>docker run -d -e <span class="nv">PASSWORD</span><span class="o">=</span><span class="nv">$PASSWORD</span> .......
+</span></code></pre></td></tr></table></div></figure>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a></h1>
     
     
@@ -1045,178 +1316,6 @@ Packer会通过如下的步骤去自动查找credential:</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2015/09/02/deploy-netty-example-app-to-heroku">Deploy Netty Example App to Heroku</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-09-02T00:00:00+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/2015/09/02/deploy-netty-example-app-to-heroku#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/2015/09/02/deploy-netty-example-app-to-heroku">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>作为一名java的弱鸡，为了在公共的服务器上重现netty的一个<a href="http://iambowen.github.io/2015/08/25/tracing-and-production-bug-about-netty/">bug</a>，我也是很努力的自己setup了一个简单的netty的<a href="https://github.com/iambowen/netty-example">java</a>工程，然后计划
-部署在heroku上面，这样在github上提交issue的说服力更强一些。</p>
-
-<h3>过程</h3>
-
-<hr />
-
-<h3>准备netty的项目</h3>
-
-<hr />
-
-<p>比较简单，就是在netty的代码库中抄一些<a href="https://github.com/netty/netty/tree/master/example/src/main/java/io/netty/example">例子</a>就可以了.要注意的有下面几点:</p>
-
-<ol>
-<li>申明对netty的依赖，如下:</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;dependencies&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;dependency&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;groupId&gt;</span>io.netty<span class="nt">&lt;/groupId&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;artifactId&gt;</span>netty-all<span class="nt">&lt;/artifactId&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;version&gt;</span>4.0.24.Final<span class="nt">&lt;/version&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/dependency&gt;</span>
-</span><span class='line'><span class="nt">&lt;/dependencies&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li>将依赖的netty jar包copy到target目录下:</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;executions&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;execution&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;id&gt;</span>copy-dependencies<span class="nt">&lt;/id&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;phase&gt;</span>package<span class="nt">&lt;/phase&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;goals&gt;&lt;goal&gt;</span>copy-dependencies<span class="nt">&lt;/goal&gt;&lt;/goals&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/execution&gt;</span>
-</span><span class='line'><span class="nt">&lt;/executions&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li>声明应用启动时的main class:</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'><span class="nt">&lt;configuration&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;archive&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;manifest&gt;</span>
-</span><span class='line'>            <span class="nt">&lt;mainClass&gt;</span>com.tw.httpserver.HttpHelloWorldServer<span class="nt">&lt;/mainClass&gt;</span>
-</span><span class='line'>        <span class="nt">&lt;/manifest&gt;</span>
-</span><span class='line'>    <span class="nt">&lt;/archive&gt;</span>
-</span><span class='line'><span class="nt">&lt;/configuration&gt;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li>app的启动端口需要去读取heroku预设的<code>PORT</code>随机端口的环境变量，否则前面的代理服务器无法绑定到后端的netty.
-我个人觉得这是一个非常坑爹的设定，同时在官方的文档中没有特别说明。很容易引发下面的错误:</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='xml'><span class='line'>Error R10 (Boot timeout) -&gt; Web process failed to bind to $PORT within 60 seconds of launch
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>解决的办法就是这样</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="kd">static</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">PORT</span> <span class="o">=</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s">&quot;PORT&quot;</span><span class="o">));</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li>声明启动web服务所需命令,在<code>Procfile</code>中加入以下内容：</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>web: java  <span class="nv">$JAVA_OPTS</span> -cp target/classes:target/dependency/* com.tw.httpserver.HttpHelloWorldServer
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li>声明系统运行的环境依赖，在 <code>system.properties</code>加入:</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>java.runtime.version<span class="o">=</span>1.7
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>本地测试</h3>
-
-<hr />
-
-<p>用<code>mvn clean install</code>打包到<code>target目录下</code>，然后运行<code>heroku local web</code>,测试应用在本地是否工作正常。</p>
-
-<h3>发布和部署</h3>
-
-<hr />
-
-<ol>
-<li>用<code>heroku create</code>命令新建一个应用。</li>
-<li>本地提交，并将代码提交到heroku，<code>git push heroku master</code>。</li>
-<li><code>heroku ps:scale web=1</code>保证至少有一个实例在运行这个应用。</li>
-<li><code>heroku open</code>可以打开部署后的服务页面。</li>
-</ol>
-
-
-<h3>结论</h3>
-
-<hr />
-
-<p>可能是因为java水平太差，感觉在heroku上部署java应用比部署ruby应用要难一些。部署完成后，发现还是不
-能重现bug，感觉好受伤。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1240,15 +1339,15 @@ Packer会通过如下的步骤去自动查找credential:</p>
       </li>
     
       <li class="post">
+        <a href="/aws/kms/2016/01/15/aws-kms-and-its-usage">AWS KMS and Its Usage</a>
+      </li>
+    
+      <li class="post">
         <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
       </li>
     
       <li class="post">
         <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
-      </li>
-    
-      <li class="post">
-        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
       </li>
     
   </ul>

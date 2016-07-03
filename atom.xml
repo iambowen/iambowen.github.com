@@ -4,7 +4,7 @@
   <title><![CDATA[Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-01-20T17:51:46+08:00</updated>
+  <updated>2016-07-03T14:37:09+08:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -146,6 +146,254 @@
 <p>之后就可以看到错误的原因是<code>ERR_FWD_SSL_HANDSHAKE&amp;#x7c;err_conn_strict_cert</code>，也就是说我没有在CDN设置正确的certificate，导致它和origin的ssl handshake失败了。</p>
 
 <p>如果没有什么特殊的需求，akamai web console中的diagnostic tool就可以满足需求，逼格较高或者有自动化需求的可以从命令行调用API输出错误原因。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[AWS KMS and Its Usage]]></title>
+    <link href="http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage"/>
+    <updated>2016-01-15T09:33:30+08:00</updated>
+    <id>http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage</id>
+    <content type="html"><![CDATA[<h2>什么是KMS</h2>
+
+<hr />
+
+<p><a href="https://aws.amazon.com/kms/">KMS</a>是AWS提供的中心化的key托管服务，它使用硬件安全模块 (HSM)保护密钥安全。它可以被集成到其它的AWS服务中，如S3, EBS, RDS等，同时所有关于key的使用都会在CloudTrail中记录，以方便审计。</p>
+
+<h2>KMS的优点</h2>
+
+<hr />
+
+<p>基本上来自于<a href="https://aws.amazon.com/kms/">文档</a>，其好处有如下几点：</p>
+
+<ol>
+<li>中心化的key托管服务。举个例子，对于不同的环境(staging/production)，我们需要维护不同private key 去做部署，调试等等，还得考虑定期rotate。出于安全考虑，这些private key不推荐和部署的repo放在一起。一般情况下你得把它们放在一个统一的地方去保存，如<a href="http://rattic.org/">Rattic</a>或者<a href="https://www.vaultproject.io/">Vault</a>去管理。这样的话，你的承担这些工具的维护任务。KMS可以让你免除维护的压力。</li>
+<li>和 AWS 服务的集成。S3，EBS，RDS的数据加密，都可以使用KMS。同时，它也支持命令行或者API去管理key，进行key的rotate，加密解密等。</li>
+<li>可伸缩性、耐用性和高可用性。KMS会自动帮你保存key多份拷贝，耐用性99.999999999%，同时KMS会在多个AZ部署，保证高可用性。</li>
+<li>安全。KMS在服务端通过硬件加密，保证了你在上面存储的key的安全性。其实现的细节在<a href="https://d0.awsstatic.com/whitepapers/KMS-Cryptographic-Details.pdf">这里</a></li>
+<li>审计。对于key的请求，都会被记录在CloudTrail中，方便审计。</li>
+</ol>
+
+
+<p>可以看到的好处有很多，比如直接把加密过后的private key或者密码扔到repo中，再也不用担心被别人拿去干坏事。</p>
+
+<h2>使用 KMS 服务</h2>
+
+<hr />
+
+<p>要使用KMS服务，首先得创建一个新的master key。key是按照region划分， 自己创建key的价格是1刀一个月，每个月的前20000次请求是免费的。</p>
+
+<h3>创建新key</h3>
+
+<hr />
+
+<p>在AWS Console -> IAM界面的<code>Encryption Keys</code>中找到创建Key和Key管理的选项，如key的<code>Enable</code>、<code>Disable</code>或者删除等。当然，我们可以通过AWS CLI来创建key，这样可以将整个过程用代码管理起来:</p>
+
+<ol>
+<li>假设AWS account为<code>123456789</code>,指定key policy并保存到文件(e.g <code>policy.json</code>)中</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;Id&quot;</span><span class="p">:</span> <span class="s2">&quot;KeyPolicy-1&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;Version&quot;</span><span class="p">:</span> <span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;Statement&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>    <span class="p">{</span>
+</span><span class='line'>      <span class="nt">&quot;Sid&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow access for Admin&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;Principal&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nt">&quot;AWS&quot;</span><span class="p">:</span> <span class="s2">&quot;arn:aws:iam::123456789:root&quot;</span>
+</span><span class='line'>      <span class="p">},</span>
+</span><span class='line'>      <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Create*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Describe*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Enable*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:List*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Put*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Update*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Revoke*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Disable*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Get*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:Delete*&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:ScheduleKeyDeletion&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="s2">&quot;kms:CancelKeyDeletion&quot;</span>
+</span><span class='line'>      <span class="p">],</span>
+</span><span class='line'>      <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="s2">&quot;*&quot;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>创建key，并绑定对应的policy</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; aws kms create-key --key-usage <span class="s2">&quot;encryption key&quot;</span> --description <span class="s2">&quot;master key&quot;</span> --policy <span class="s2">&quot;$(cat policy.json)&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>返回的内容可能如下</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;KeyMetadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+</span><span class='line'>    <span class="nt">&quot;KeyId&quot;</span><span class="p">:</span> <span class="s2">&quot;aabbccdd-4444-5555-6666-778899001122&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;Description&quot;</span><span class="p">:</span> <span class="s2">&quot;master key&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;Enabled&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;KeyUsage&quot;</span><span class="p">:</span> <span class="s2">&quot;encryption key&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;CreationDate&quot;</span><span class="p">:</span> <span class="mf">2433401783.841</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;Arn&quot;</span><span class="p">:</span> <span class="s2">&quot;arn:aws:kms:ap-southeast-2:123456789:key/aabbccdd-4444-5555-6666-778899001122&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="nt">&quot;AWSAccountId&quot;</span><span class="p">:</span> <span class="s2">&quot;123456789&quot;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>授权IAM user/role去使用或者管理key,这是除了policy之外的另一种访问管理控制的机制。</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">{</span>
+</span><span class='line'>  <span class="s2">&quot;Sid&quot;</span>: <span class="s2">&quot;Allow use of the key&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;Effect&quot;</span>: <span class="s2">&quot;Allow&quot;</span>,
+</span><span class='line'>  <span class="s2">&quot;Principal&quot;</span>: <span class="o">{</span><span class="s2">&quot;AWS&quot;</span>: <span class="o">[</span>
+</span><span class='line'>    <span class="s2">&quot;arn:aws:iam::111122223333:user/KMSUser&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;arn:aws:iam::111122223333:role/KMSRole&quot;</span>,
+</span><span class='line'>  <span class="o">]}</span>,
+</span><span class='line'>  <span class="s2">&quot;Action&quot;</span>: <span class="o">[</span>
+</span><span class='line'>    <span class="s2">&quot;kms:Encrypt&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;kms:Decrypt&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;kms:ReEncrypt*&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;kms:GenerateDataKey*&quot;</span>,
+</span><span class='line'>    <span class="s2">&quot;kms:DescribeKey&quot;</span>
+</span><span class='line'>  <span class="o">]</span>,
+</span><span class='line'>  <span class="s2">&quot;Resource&quot;</span>: <span class="s2">&quot;*&quot;</span>
+</span><span class='line'><span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>创建alias,可以作为keyid的替身使用</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws kms create-alias --alias-name <span class="s2">&quot;alias/test-encryption-key&quot;</span> --target-key-id aabbccdd-4444-5555-6666-778899001122
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>使用key去加密文件。加密后的输出为base64编码后的密文，可以进一步解码为二进制文件。</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws kms encrypt --key-id 1234abcd-12ab-34cd-56ef-1234567890ab --plaintext fileb://ExamplePlaintextFile --output text --query CiphertextBlob <span class="p">|</span> base64 --decode &gt; ExampleEncryptedFile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>解密文件，原理如加密的过程。</li>
+</ol>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws kms decrypt --ciphertext-blob fileb://ExampleEncryptedFile --output text --query Plaintext <span class="p">|</span> base64 --decode &gt; ExamplePlaintextFile
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>局限性</h3>
+
+<p>这种使用KMS的方式只能加密最多4KB的数据。想要加密更大的数据可以使用KMS去生成一个<a href="http://docs.aws.amazon.com/kms/latest/developerguide/workflow.html">Data Key</a>，然后利用Data Key去加密数据。</p>
+
+<h3>使用场景举例</h3>
+
+<p>在REA项目中，在AWS上部署的大多数APP都是（尽量）遵循12factors原则的。应用运行时依赖的配置是通过<code>user-data</code>传入环境变量设置。在一个instance上启动服务的过程大致如下：
+1. 在<code>launchConfiguration</code>中为instance添加<code>instanceProfile</code>，对应的role有使用KMS的权限；
+2. 在<code>user-data</code>中设置cypher text并且解密到环境变量中:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">cipher</span><span class="o">=</span><span class="s2">&quot;CiBwo3lXT5T+pTZu7P9Cqkh0Iolpaz9FMzha5jJb6kTdiBKNAQEBAgB4cKN5V0+U/qU2buz/QqpIdCKJaWs/RTM4WuYyW+pE3YgAAABkMGIGCSqGSIb3DQEHBqBVMFMCAQAwTgYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAwIxkIN0TeX1HiWyj0CARCAIVaSfD/spTBFAfBVIp/Wy6TadlwUKKz/oTMWUUob9fcxdg==&quot;</span>
+</span><span class='line'><span class="nv">cipher_blob</span><span class="o">=</span><span class="k">$(</span>mktemp /tmp/blob.123<span class="k">)</span>
+</span><span class='line'><span class="nb">echo</span> -n <span class="s2">&quot;${cipher}&quot;</span> <span class="p">|</span> base64 -D &gt; cipher_blob
+</span><span class='line'><span class="nv">PASSWORD</span><span class="o">=</span><span class="k">$(</span>aws kms decrypt --ciphertext-blob fileb://<span class="nv">$cipher_blob</span> <span class="se">\</span>
+</span><span class='line'>             --query <span class="s2">&quot;Plaintext&quot;</span>                         <span class="se">\</span>
+</span><span class='line'>             --output text                               <span class="se">\</span>
+</span><span class='line'>             --region ap-southeast-2  <span class="p">|</span> <span class="se">\</span>
+</span><span class='line'>             base64 -D
+</span><span class='line'><span class="k">)</span>
+</span><span class='line'>
+</span><span class='line'>docker run -d -e <span class="nv">PASSWORD</span><span class="o">=</span><span class="nv">$PASSWORD</span> .......
+</span></code></pre></td></tr></table></div></figure>
+
 ]]></content>
   </entry>
   
@@ -1688,110 +1936,6 @@ operatingsystemrelease => 2.6.32-358.el6.x86_64
 <hr />
 
 <p><a href="https://puppetlabs.com/blog/facter-part-1-facter-101">1</a></p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Puppet Cron Pitfall]]></title>
-    <link href="http://iambowen.github.com/puppet/2015/04/16/puppet-cron-pitfall"/>
-    <updated>2015-04-16T00:00:00+08:00</updated>
-    <id>http://iambowen.github.com/puppet/2015/04/16/puppet-cron-pitfall</id>
-    <content type="html"><![CDATA[<p>最近完成了一个任务，内容是更新一个cron运行perl脚本的连接数据库的credential。该脚本用来清除数据库中一些
-过期的匿名用户，脚本部署在一个内网的服务器上，服务器的配置由puppet管理。脚本一直要保持运行，所以在
-脚本中会检查pid的modified time，如果小于一个小时，则进程退出。因此，在脚本第一次运行后，以后的cron
-运行的进程会自动退出。
-所以，我的计划是这样的:</p>
-
-<ol>
-<li>更新puppet管理的脚本内容中数据库连接的credential</li>
-<li>更改puppet中服务器中cron运行的时间为每两分钟运行一次，这样，下次运行时，脚本pick up新的配置</li>
-<li><code>puppet --test</code>应用配置更改</li>
-<li>停止正在运行的脚本，<code>pkill process</code></li>
-<li><code>touch -t some_old_time_stamp</code></li>
-<li>监控log，等待脚本启动</li>
-<li>监控数据库，是否有新的credential连接进程， <code>mysql -e "show full processlist;" | grep new_user</code></li>
-<li>一切运转正常，将puppet中cron的时间改回去并应用</li>
-</ol>
-
-
-<p>关于cron配置的代码原本如下,原本cron运行的时间为23:55:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">cron</span> <span class="p">{</span> <span class="na">test</span><span class="p">:</span>
-</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;some scripts&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="k">user</span> <span class="o">=&gt;</span> <span class="na">root</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">hour</span> <span class="o">=&gt;</span> <span class="mi">23</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">minute</span> <span class="o">=&gt;</span> <span class="mi">55</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>应用后生成的cron应该如此: <code>55 23 * * *  some scripts</code>
-更改后的puppet配置如下:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">cron</span> <span class="p">{</span> <span class="na">test</span><span class="p">:</span>
-</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;some scripts&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="k">user</span> <span class="o">=&gt;</span> <span class="na">root</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">minute</span> <span class="o">=&gt;</span> <span class="s">&quot;*/2&quot;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>期望应用后的cron应该如此: <code>*/2 * * * * some scripts</code>
-一切都非常顺利，直到step 6，等待日志输出时，发现时间过了4分钟还是没有日志，WTF!赶紧看了眼更改后的
-cron运行时间:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="o">*/</span><span class="mi">2</span> <span class="mi">22</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="na">some</span> <span class="na">scripts</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>顿时就震惊了，鉴于是产品环境，不敢担待，于是直接就顺手改了，两分钟后运行，如释重负。由此可见，puppet
-cron的这个地方是略坑的, 如果更改比较多，最好是指定完整的时间配置，如:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">cron</span> <span class="p">{</span> <span class="na">test</span><span class="p">:</span>
-</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;some scripts&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="k">user</span> <span class="o">=&gt;</span> <span class="na">root</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">year</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">month</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">day</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">hour</span> <span class="o">=&gt;</span> <span class="s">&quot;*&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">minute</span> <span class="o">=&gt;</span> <span class="s">&quot;*/2&quot;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>话说这还不是最坑的地方，因为脚本还是没有顺利运行，真是日了狗了，不得不手动revert脚本，然后让脚本正常
-运行，然后再重新查看脚本，测试，查找问题在哪里。
-最后的原因实在是让人崩溃:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='perl'><span class='line'><span class="nb">die</span> <span class="s">&quot;ERROR: Missing or invalid database username &#39;$dbuser&#39;&quot;</span> <span class="k">unless</span> <span class="p">(</span><span class="nb">defined</span><span class="p">(</span><span class="nv">$dbuser</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nv">$dbuser</span> <span class="o">=~</span> <span class="sr">m/^[a-zA-Z0-9]+$/</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>新的<code>dbuser</code>名字中包含了连接线<code>-</code>，因为不能满足regex检查，所以程序直接退出了。实在是不能理解为什么
-会有这样的约束条件，我只知道mysql数据库用户的名字不能超过16个字符，但是没听说过限制数据库用户名字格式
-是个什么鬼。实在是无语，不过，我能理解，不会挖坑的程序员不是好程序员。</p>
 ]]></content>
   </entry>
   

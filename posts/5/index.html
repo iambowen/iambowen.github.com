@@ -9,7 +9,14 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="简单介绍Scala一些基本的概念，主要参考书籍为高宇翔翻译的《快学Scala》第一章。 声明变量:val和var的区别 val 是Scala中用来申明常量(常量变量)的关键字，对应的 var 是用来申明变量的关键字。当我们知道这个概念的时候，对它们区别应该就比较清晰了。 &hellip;">
+  <meta name="description" content="想升级Vagrant配置文件中的Ubuntu，但是不想改变box的名字，因此需要删除旧的box，以及VM。 1
+2
+3
+4
+5 ~&gt; vagrant box list
+centos (virtualbox)
+debian (virtualbox)
+lucid64 (virtualbox) &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +86,117 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2014/03/26/vagrant-delelte-old-vms">Delete Old VMs From Vagrant</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2014-03-26T00:00:00+08:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2014/03/26/vagrant-delelte-old-vms#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2014/03/26/vagrant-delelte-old-vms">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>想升级Vagrant配置文件中的Ubuntu，但是不想改变box的名字，因此需要删除旧的box，以及VM。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; vagrant box list
+</span><span class='line'>centos  <span class="o">(</span>virtualbox<span class="o">)</span>
+</span><span class='line'>debian  <span class="o">(</span>virtualbox<span class="o">)</span>
+</span><span class='line'>lucid64 <span class="o">(</span>virtualbox<span class="o">)</span>
+</span><span class='line'>ubuntu  <span class="o">(</span>virtualbox<span class="o">)</span>   <span class="c">#需要删除的box</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从Vagrant中删除box</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; vagrant box remove ubuntu
+</span><span class='line'>Removing box <span class="s1">&#39;ubuntu&#39;</span> with provider <span class="s1">&#39;virtualbox&#39;</span>...
+</span><span class='line'>
+</span><span class='line'> ~&gt; vagrant box list
+</span><span class='line'>centos  <span class="o">(</span>virtualbox<span class="o">)</span>
+</span><span class='line'>debian  <span class="o">(</span>virtualbox<span class="o">)</span>
+</span><span class='line'>lucid64 <span class="o">(</span>virtualbox<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>从VirtualBox中删除虚拟机</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#列出Virtualbox中当前的虚拟机</span>
+</span><span class='line'> ~&gt; VBoxManage list vms
+</span><span class='line'><span class="s2">&quot;centos_default_1389778387460_58997&quot;</span> <span class="o">{</span>1b6e8415-ce81-4690-b229-981cf5c1f09f<span class="o">}</span>
+</span><span class='line'><span class="s2">&quot;debian_1386125850&quot;</span> <span class="o">{</span>b9dd3091-d036-4fab-b9f4-5b6c6b2faf16<span class="o">}</span>
+</span><span class='line'><span class="s2">&quot;ubuntu_default_1394781826776_87151&quot;</span> <span class="o">{</span>c1487df0-119a-411d-9d84-fcb6f983b200<span class="o">}</span>
+</span><span class='line'><span class="s2">&quot;VagrantChefHubot_default_1390458896900_28199&quot;</span> <span class="o">{</span>d55d7983-3ab4-45b6-a20c-cb2125b4eff8<span class="o">}</span>
+</span><span class='line'><span class="s2">&quot;hubotVagrant_default_1390464057664_43197&quot;</span> <span class="o">{</span>bc429ec4-0bf9-4486-a460-097329382135<span class="o">}</span>
+</span><span class='line'><span class="s2">&quot;graphite_default_1390985918603_95953&quot;</span> <span class="o">{</span>e87ba34a-a00a-44ec-99f0-f19c37f35c18<span class="o">}</span>
+</span><span class='line'><span class="s2">&quot;riemann_default_1391836269341_83882&quot;</span> <span class="o">{</span>e967375e-7498-4f48-a063-7641eddd53b1<span class="o">}</span>
+</span><span class='line'><span class="c">#unregister想要删除的虚拟机，加--delete可以删除vm</span>
+</span><span class='line'> ~&gt; VBoxManage unregistervm ubuntu_default_1394781826776_87151 --delete
+</span><span class='line'> 0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%
+</span><span class='line'><span class="c">#double check下虚拟机已经被删除</span>
+</span><span class='line'>  ~&gt; VBoxManage list vms
+</span><span class='line'><span class="s2">&quot;centos_default_1389778387460_58997&quot;</span> <span class="o">{</span>1b6e8415-ce81-4690-b229-981cf5c1f09f<span class="o">}</span>
+</span><span class='line'><span class="s2">&quot;debian_1386125850&quot;</span> <span class="o">{</span>b9dd3091-d036-4fab-b9f4-5b6c6b2faf16<span class="o">}</span>
+</span><span class='line'><span class="s2">&quot;VagrantChefHubot_default_1390458896900_28199&quot;</span> <span class="o">{</span>d55d7983-3ab4-45b6-a20c-cb2125b4eff8<span class="o">}</span>
+</span><span class='line'><span class="s2">&quot;hubotVagrant_default_1390464057664_43197&quot;</span> <span class="o">{</span>bc429ec4-0bf9-4486-a460-097329382135<span class="o">}</span>
+</span><span class='line'><span class="s2">&quot;graphite_default_1390985918603_95953&quot;</span> <span class="o">{</span>e87ba34a-a00a-44ec-99f0-f19c37f35c18<span class="o">}</span>
+</span><span class='line'><span class="s2">&quot;riemann_default_1391836269341_83882&quot;</span> <span class="o">{</span>e967375e-7498-4f48-a063-7641eddd53b1<span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Nicely done!</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1144,120 +1262,6 @@ KeePassX是一款跨平台的免费开源的密码管理软件，安装和使用
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2014/01/11/openwrt_and_thunder">Openwrt+迅雷离线实现离线下载以及家庭存储解决方案</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2014-01-11T00:00:00+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/2014/01/11/openwrt_and_thunder#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/2014/01/11/openwrt_and_thunder">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>前一段时间考虑如果实现一个家庭存储的解决方案，NAS是一个解决思路，不过价格略贵，即便是双11活动的时候，最便宜的也得接近1000块，这还不算硬盘的价格。后来参考了一篇用路由器(OpenWrt系统)和移动硬盘来实现家庭存储的文章，决定试下用路由器+移动硬盘的方案。
-<a href="http://wiki.openwrt.org/">OpenWrt</a>是一个基于linux的嵌入式操作系统，你可以通过opkg来定制安装软件包，来获取你所需要的服务, 如aria2下载服务，DDNS服务，SMB共享文件服务等。它对路由器的硬件有一定的要求，所以首先得选择下合适的路由器。最后的软硬件选择为:</p>
-
-<ol>
-<li>水星mw4530r  320</li>
-<li>希捷1T移动硬盘  440</li>
-<li>迅雷白金会员  90</li>
-</ol>
-
-
-<p>路由是直接从taobao上买了刷好的系统，主要是为了超频和升级16M内存，后来才意识到软件其实可以安装在移动硬盘上，多花了70比较失败。水星的这款是支持2.4G和5.G双频的，实际使用没觉得有什么太大的区别。大概配置了如下的这些服务:</p>
-
-<ol>
-<li>ftp 服务, 用来从路由器外接的移动硬盘下载电影</li>
-<li>samba 文件共享服务, 用来在不用的电脑/系统间进行文件共享，直接选择共享文件去播放电影，偶尔有卡顿，还是下载到本机比较好</li>
-<li>aria2 下载服务，用来在路由器上下载文件，同时可以用迅雷离线进行远程下载</li>
-<li>ddns服务，动态路由，可以把路由绑定到域名上，这样就能在任何地方访问到我的路由器</li>
-</ol>
-
-
-<p>大部分的服务比较容易配置，直接在Luci的web界面就可以配置了，还可以配置mDLNA的服务，这个只能等到去新房的电视机上测试了。这里只说几个稍微tricky点的设置。
-动态路由:</p>
-
-<ol>
-<li>申请花生壳动态域名, 如 <code>myname.oicp.net</code></li>
-<li>在DDNS配置页面中绑定你申请的动态域名</li>
-<li><code>ssh root@192.168.1.1</code>, 修改<code>/etc/config/uhttpd</code> 将 <code>option rfc1918_filter 1</code>  修改为 <code>option rfc1918_filter 0</code>，允许openwrt 接受external的请求.</li>
-<li>重启DDNS服务，<code>/etc/init.d/ddns restart</code></li>
-</ol>
-
-
-<p><img src="/images/1.png" style="width: 680px; ">
-离线下载:</p>
-
-<ol>
-<li>申请离线下载，双十一的时候有活动，迅雷白金会员半价, 90块。还是比较超值的，离线空间大概有300多T，支持多种协议,如BT、磁力链接、ed2k等，基本上高清电影随便往进去扔。</li>
-<li>在chrome下安装 <a href="https://chrome.google.com/webstore/detail/thunderlixianassistant/eehlmkfpnagoieibahhcghphdbjcdmen?hl=zh-CN">迅雷离线助手</a> 这个插件，可以帮助你直接导出aria2/aria2-rpc/wget/IDM/Orbit/YAAW下载。</li>
-<li>安装完成后，登陆<a href="http://dynamic.cloud.vip.xunlei.com/">迅雷离线</a>， 打开右上角设置，修改Aria2 json path 为 <code>http://myname.oicp.net:6800/jsonrpc</code></li>
-<li>点击任意一个资源下拉框，选择 yyaw导出，之后访问 <code>http://myname.oicp.net/aria2</code>，就可以看到正在下载的任务了。</li>
-</ol>
-
-
-<p><img src="/images/2.png" style="width: 680px; ">
-<img src="/images/3.png" style="width: 680px; "></p>
-
-<p>国内云存储的选择很多，微云，115，百度云，华为网盘，迅雷离线空间等，存储空间都是以T为单位，大部分是不用付费的，每个云存储都有相应的客户端做同步。迅雷的价格最贵，但是它有几点好处:</p>
-
-<ol>
-<li>离线空间更大，300T+，按照单部高清电影50G来计算，可以放6000部电影了，这辈子估计也看不完</li>
-<li>资源丰富，很多时候，你可以发现，下载任务刚添加，就完成了，可以推测服务器上早就有这个资源了，凭借md5校验码来验证资源是否，存在的话，直接做个链接就可以了</li>
-<li>迅雷做了很好的CDN，所以不管你的网络运营商是什么，电信、联通还是铁通，都可以做到峰值下载</li>
-<li>迅雷云播，可以直接在电脑或者手机客户端上播放离线空间资源，还能自动匹配字幕</li>
-</ol>
-
-
-<p>国家的版权控制越来越严格，可以想见的将来，资源的获取会更加困难，首先是音乐，因为目前音乐作品在网络上缺乏一个很好的渠道和商业模式去盈利，因此发行商或者利益相关者会盯的更紧些。电影则不然，清晰版的影片一般会在下映后或者更长时间才会出现，盈利不会受到很大影响。后来思考一番，多下载点影片和无损音乐在云端，路由接的移动硬盘除了放部分电影之类的话，也可以作为文档或者家里的视频照片等的存储空间。你可以使用samba或者ftp去上传文件，就是每次人工干预会略不爽，可以使用rsync做文件的同步，然后用crontab建个定时自动运行的任务就可以了。 大概的步骤是如下这样:</p>
-
-<ol>
-<li>把你的public key 扔到openwrt系统上，openwrt使用的是一个比较轻量的ssl服务，叫做dropbear,所以ssh key放置的目录也不太一样。你可以直接run这条命令: <code>cat ~/.ssh/id_rsa.pub |  ssh root@192.168.1.1 "cat &gt;&gt; /etc/dropbear/authorized_keys”</code>. 这样你ssh到openwrt的时候就不需要再输入密码.</li>
-<li>安装rsync, <code>opkg install rsync</code>.</li>
-<li>在pc端新建cron job，假设我希望每天晚上11点半同步所有dropbox里面的文件， 运行<code>crontab -e</code>，添加<code>”30 23 * * * rsync -r ~/Dropbox/ root@192.168.1.1:/mnt/sda1/Dropbox/“</code>, 保存即可</li>
-</ol>
-
-
-<p>自己去搭建这么一套简单的家庭存储的解决方案的好处很多:</p>
-
-<ol>
-<li>省钱，一场电影要30块，两个人一年看10次电影就差不多了。路由器的功耗很低，每小时只有几瓦，如果你开着一台PC去下载，一小时至少400w左右的功耗，从这个角度也节省了钱。</li>
-<li>最大化利用带宽，压榨宽带资源。一个月的宽带费用要一两百，所以一定要做到物尽其用，在家人都上班的时候添加好任务，回家之后就可以观看电影，不会影响到家人去使用网络。</li>
-<li>私人服务器。由于电信运营商对上行带宽的限制，从外部访问路由上的ftp下载服务比较慢，但是下载一些文档照片是足够了，上传的速度很快，所以如果你在旅游的时候拍的照片啊什么的，可以上传到服务器上，家人就可以在电视上看了。</li>
-<li>可玩性高。可以在openwrt上安装使用的服务远不止此，比如使用摄像头进行监控服务，只要有无线摄像头连接上，可以随时监控家里的情况。13号baidu就要退出一款无线摄像头，价格只有99，非常之便宜。还有类似流媒体服务，在家庭多个位置放置无线音箱，在手机或者电视，pc上控制播放，很有趣。</li>
-</ol>
-
-
-<p>当然，相比NAS，还是有些不足，比如:</p>
-
-<ol>
-<li>单个USB移动硬盘无法做数据的备份，比如raid，如果硬盘出问题，数据可能丢失。</li>
-<li>意外断电可能导致的设备损坏。</li>
-</ol>
-
-
-<p>几年前我在TCL教育做实习的时候，他们已经开始做基于android的智能电视了，在互联网企业杀入这个市场后，家庭智能化趋势已经不可阻挡了，物联网真正的实现也近在眼前。其中智能电视，路由器和游戏机是几个比较关键的要素，国内的几家公司，比如小米，马上要推出的小米路由或者果壳等，比较值得关注。随着宽带计划提升到国家战略层面，访问敏感网站逐渐松绑，互联网带来的自由革命也即将到来。</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/6">&larr; Older</a>
@@ -1283,15 +1287,15 @@ KeePassX是一款跨平台的免费开源的密码管理软件，安装和使用
       </li>
     
       <li class="post">
+        <a href="/aws/kms/2016/01/15/aws-kms-and-its-usage">AWS KMS and Its Usage</a>
+      </li>
+    
+      <li class="post">
         <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
       </li>
     
       <li class="post">
         <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
-      </li>
-    
-      <li class="post">
-        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
       </li>
     
   </ul>

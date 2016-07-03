@@ -9,7 +9,19 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="Yum是RedHat系列中(如Centos, Fedora)等软件包管理工具，全称为Yellow Dog Updater, Modified, 在RPM的基础上，它可以自动解析安装软件的依赖。最早接触Redhat的时候时的版本是Redhat9, 实在是不堪忍受各种坑爹的依赖， &hellip;">
+  <meta name="description" content="Yum 提供了一些列的utils以及plugins来增强自身的功能，比如yum-config-manager，fastestmirror等。 1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+[vagrant@localhost ~]$ yum info yum-utils
+....... &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -79,6 +91,208 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/07/25/learning-yum2-utils-and-plugins">Learning Yum(2): Utils and Plugins</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-07-25T00:00:00+08:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/07/25/learning-yum2-utils-and-plugins#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/07/25/learning-yum2-utils-and-plugins">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Yum 提供了一些列的utils以及plugins来增强自身的功能，比如yum-config-manager，fastestmirror等。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum info yum-utils
+</span><span class='line'>.......
+</span><span class='line'>Description:
+</span><span class='line'>yum-utils is a collection of utilities and examples <span class="k">for</span> the yum package manager. It includes utilities by different authors that make yum easier and more powerful to use. These tools include:
+</span><span class='line'>: debuginfo-install, find-repos-of-install, repodiff,
+</span><span class='line'>: needs-restarting, package-cleanup, repoclosure,
+</span><span class='line'>: repo-graph, repomanage, repoquery, repo-rss, reposync,
+</span><span class='line'>: repotrack, show-installed, show-changed-rco, verifytree,
+</span><span class='line'>: yum-builddep, yum-complete-transaction, yumdownloader,
+</span><span class='line'>: yum-config-manager, yum-debug-dump,
+</span><span class='line'>: yum-debug-restore and yum-groups-manager.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>它们各自的作用可以很容易从自己的命名上看的出来, 我们挑几看上去有意思的命令研究下， 比如yum-config-manager，yumdownloader，find-repos-of-install等。</p>
+
+<p>yum-config-manager: yum配置管理工具
+显示base这个repo显示的所有的配置项以及其对应的值:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum-config-manager base
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum-config-manager <span class="nv">base</span>
+</span><span class='line'><span class="o">========</span> repo: base
+</span><span class='line'><span class="o">[</span>base<span class="o">]</span>
+</span><span class='line'><span class="nv">base_persistdir</span> <span class="o">=</span> /var/lib/yum/repos/x86_64/6
+</span><span class='line'><span class="nv">baseurl</span> <span class="o">=</span> http://mirrors.163.com/centos/6/os/x86_64/
+</span><span class='line'><span class="nv">cache</span> <span class="o">=</span> 0
+</span><span class='line'><span class="nv">cachedir</span> <span class="o">=</span> /var/tmp/yum-vagrant-isJUZ8/x86_64/6/base
+</span><span class='line'><span class="nv">enabled</span> <span class="o">=</span> True
+</span><span class='line'><span class="nv">name</span> <span class="o">=</span> CentOS-6 - Base
+</span><span class='line'><span class="nv">retries</span> <span class="o">=</span> 10
+</span><span class='line'><span class="nv">timeout</span> <span class="o">=</span> 30.0
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>修改base这个repo的enabled选项为false同时保存:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo yum-config-manager base --setopt<span class="o">=</span>“base.enabled<span class="o">=</span>0” --save
+</span><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>yum-config-manager <span class="nv">base</span>
+</span><span class='line'><span class="o">========</span> repo: base
+</span><span class='line'><span class="o">[</span>base<span class="o">]</span>
+</span><span class='line'><span class="nv">enabled</span> <span class="o">=</span> False
+</span><span class='line'>......
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>yumdownloader: 从yum的repo下载rpm package</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yumdownloader  --destdir /tmp/  ConsoleKit-devel-0.4.1
+</span><span class='line'>ConsoleKit-devel-0.4.1-3.el6.i686.rpm      <span class="p">|</span>  <span class="m">15</span> kB     00:00
+</span><span class='line'>ConsoleKit-devel-0.4.1-3.el6.x86_64.rpm    <span class="p">|</span>  <span class="m">15</span> kB     00:00
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>find-repos-of-install: 找到已安装package的repo源</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>find-repos-of-install vim-common
+</span><span class='line'>2:vim-common-7.2.411-1.8.el6.x86_64 from repo base
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>试用了一些个utils命令，觉得没有那些是特别有用的，只是能够稍微提高下效率，比如yum-config-manager,可以直接通过这个命令修改配置。</p>
+
+<p>当你使用yum命令的时候，会提示你加载的<a href="http://yum.baseurl.org/wiki/YumUtils">plugins</a>。相比之下，yum的plugins就显得有用多了。yum有很多plugins，aliases， axelget等都是我觉得比较有用的。配置yum plugins的入口有三个地方，我们以yum-aliases这个plugin作为示例:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>vagrant@localhost ~<span class="o">]</span><span class="nv">$ </span>sudo yum install yum-aliases <span class="c">#安装插件</span>
+</span><span class='line'>/etc/yum.conf
+</span><span class='line'>  <span class="nv">plugins</span><span class="o">=</span>1/0                      <span class="c">#使用/不试用所有的插件</span>
+</span><span class='line'>/etc/yum/pluginconf.d/aliases.conf
+</span><span class='line'>  <span class="o">[</span>main<span class="o">]</span>
+</span><span class='line'>  <span class="nv">enabled</span><span class="o">=</span>1/0                      <span class="c">#使用/不试用aliases插件</span>
+</span><span class='line'>  <span class="c"># conffile - config. file to use</span>
+</span><span class='line'>  <span class="c"># &lt;default&gt; = /etc/yum/aliases.conf</span>
+</span><span class='line'>/etc/yum/aliases.conf
+</span><span class='line'>  FORCE --skip-broken --disableexcludes<span class="o">=</span>all
+</span><span class='line'>  up   upgrade
+</span><span class='line'>  in   install
+</span><span class='line'>  rm   remove
+</span><span class='line'>  .........
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>/etc/yum/aliases.conf中定义了yum很多命令的alias，比如 in => install, 这样我就可以用yum in package_name,少敲几个字，节省体力。alias到option的用处会更大些，比如上面的FORCE。乐意的话，我们也可以按照个人喜好自己定制这个aliases的配置文件。</p>
+
+<p>最近用过的一个比较有用的yum plugin是axelget，作用是从repo中下载package的时候支持多线程，加快下载速度。yum依赖于libcurl，默认应该是只能支持单线程的，如果网络条件一般的话，速度会比较慢。axelget 插件的用法:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'> <span class="nb">echo</span> -e <span class="s2">&quot;[main]\nenabled=1\nonlyhttp=1\nenablesize=300000\ncleanOnException=1\maxconn=10&quot;</span> &gt; /etc/yum/pluginconf.d/axelget.conf
+</span><span class='line'>
+</span><span class='line'> curl -o   /usr/lib/yum-plugins/axelget.py  http://yum-axelget.googlecode.com/svn/trunk/axelget.py
+</span><span class='line'>
+</span><span class='line'> rpm -i http://pkgs.repoforge.org/axel/axel-2.4-1.el5.rf.x86_64.rpm
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>axelget.conf 文件中的maxconn意为同时下载的线程数量。在我们项目中，从build pipeline打包出来的rpm package是保存在企业数据中心的repo中，但是测试环境是亚马逊的美国EC2节点，处于不同的网络中。如果是自动化部署，对于一个70Mb左右的package来说，安装更新消耗的时间大概是11分钟左右，使用axelget插件后，消耗的时间不到2分钟，下载速度提升很明显。虽然还是有点慢，但是已经处于可接受范围了。如此，每次在测试环境部署新的package的时间就大大降低了。</p>
+
+<p>如果是想在某次的yum的transaction中禁止某个plugin的话，只需要加上 &ndash;disableplugin=plugin_name的option就好了，比如:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>yum update --disableplugin<span class="o">=</span>aliases, refresh-pack*
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在开始下一篇关于yum的blog前，给大家介绍yum自动补齐的工具,懒人必备。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>rpm -i http://pkgs.repoforge.org/bash-completion/bash-completion-20060301-1.el6.rf.noarch.rpm
+</span><span class='line'><span class="nb">source</span> /etc/bash_completion
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>有了自动补齐后，就不用担心忘记命令或者费劲敲键盘了。</p>
+
+<p>关于配置和插件等，基本就是这样了，下次介绍yum基本的命令用法。</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1089,60 +1303,6 @@ OSX系统自带的python版本是2.6，而我们开发使用的版本是2.7，�
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification">Invalid Gemspec Because of the Date Format in Specification</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2011-11-29T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>In the morning, i was writing a automation sql script for QA. And after move the source file from mac mini to my machine. It met such warning as i tried to run the file.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Invalid gemspec in <span class="o">[</span>/Users/twer/.rvm/gems/ree-1.8.7-2011.03@development/specifications/childprocess-0.2.1.gemspec<span class="o">]</span>: invalid date format in specification: <span class="s2">&quot;2011-08-11 00:00:00.000000000Z&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>It&rsquo;s ok because it&rsquo;s just warning. But i am just a little bit agnoied by the message. So i decided to kill this warning message. After search in google, i found the <a href="http://stackoverflow.com/questions/5771758/invalid-gemspec-because-of-the-date-format-in-specification">answer</a>.</p>
-
-<p>And the steps should be:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>/Users/twer/.rvm/gems/ree-1.8.7-2011.03@develoment/specifications/childprocess-0.2.1.gemspec
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ul>
-<li>Find the spec that is causing the problem, search it in vi with string &ldquo;2011&rdquo; and i found that line.</li>
-<li>Change <code>s.date = %q{2011-08-11 00:00:00.000000000Z}</code> to <code>s.date = %q{2011-08-11}</code></li>
-</ul>
-
-
-<p>Cool, done, no more bothering information.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/8">&larr; Older</a>
@@ -1168,15 +1328,15 @@ OSX系统自带的python版本是2.6，而我们开发使用的版本是2.7，�
       </li>
     
       <li class="post">
+        <a href="/aws/kms/2016/01/15/aws-kms-and-its-usage">AWS KMS and Its Usage</a>
+      </li>
+    
+      <li class="post">
         <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
       </li>
     
       <li class="post">
         <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
-      </li>
-    
-      <li class="post">
-        <a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a>
       </li>
     
   </ul>
