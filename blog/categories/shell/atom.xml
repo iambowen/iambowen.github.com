@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Shell | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/shell/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Learning Shell: Navigation File Content]]></title>
     <link href="http://iambowen.github.com/shell/2014/08/18/learning-shell-navigation-file-content"/>
-    <updated>2014-08-18T00:00:00+08:00</updated>
+    <updated>2014-08-18T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/shell/2014/08/18/learning-shell-navigation-file-content</id>
     <content type="html"><![CDATA[<p>Linux系统中浏览文件的命令很多，比如<code>less</code>,<code>more</code>, <code>head</code>,<code>tail</code>, <code>cat</code>等，其中<code>less</code>命令最为丰富，对于二进制文件和压缩文件，也有对应的命令去浏览。我整理了下，在组内做了一次分享，如下为主要内容。</p>
 
@@ -125,7 +125,7 @@
   <entry>
     <title type="html"><![CDATA[How Source Works Under Shell]]></title>
     <link href="http://iambowen.github.com/linux/shell/2011/12/04/how-source-works-under-shell"/>
-    <updated>2011-12-04T00:00:00+08:00</updated>
+    <updated>2011-12-04T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/linux/shell/2011/12/04/how-source-works-under-shell</id>
     <content type="html"><![CDATA[<p><em>Well</em>, it&rsquo;s a fare long story.During the trainning, Aimee asked me a question about
 how the source command works under shell. Haven&rsquo;t done a deep search at that time

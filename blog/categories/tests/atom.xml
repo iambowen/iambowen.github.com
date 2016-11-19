@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Tests | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/tests/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Dimensions of Test]]></title>
     <link href="http://iambowen.github.com/tests/2015/01/26/dimension-of-tests"/>
-    <updated>2015-01-26T00:00:00+08:00</updated>
+    <updated>2015-01-26T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/tests/2015/01/26/dimension-of-tests</id>
     <content type="html"><![CDATA[<p>前几周给一个客户介绍了关于<a href="">持续交付</a>的内容，他们特别关注概念以及细节，当时我在介绍自动化测试的时候，
 分类比较简单，感觉回答的不是很好，于是重新整理下思路，总结成文。</p>

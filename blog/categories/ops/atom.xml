@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ops | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/ops/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Essential Curl]]></title>
     <link href="http://iambowen.github.com/ops/2015/02/16/essential-curl"/>
-    <updated>2015-02-16T00:00:00+08:00</updated>
+    <updated>2015-02-16T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/ops/2015/02/16/essential-curl</id>
     <content type="html"><![CDATA[<h3>什么是curl</h3>
 
@@ -302,7 +302,7 @@ curl: (22) The requested URL returned error: 404 Not Found
   <entry>
     <title type="html"><![CDATA[Essential Wget]]></title>
     <link href="http://iambowen.github.com/ops/2015/02/06/essential-wget"/>
-    <updated>2015-02-06T00:00:00+08:00</updated>
+    <updated>2015-02-06T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/ops/2015/02/06/essential-wget</id>
     <content type="html"><![CDATA[<h3>什么wget</h3>
 
@@ -552,7 +552,7 @@ Anyway,还是觉得curl要比wget好用些-_-!</p>
   <entry>
     <title type="html"><![CDATA[Introduction to Nagios]]></title>
     <link href="http://iambowen.github.com/ops/2014/08/30/introduction-to-nagios"/>
-    <updated>2014-08-30T00:00:00+08:00</updated>
+    <updated>2014-08-30T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/ops/2014/08/30/introduction-to-nagios</id>
     <content type="html"><![CDATA[<p>最近接了张从Nagios移植到<a href="http://www.pagerduty.com/">PagerDuty</a>的卡，活都让同事干了，自己就利用这个时间，看了看文档，基本理解了Nagios的监控的原理以及配置的方法，总结成PPT，在组内做了分享，如下。</p>
 

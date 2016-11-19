@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Virutalbox | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/virutalbox/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Hand Over DNS Resolve to VirutalBox]]></title>
     <link href="http://iambowen.github.com/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox"/>
-    <updated>2016-01-20T17:16:12+08:00</updated>
+    <updated>2016-01-20T20:16:12+11:00</updated>
     <id>http://iambowen.github.com/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox</id>
     <content type="html"><![CDATA[<p>当你用<a href="https://www.vagrantup.com/">vagrant</a>新建一个虚拟机(driver 为virtualbox)并使用NAT方式让guest虚拟机连接外网时，如果有无线网络的变化，虚拟机中<code>/etc/resolv.conf</code>不会对应的修改，导致域名解析失败。</p>
 

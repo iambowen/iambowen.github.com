@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Puppet | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/puppet/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Facter]]></title>
     <link href="http://iambowen.github.com/puppet/2015/04/21/facter"/>
-    <updated>2015-04-21T00:00:00+08:00</updated>
+    <updated>2015-04-21T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/puppet/2015/04/21/facter</id>
     <content type="html"><![CDATA[<p><a href="https://github.com/puppetlabs/facter]">facter</a>是一个以key/value形式收集系统信息的工具。</p>
 
@@ -108,7 +108,7 @@ operatingsystemrelease =&gt; 2.6.32-358.el6.x86_64
   <entry>
     <title type="html"><![CDATA[Puppet Cron Pitfall]]></title>
     <link href="http://iambowen.github.com/puppet/2015/04/16/puppet-cron-pitfall"/>
-    <updated>2015-04-16T00:00:00+08:00</updated>
+    <updated>2015-04-16T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/puppet/2015/04/16/puppet-cron-pitfall</id>
     <content type="html"><![CDATA[<p>最近完成了一个任务，内容是更新一个cron运行perl脚本的连接数据库的credential。该脚本用来清除数据库中一些
 过期的匿名用户，脚本部署在一个内网的服务器上，服务器的配置由puppet管理。脚本一直要保持运行，所以在

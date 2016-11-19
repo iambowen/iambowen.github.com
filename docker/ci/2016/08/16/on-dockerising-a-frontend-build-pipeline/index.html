@@ -1,0 +1,385 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>On Dockerising a Frontend Build Pipeline - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="最近花了一段时间把主站的build pipeline docker化了，时间长到感觉自己的reputation都要被毁了。
+在此总结下这个过程以及碰到的问题，希望对大家能有所帮助。 背景 这是一个纯前端的项目，两年前前后端分离的时候的项目，Grunt workflow，测试框架使用Karma， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/docker/ci/2016/08/16/on-dockerising-a-frontend-build-pipeline">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">On Dockerising a Frontend Build Pipeline</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-08-16T15:08:58+10:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:08 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>最近花了一段时间把主站的build pipeline docker化了，时间长到感觉自己的reputation都要被毁了。
+在此总结下这个过程以及碰到的问题，希望对大家能有所帮助。</p>
+
+<h3>背景</h3>
+
+<p>这是一个纯前端的项目，两年前前后端分离的时候的项目，Grunt workflow，测试框架使用Karma，用Phantomjs<code>1.8.2</code>运行headless的测试，开发环境使用Chrome/Safari做功能性测试。开发环境基于node <code>0.12</code>，一些基础设施的更新，部署的脚本，smoke test是基于Ruby的，版本为<code>2.0</code>。</p>
+
+<p>这个前端的工程部署在两个不同的AWS Region的S3上，互为fail over，最前面有Akamai为它们做负载均衡。</p>
+
+<p>持续集成的工具使用Bamboo，其agent需要有<code>ruby 2.0</code>，<code>node 0.12</code>，<code>Phantomjs 1.8.2</code>的环境才可以运行具体的任务。整个过程已经做到了持续部署，一个完整的build过程如下：</p>
+
+<ol>
+<li>提交代码</li>
+<li>trigger build，执行单元测试和集成测试</li>
+<li>自动部署staging 环境</li>
+<li>自动部署production 环境</li>
+<li>对部署后的产品做性能测试</li>
+<li>上传工程中依赖的第三方类库信息到S3 bucket(出于安全的考虑)</li>
+</ol>
+
+
+<h3>存在的问题</h3>
+
+<p>太长时间没有人做技术上的升级，导致下面的一些隐患和问题：
+1. 开发的工具版本落后，node当前版本已经是<code>6.3</code>了，ruby 2.0的版本应该已经不维护了，同样，对应的Karma，Phantomjs都以及更新了很多
+2. 运行build依赖的agent是共用的，如果有人对agent的环境进行修改，会影响该项目的持续集成
+3. 未来需要将CI工具从Bamboo迁移到Buildkite，用pipeline as code的方式去构建，每个组自己去管理build agent，使用Docker会更加方便迁移</p>
+
+<h3>过程以及遇到的一些难点</h3>
+
+<p>测试部分通过的过程及问题
+1. 首先做的事情是构建一个基础的docker 镜像，包含最新的node <code>6.3.1</code>，phantomjs <code>2.1.1</code>，后来发现其实不用Phantomjs，这个有点多余了。 成果在这里: <a href="https://github.com/iambowen/node_on_docker%EF%BC%8C%E5%9B%A0%E4%B8%BA%E8%BF%99%E6%A0%B7%E7%9A%84%E7%8E%AF%E5%A2%83%E6%9B%B4%E5%8A%A0%E9%80%9A%E7%94%A8%E4%BA%9B%EF%BC%8C%E6%89%80%E4%BB%A5%E6%89%8Dpublish%E5%88%B0%E5%AE%98%E6%96%B9%E7%9A%84docker">https://github.com/iambowen/node_on_docker%EF%BC%8C%E5%9B%A0%E4%B8%BA%E8%BF%99%E6%A0%B7%E7%9A%84%E7%8E%AF%E5%A2%83%E6%9B%B4%E5%8A%A0%E9%80%9A%E7%94%A8%E4%BA%9B%EF%BC%8C%E6%89%80%E4%BB%A5%E6%89%8Dpublish%E5%88%B0%E5%AE%98%E6%96%B9%E7%9A%84docker</a> repository里面。
+2. 在这个镜像的基础上，构建一个我们工程依赖环境的基础镜像，额外安装了Ruby <code>2.3</code>，最新的Chrome，git以及一些git的配置，因为需要从企业版github上pull代码。
+3. 本地升级node版本，以及相关的grunt，karma，Phantomjs的版本，运行测试通过。
+4. 将工程mount容器中，然后运行测试，<code>npm install</code>失败，原因是安装<code>fsevent</code>出错。查看了下这个包，原来只是给OSX下使用的。删除<code>npm-shrinkwrap.json</code>后重新运行可以通过。原因是有人在OSX下运行了<code>npm shrinkwrap</code>去生成的这个锁定版本的文件，真是烦人。于是反其道行之在容器里面生成<code>npm-shrinkwrap.json</code>，在host上运行测试一切完好，就这样解决了这个问题。
+5. 在Bamboo创建一个branch，然后针对我的分支代码运行测试
+6. 测试里面的一个步骤是做<code>bower install</code>安装第三方js类库，但是比较恶心的是，有些第三方类库是以<code>git</code>的协议去下载，而不是<code>https</code>。本地运行一切都好，但是在Bamboo Agent上运行的时候却出现了连接超时的问题，很有可能是Bamboo所在AWS的network ACL或者是security group没有允许<code>9418</code>端口的TCP访问。不过最后解决的方式并不是修改防火墙或者将协议改为<code>https</code>，而是直接把类库checking到git中，这样对应的修改Gruntfile，不用再运行<code>bower install</code>。check in之后在Bamboo上运行还是失败，本地却可以通过，仔细检查，原来是一部分bower module目录名为<code>dist</code>被git ignore掉了。</p>
+
+<p>通过测试后，接下来就是部署了。部署要解决的问题是，如何让容器拿到AWS role的动态权限去做文件的上传更新操作。ECS好像是支持容器去assume role的操作，但是我们没有用ECS，所以只能考虑其它方式。</p>
+
+<p>我想到的方式在bamboo 的 docker agent上 <code>assume role</code>，拿到对应的credential后，将其作为环境变量传入到容器中。实验证明这样的方式是可行的，万幸bamboo的docker agent支持aws cli命令，不过没有<code>jq</code>稍微增大了点提取credential的难度，脚本如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if [ "$DEPLOY_ENV" = "staging" ]; then
+</span><span class='line'>  AWS_ACCOUNT_ID='1111111111'
+</span><span class='line'>elif [ "$DEPLOY_ENV" == "production" ]; then
+</span><span class='line'>  AWS_ACCOUNT_ID='2222222222'
+</span><span class='line'>fi
+</span><span class='line'>
+</span><span class='line'>credentials=$(aws sts assume-role  --role-arn       arn:aws:iam::"$AWS_ACCOUNT_ID":role/roleName \
+</span><span class='line'>          --role-session-name roleSessionName \
+</span><span class='line'>            --query 'Credentials.[SecretAccessKey, SessionToken, AccessKeyId]'  \
+</span><span class='line'>            --output text)
+</span><span class='line'>
+</span><span class='line'>SecretAccessKey=$(echo $credentials | cut -d' ' -f1)
+</span><span class='line'>SessionToken=$(echo $credentials | cut -d' ' -f2)
+</span><span class='line'>AccessKeyId=$(echo $credentials | cut -d' ' -f3)
+</span><span class='line'>
+</span><span class='line'>docker run  -e BUILD_VERSION="$BUILD_VERSION" \
+</span><span class='line'>    -e DEPLOY_ENV="$DEPLOY_ENV" -e AWS_SECRET_ACCESS_KEY="$SecretAccessKey" \
+</span><span class='line'>    -e AWS_SESSION_TOKEN="$SessionToken" -e AWS_ACCESS_KEY_ID="$AccessKeyId" --rm docker_image bash -c 'grunt deploy'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因为部署是用aws node 的sdk，所以读取的环境变量名字不太一样，要稍微注意下。</p>
+
+<p>在CI上运行后，staging部署通过，手动在bamboo的docker agent上测试下是否能assume产品环境的部署的role，结果可以，那就是说产品环境的部署应该也可以通过了。</p>
+
+<h3>总结</h3>
+
+<ol>
+<li><code>npm</code> sucks，更糟糕的是程序员在引入依赖的时候缺乏考虑，我在<code>package.json</code>里面见到了不少无人维护的component，后续的升级维护是一个问题，联想以前的ruby项目也是一样。一旦有版本升级，碰到无人维护的gem时会非常痛苦。</li>
+<li>一个工程里面用了太多的语言，也是一件很糟糕的事情，明明可以用node的aws sdk来做到所有的部署，不知道为何用ruby去实现，无形中增大了维护的成本。</li>
+<li>一般来说，我们认为docker可以保证不同环境的一致性，但是由于一些特殊原因，如我上面提到的防火墙问题，bower module被git ignore掉的问题，在CI环境下才能暴露出来。所以在PR被merge到master之前，一定要保证修改在CI上也运行通过。</li>
+</ol>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-08-16T15:08:58+10:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:08 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ci/'>ci</a>, <a class='category' href='/blog/categories/docker/'>docker</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/docker/ci/2016/08/16/on-dockerising-a-frontend-build-pipeline" data-via="boweniam" data-counturl="http://iambowen.github.com/docker/ci/2016/08/16/on-dockerising-a-frontend-build-pipeline" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/docker/2016/08/11/one-interesting-docker-issue" title="Previous Post: one interesting docker issue">&laquo; one interesting docker issue</a>
+      
+      
+        <a class="basic-alignment right" href="/git/2016/08/17/how-to-write-useful-git-commit-message" title="Next Post: how to write useful git commit message">how to write useful git commit message &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/log/spring/2016/11/17/supressing-an-warning-log">Supressing an Warning Log</a>
+      </li>
+    
+      <li class="post">
+        <a href="/dns/2016/11/15/issue-raised-by-dns">Issue Raised by DNS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message">Don't Put Emoji in Commit Message</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2016/08/19/gpgand-keybase-introduction-and-usage">Gpgand Keybase Introduction and Usage</a>
+      </li>
+    
+      <li class="post">
+        <a href="/git/2016/08/17/how-to-write-useful-git-commit-message">How to Write Useful Git Commit Message</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://iambowen.github.com/docker/ci/2016/08/16/on-dockerising-a-frontend-build-pipeline';
+        var disqus_url = 'http://iambowen.github.com/docker/ci/2016/08/16/on-dockerising-a-frontend-build-pipeline';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

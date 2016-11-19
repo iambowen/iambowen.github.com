@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Go | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/go/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Using Go Tutorial]]></title>
     <link href="http://iambowen.github.com/go/2013/03/28/using-go-tutorial"/>
-    <updated>2013-03-28T00:00:00+08:00</updated>
+    <updated>2013-03-28T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/go/2013/03/28/using-go-tutorial</id>
     <content type="html"><![CDATA[<p>Just trying to use Go for I find it looks like C, and the cost of writing a hello world is quite small, plus the tutorial is petty easy to fetch. Just list what I&rsquo;ve done to get the tutorial and write the hello world example, which already posted thousands time in the internet.</p>
 

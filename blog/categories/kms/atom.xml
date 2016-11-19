@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Kms | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/kms/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[AWS KMS and Its Usage]]></title>
     <link href="http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage"/>
-    <updated>2016-01-15T09:33:30+08:00</updated>
+    <updated>2016-01-15T12:33:30+11:00</updated>
     <id>http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage</id>
     <content type="html"><![CDATA[<h2>什么是KMS</h2>
 

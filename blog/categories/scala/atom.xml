@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Scala | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/scala/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Learning Scala: Function]]></title>
     <link href="http://iambowen.github.com/scala/2014/08/01/learning-scala-function"/>
-    <updated>2014-08-01T00:00:00+08:00</updated>
+    <updated>2014-08-01T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/scala/2014/08/01/learning-scala-function</id>
     <content type="html"><![CDATA[<p>函数在Scala中是一等公民，这意味着你可以在任何时候定义函数，而且它不需要依附于类，在Class/Object中定义的函数叫做方法。</p>
 
@@ -135,7 +135,7 @@ res4: List[Int] = List(2, 4, 6)
   <entry>
     <title type="html"><![CDATA[Learning Scala: Control Structure]]></title>
     <link href="http://iambowen.github.com/scala/2014/04/01/learning-scala-control-structure"/>
-    <updated>2014-04-01T00:00:00+08:00</updated>
+    <updated>2014-04-01T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/scala/2014/04/01/learning-scala-control-structure</id>
     <content type="html"><![CDATA[<p>任何语言的控制结构应当都是相似的，语言处理现实世界的问题，理应和现实世界对应。Scala的控制结构以及关键字与Java没什么不同，有区别的地方在于Scala中表达式可以有返回值，比如条件表达式。</p>
 

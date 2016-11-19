@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ssh | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/ssh/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[更加安全和简单的方式通过堡垒机ssh]]></title>
     <link href="http://iambowen.github.com/ssh/security/2015/12/19/ssh-securely-and-handy"/>
-    <updated>2015-12-19T14:24:30+08:00</updated>
+    <updated>2015-12-19T17:24:30+11:00</updated>
     <id>http://iambowen.github.com/ssh/security/2015/12/19/ssh-securely-and-handy</id>
     <content type="html"><![CDATA[<p>理想情况下的运维，是不需要ops去ssh到服务器上检查问题(包括安全问题)/日志等，这些是可以通过更好
 监控,如使用newrelic,或者更好的日志收集系统，如splunk等去避免。不过现实不总是完美的，加上历史
@@ -121,7 +121,7 @@ Host *
   <entry>
     <title type="html"><![CDATA[Don't Copy/paste Keys From Chatting Tools]]></title>
     <link href="http://iambowen.github.com/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools"/>
-    <updated>2015-12-17T16:58:30+08:00</updated>
+    <updated>2015-12-17T19:58:30+11:00</updated>
     <id>http://iambowen.github.com/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools</id>
     <content type="html"><![CDATA[<p>今天，别的组的同事过来问我一个关于SSH的问题，问题是这样的:</p>
 
@@ -185,7 +185,7 @@ debug1: key_parse_private_pem: PEM_read_PrivateKey failed
   <entry>
     <title type="html"><![CDATA[Essential SSH]]></title>
     <link href="http://iambowen.github.com/ssh/2015/01/08/essential-ssh"/>
-    <updated>2015-01-08T00:00:00+08:00</updated>
+    <updated>2015-01-08T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/ssh/2015/01/08/essential-ssh</id>
     <content type="html"><![CDATA[<h1>什么是SSH</h1>
 

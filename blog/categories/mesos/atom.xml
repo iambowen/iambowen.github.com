@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Mesos | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/mesos/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Ci Solution With Mesos]]></title>
     <link href="http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos"/>
-    <updated>2016-01-10T14:33:29+08:00</updated>
+    <updated>2016-01-10T17:33:29+11:00</updated>
     <id>http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos</id>
     <content type="html"><![CDATA[<p>上次在<a href="http://www.meetup.com/Infrastructure-Coders/">Melbourne Infrastructure-Coders</a>上介绍过一次，比较惨，改进了一遍后，这次重新在<a href="http://gdgxian.org/">GDG Xi'an</a>讲了下，还是中文讲起来比较6。</p>
 

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Linux | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/linux/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Compressing and Uncompressing Files Under Linux]]></title>
     <link href="http://iambowen.github.com/linux/2014/08/21/compressing-and-uncompressing-files-under-linux"/>
-    <updated>2014-08-21T00:00:00+08:00</updated>
+    <updated>2014-08-21T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/linux/2014/08/21/compressing-and-uncompressing-files-under-linux</id>
     <content type="html"><![CDATA[<p>针对Linux下常用的压缩和解压的命令，做了一次分享，tar这个命令很强大，但是命令组合比较难记，总结了下规律，按照ppt中的方式应该会很容易记忆。</p>
 
@@ -28,7 +28,7 @@
   <entry>
     <title type="html"><![CDATA[Change System Library Path]]></title>
     <link href="http://iambowen.github.com/linux/2013/11/18/change-system-library-path"/>
-    <updated>2013-11-18T00:00:00+08:00</updated>
+    <updated>2013-11-18T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/linux/2013/11/18/change-system-library-path</id>
     <content type="html"><![CDATA[<p>找不到共享文件是我们在native build的时候经常遇到的问题，有一种情况是操作系统上确实没有该共享文件，还有一种是含有该共享文件的目录没有被加入到library 查询的路径中。</p>
 
@@ -80,7 +80,7 @@ ldconfig: File /opt/lib/lib.test.so is empty, not checked.    #测试文件
   <entry>
     <title type="html"><![CDATA[Record and Play Back Terminal Session]]></title>
     <link href="http://iambowen.github.com/linux/2013/11/04/record-and-play-back-terminal-session"/>
-    <updated>2013-11-04T00:00:00+08:00</updated>
+    <updated>2013-11-04T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/linux/2013/11/04/record-and-play-back-terminal-session</id>
     <content type="html"><![CDATA[<p>Nowadays, lots of people would use video to record a tutorial for demonstrating. It&rsquo;s cool for vividly showing everything to people. The only issue is that file size of video is relatively large. From this point of view, the old way of recording actions from console might be a better idea.</p>
 
@@ -120,7 +120,7 @@ The thing you need to pay attention to is that such recording just happen in a s
   <entry>
     <title type="html"><![CDATA[Math in Shell]]></title>
     <link href="http://iambowen.github.com/linux/2013/10/31/math-in-shell"/>
-    <updated>2013-10-31T00:00:00+08:00</updated>
+    <updated>2013-10-31T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/linux/2013/10/31/math-in-shell</id>
     <content type="html"><![CDATA[<p>最近半年的所作的项目中，接触了些Ops的工作，自动化工具如Chef/Puppet都用过些。这些工具都很不错，但是过程当中会遇到一些问题，需要你基础的系统/shell知识，从而认识到了其重要性，开始系统学习，目前阅读的书为: <linux shell scripting cookbook version> 以及浏览china-unix论坛。</p>
 
@@ -282,7 +282,7 @@ result:
   <entry>
     <title type="html"><![CDATA[Learning Centos: Yum(4) Advanced Commands & Etc]]></title>
     <link href="http://iambowen.github.com/linux/2013/10/29/learning-centos-yum4-advanced-commands--etc"/>
-    <updated>2013-10-29T00:00:00+08:00</updated>
+    <updated>2013-10-29T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/linux/2013/10/29/learning-centos-yum4-advanced-commands--etc</id>
     <content type="html"><![CDATA[<p><a href="http://iambowen.github.io/2013/07/31/learning-yum3-basic-commands/">前一篇</a> YUM基本命令，介绍了工作中比较常用的一些命令。除此之外，YUM还有些不太常用的但是还算比较有趣的命令，在此我们稍微探索发现下。</p>
 

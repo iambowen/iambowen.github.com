@@ -4,7 +4,7 @@
   <title><![CDATA[Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -14,9 +14,548 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Supressing an Warning Log]]></title>
+    <link href="http://iambowen.github.com/log/spring/2016/11/17/supressing-an-warning-log"/>
+    <updated>2016-11-17T22:49:53+11:00</updated>
+    <id>http://iambowen.github.com/log/spring/2016/11/17/supressing-an-warning-log</id>
+    <content type="html"><![CDATA[<p>客户的主站系统是一个基于Spring的单块系统，每天的流量大概在几千万，其所有的应用日志以及访问日志，都会上传到<a href="https://www.splunk.com">Splunk</a>服务器上。随着服务数量的增加，日志的数量也越来越多，对应的Splunk的费用也越来越感人，鉴于主站的系统对日志的贡献最多，所以就从它入手降低无用日志的上传。</p>
+
+<p>其中的一条无用的warning日志信息显示如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>WARN org.apache.commons.httpclient.HttpMethodBase - Going to buffer response body of large or unknown size. Using getResponseBodyAsStream instead is recommended.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>一周内这条warning的数量超过百万条，还是比较可观的。简单查询下其原因是<code>httpclient</code>里面的<code>getResponseBody()</code>调用触发的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'>            <span class="kt">int</span> <span class="n">limit</span> <span class="o">=</span> <span class="n">getParams</span><span class="o">().</span><span class="na">getIntParameter</span><span class="o">(</span><span class="n">HttpMethodParams</span><span class="o">.</span><span class="na">BUFFER_WARN_TRIGGER_LIMIT</span><span class="o">,</span> <span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">((</span><span class="n">contentLength</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">||</span> <span class="o">(</span><span class="n">contentLength</span> <span class="o">&gt;</span> <span class="n">limit</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">LOG</span><span class="o">.</span><span class="na">warn</span><span class="o">(</span><span class="s">&quot;Going to buffer response body of large or unknown size. &quot;</span>
+</span><span class='line'>                        <span class="o">+</span><span class="s">&quot;Using getResponseBodyAsStream instead is recommended.&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>看完这个后我们的理解是，有些请求的response body过大，超过缺省的1M(代码会从<code>Content-Length</code> header中获取这个大小)，就会触发这个warning，当时没有意识到还有可能是确实不知道response body的长度。
+相关的方法调用在代码中有10几处，当时我们也无法定位那段代码引发了这个问题，无脑修改的话，成本比较高，可能要增加一些测试用例，以及做回归测试。所以当时就想着用成本最低的方式修改，从配置文件中给<code>BUFFER_WARN_TRIGGER_LIMIT</code>赋一个更大的值，如20M，毕竟这是个遗留项目，熟悉代码的人以及比较少了。没有选择调整日志的级别是因为<code>HttpMethodBase</code>类是个超类，粗暴调整可能会掩盖其它有用的warning日志。
+部署完成后比较日志数量发现并没有太大变化，不得不让我们重新回来审视这个问题的根本原因在哪里。幸好当时系统加了一个transactionID的功能，每次的请求过来时，在应用中用UUID生成一个transactionID写入应用日志，response返回时再写入access log。这样我们就在请求和对应的代码调用之间建立了联系。
+功能上线后重新在splunk中搜索，立刻就定位了是在请求Google Map API时触发了这个warning，而且在本地可以稳定重现。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'> <span class="o">~&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">I</span>   <span class="s">&quot;https://maps.google.com.au/maps/api/geocode/json?address=Sunnydale%2C+SA+5354&amp;language=en_AU&amp;sensor=false&quot;</span>
+</span><span class='line'><span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="n">OK</span>
+</span><span class='line'><span class="n">Content</span><span class="o">-</span><span class="nl">Type:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span><span class="o">;</span> <span class="n">charset</span><span class="o">=</span><span class="n">UTF</span><span class="o">-</span><span class="mi">8</span>
+</span><span class='line'><span class="nl">Date:</span> <span class="n">Fri</span><span class="o">,</span> <span class="mi">18</span> <span class="n">Nov</span> <span class="mi">2016</span> <span class="mi">23</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mi">16</span> <span class="n">GMT</span>
+</span><span class='line'><span class="nl">Expires:</span> <span class="n">Sat</span><span class="o">,</span> <span class="mi">19</span> <span class="n">Nov</span> <span class="mi">2016</span> <span class="mi">23</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mi">16</span> <span class="n">GMT</span>
+</span><span class='line'><span class="n">Cache</span><span class="o">-</span><span class="nl">Control:</span> <span class="kd">public</span><span class="o">,</span> <span class="n">max</span><span class="o">-</span><span class="n">age</span><span class="o">=</span><span class="mi">86400</span>
+</span><span class='line'><span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="nl">Origin:</span> <span class="o">*</span>
+</span><span class='line'><span class="nl">Server:</span> <span class="n">mafe</span>
+</span><span class='line'><span class="n">X</span><span class="o">-</span><span class="n">XSS</span><span class="o">-</span><span class="nl">Protection:</span> <span class="mi">1</span><span class="o">;</span> <span class="n">mode</span><span class="o">=</span><span class="n">block</span>
+</span><span class='line'><span class="n">X</span><span class="o">-</span><span class="n">Frame</span><span class="o">-</span><span class="nl">Options:</span> <span class="n">SAMEORIGIN</span>
+</span><span class='line'><span class="n">Alt</span><span class="o">-</span><span class="nl">Svc:</span> <span class="n">quic</span><span class="o">=</span><span class="s">&quot;:443&quot;</span><span class="o">;</span> <span class="n">ma</span><span class="o">=</span><span class="mi">2592000</span><span class="o">;</span> <span class="n">v</span><span class="o">=</span><span class="s">&quot;36,35,34&quot;</span>
+</span><span class='line'><span class="n">Transfer</span><span class="o">-</span><span class="nl">Encoding:</span> <span class="n">chunked</span>
+</span><span class='line'><span class="n">Accept</span><span class="o">-</span><span class="nl">Ranges:</span> <span class="n">none</span>
+</span><span class='line'><span class="nl">Vary:</span> <span class="n">Accept</span><span class="o">-</span><span class="n">Encoding</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后发现原来返回是没有<code>Content-Length</code>的:(。
+<code>Content-Length</code> header是客户端用于了解服务器返回body的大小，从而在获得等大的内容后，结束连接，节省开销。但在实际的应用中，<code>Content-Length</code>有可能无法准确反映返回body的大小，其值过大会导致pending，过小内容又会被截断。
+<code>Transfer-Encoding: chunked</code> 是用来分块编码传输内容，每个分块中包含了长度值和数据，最后一个分块长度值是0，这样就可以准确知道边界了。
+定位到问题在哪里之后就很容易解决了，最后只要改动一行代码:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">-</span>            <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="na">getResponseBodyAsString</span><span class="o">();</span>
+</span><span class='line'><span class="o">+</span>            <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">IOUtils</span><span class="o">.</span><span class="na">toString</span><span class="o">(</span><span class="n">query</span><span class="o">.</span><span class="na">getResponseBodyAsStream</span><span class="o">());</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>回过头来反思整个过程，因为是遗留系统，所以处理的方式有些粗糙，如果当时我们遵循下面的过程也许会更好些:
+1) 定位问题，找到根本原因(有transactionID的配合会更方便)，而不是盲目用生产环境来测试配置的正确性;
+2) 在本地重现问题，应用解决方案，并与熟悉遗留系统的同事沟通
+3) 回归测试后上线</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Issue Raised by DNS]]></title>
+    <link href="http://iambowen.github.com/dns/2016/11/15/issue-raised-by-dns"/>
+    <updated>2016-11-15T21:33:22+11:00</updated>
+    <id>http://iambowen.github.com/dns/2016/11/15/issue-raised-by-dns</id>
+    <content type="html"><![CDATA[<p>最近在客户现场出差，见证了不少有趣的线上事故，下面要讲的就是其中之一。
+一段时间依赖，某个微服务在生产环境的response的延迟陡然增加了几百毫秒，而部署的代码并不是造成延迟原因。从Newrelic的监控可以发现，该API的延迟增大的主要原因是它依赖的一个服务响应时间增大了。</p>
+
+<p>我们暂且把这个外部的服务称为service.mycompany.com，这个服务分别部署在澳洲和欧洲的两个数据中心，入口处是Akamai，做负载均衡，尽可能的按照访问来源去分发请求。</p>
+
+<p>该微服务部署在AWS悉尼的数据中心，所以理论上来讲，当它请求service.mycompany.com时，Akamai应该返回的是位于悉尼的edge节点的IP，同时其访问的origin服务器也应该位于悉尼。但是通过在该微服务的服务器debug，发现ping值以及traceroute的值都比较高，办公室访问却都一切正常。当时怀疑是Akamai的GEOIP判断出了问题，把来自亚马逊悉尼的请求当成了来自美国的IP的请求，于是用部署于欧洲的数据中心的服务处理请求。和基础设施部门管理网络的人讨论，再次调查后结论类似。</p>
+
+<p>问题出在这个AWS账户下的VPC的DHCP options的配置。因为是比较早期使用的share的AWS账户，所以下面的网络配置比较复杂，配置有Direct Connect 连往其他数据中心，以及很多VPC Peering。不知道因为什么原因，这个微服务部署的Cloudformation template里面选择了包含google DNS <code>8.8.8.8</code>和<code>8.8.8.4</code>的DHCP Options。我们都知道对于在Akamai上注册的服务service.mycompany.com来说，如:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> ~&gt; host service.mycompany.com
+</span><span class='line'>service.mycompany.com is an alias for mycompany.generic.edgekey.net.
+</span><span class='line'>mycompany.generic.edgekey.net is an alias for e8888.g.akamaiedge.net.
+</span><span class='line'>e8888.g.akamaiedge.net has address 104.116.190.24</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第一次DNS请求返回的记录是CName，之后进一步返回Akamai动态DNS的CName，也就是edge server的CName，之后再根据DNS服务器返回对应的edge服务器的IP地址，如果查询的是Google的DNS，那么它会返回美国的edge服务器地址……。我们可以测试下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> ~&gt; dig @8.8.8.8 service.mycompany.com
+</span><span class='line'>
+</span><span class='line'>; &lt;&lt;&gt;&gt; DiG 9.8.3-P1 &lt;&lt;&gt;&gt; @8.8.8.8 service.mycompany.com
+</span><span class='line'>; (1 server found)
+</span><span class='line'>;; global options: +cmd
+</span><span class='line'>;; Got answer:
+</span><span class='line'>;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 44304
+</span><span class='line'>;; flags: qr rd ra; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 0
+</span><span class='line'>
+</span><span class='line'>;; QUESTION SECTION:
+</span><span class='line'>;service.mycompany.com.   IN  A
+</span><span class='line'>
+</span><span class='line'>;; ANSWER SECTION:
+</span><span class='line'>service.mycompany.com. 86399 IN   CNAME   mycompany.generic.edgekey.net.
+</span><span class='line'>mycompany.generic.edgekey.net. 263    IN  CNAME   e8888.g.akamaiedge.net.
+</span><span class='line'>e8888.g.akamaiedge.net.   19  IN  A   23.53.156.156
+</span><span class='line'>
+</span><span class='line'>;; Query time: 603 msec
+</span><span class='line'>;; SERVER: 8.8.8.8#53(8.8.8.8)
+</span><span class='line'>;; WHEN: Tue Nov 15 22:15:52 2016
+</span><span class='line'>;; MSG SIZE  rcvd: 130</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查询下IP地址信息，</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> ~&gt; whois 23.53.156.156 | grep Country
+</span><span class='line'>Country:        US</span></code></pre></td></tr></table></div></figure>
+
+
+<p>所以，这个微服务的请求先到Akamai美国的edge服务器，之后很有可能请求被发送到了欧洲的origin服务器，这个延迟不增加才👻了……。</p>
+
+<p>解决的办法很简单，更新配置，DHCP Options选择Amazon提供的DNS就可以了，响应时间就降下去了。</p>
+
+<p>这个事情给我们的教训就是，不管怎么样都不能崇洋媚外，虽然澳洲一直follow美国，但是DNS还是得用自己的。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Don't Put Emoji in Commit Message]]></title>
+    <link href="http://iambowen.github.com/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message"/>
+    <updated>2016-11-03T23:47:07+11:00</updated>
+    <id>http://iambowen.github.com/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message</id>
+    <content type="html"><![CDATA[<p>随着项目上越来越多的使用Slack以及Emoji的流行，很多人情不自禁的会在各种地方使用emoji表情。比如
+在channel里面发<code>:bicyclist::skin-tone-2: :house: :thunder_cloud_and_rain: :disappointed:</code>。更甚者会在git commit message中添加emoji。比如像这样</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>finish story xxxx. :pear: xiao.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>意思是完成这个开发的需求是和<code>xiao</code>结对做的。pull request发出后，review的人除了会发:+1:这样的表情表示支持外，还会用:shipit:,:ship:之类的表示赞同，可以merge。
+这样的emoji为开发增添了乐趣，但是有时候也会带来麻烦，比如我今天就遇到了这样的情况。
+在清理完一些旧代码后，我在提交信息里面➕了下面的消息:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>clean up the :older_man::skin-tone-2: code.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>提交merge后，过了一段时间看了下build，还没有到运行阶段就挂了。查看了下原因，发现是bamboo在保存提交信息时遇到了一个复杂字符出错了。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(org.springframework.jdbc.UncategorizedSQLException : Hibernate flushing: Could not execute JDBC batch update; uncategorized SQLException for SQL [insert into USER_COMMIT (REPOSITORY_CHANGESET_ID, AUTHOR_ID, COMMIT_DATE, COMMIT_REVISION, COMMIT_COMMENT_CLOB, FOREIGN_COMMIT, COMMIT_ID) values (?, ?, ?, ?, ?, ?, ?)]; SQL state [HY000]; error code [1366]; Incorrect string value: '\xF0\x9F\x91\xB4 ...' for column 'COMMIT_COMMENT_CLOB' at row 1; nested exception is java.sql.BatchUpdateException: Incorrect string value: '\xF0\x9F\x91\xB4 ...' for column 'COMMIT_COMMENT_CLOB' at row 1)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当时就感觉是这个emoji出问题了，搜了下提示的编码的十六进制，果然是这个原因……。没办法只好reset下，push force，再重新修改提交信息再push。
+同事告诉了我这个事故的根本原因是mysql的utf-8对Emoji的支持不够，解决的办法就是把数据库的charset设置为<code>utf8mb4</code>，详见这篇<a href="https://mathiasbynens.be/notes/mysql-utf8mb4">文章</a>.
+所以，以后玩emoji的时候一定得先确认系统支持，否则可能会带来一些:shit:。</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Gpgand Keybase Introduction and Usage]]></title>
+    <link href="http://iambowen.github.com/2016/08/19/gpgand-keybase-introduction-and-usage"/>
+    <updated>2016-08-19T00:00:00+10:00</updated>
+    <id>http://iambowen.github.com/2016/08/19/gpgand-keybase-introduction-and-usage</id>
+    <content type="html"><![CDATA[<p>.&mdash;
+layout: post
+title: &ldquo;GPG and keybase.io introduction/usage&rdquo;
+date: 2016-08-19 17:29:49 +0800
+comments: true</p>
+
+<h2>categories: [&ldquo;GPG&rdquo;, &ldquo;keybase.io&rdquo;, &ldquo;Security&rdquo;]</h2>
+
+<h2>什么是GPG</h2>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[How to Write Useful Git Commit Message]]></title>
+    <link href="http://iambowen.github.com/git/2016/08/17/how-to-write-useful-git-commit-message"/>
+    <updated>2016-08-17T13:20:33+10:00</updated>
+    <id>http://iambowen.github.com/git/2016/08/17/how-to-write-useful-git-commit-message</id>
+    <content type="html"><![CDATA[<p>相信大家在自己项目的历史提交里面看到类似的提交记录
+<img src="http://imgs.xkcd.com/comics/git_commit.png" alt="" />
+我还见过更加糟糕的，类似这样</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>53ee0c7 fix build again
+</span><span class='line'>7a63a11 fix build</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样的提交信息的问题在于不表意，没有简要的说明修改的内容，为什么要这样的修改，别人只能去查看具体的代码改动才能知道发生了什么，但是可能无法知道为什么这样修改。当然，这样的提交我自己也写过，原因包括
+1. 语法、拼写错误，羞于示人
+2. 解释原因得写很长，懒的敲键盘
+3. 无法解释为什么这样的修改就能work
+这其实算是一种比较不负责任的行为，估计别人看到会比较崩溃，幸运的是还没有领导看到，所以至今没有被开除。举个例子，假设某个提交引起了产品环境的错误，别人需要迅速定位是哪个提交引起的问题，但是如果提交都是类似<code>Perfectly complete a new story</code>，而且每次代码修改的量都比较庞大，那就得花很多时间才能定位。相反如果提交信息很清晰，<code>BAU-1008 add xxx form in xxx page. :pear: Kevin</code>。你用<code>git log --oneline --after "Aug 10 2016"</code>可以迅速看到对应的提交，进一步的可以查看修改内容再查找具体的问题。</p>
+
+<p>今天早上客户跟我们一起做了一个关于如何有效的提交<code>git commit</code>信息。他提到了<code>git commit message</code>的7个<a href="http://chris.beams.io/posts/git-commit/">规则</a>。他认为从项目维护性的角度考虑，应当注意提交的信息以及规范。一个项目的提交信息首先得从下面三个方面达成一致:</p>
+
+<ol>
+<li>格式。消息体的格式，如Markdown，语法应该是什么样子，大写的规则等。</li>
+<li>内容。提交的信息中应当包含什么，不应当包含什么。</li>
+<li>元数据。问题跟踪的ID（Jira，Leankit等）要不要引用，PR的sha code要不要引用。</li>
+</ol>
+
+
+<p>具体的规则有下面7点：</p>
+
+<ol>
+<li>用空行将内容和主题分开</li>
+<li>提交的主题限制在50个字符</li>
+<li>主题首字母大写</li>
+<li>主题结尾不要使用句号</li>
+<li>主题需要使用祈使/肯定语气</li>
+<li>内容每72个字符换行</li>
+<li>在内容中解释清楚修改的原因及方式</li>
+</ol>
+
+
+<p>第一条，如果内容和主题没有分开，<code>git log --oneline</code>主题和下面的内容会一起显示。
+第二条，主题超过50个字符时超过的部分在github上显示为<code>...</code>，提交PR的时候超过的部分会被折断到comments中，很烦人。用vim去编辑提交信息的时候，如果看到主题的字的颜色变化了，就说明超过了50个字符。
+第三、四条不评价，感觉更多是从美观和规范上统一的。
+第五条，感觉这样可以少写一些字，而且和git 缺省的提交信息，如revert的提交信息一致。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Revert "Add the thing with the stuff"
+</span><span class='line'>
+</span><span class='line'>This reverts commit cc87791524aedd593cff5a74532befe7ab69ce9d.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第六条，因为git不会帮你wrap文字，所以得手动的来做这个事情，这里可以借助一些编辑器，如VI的帮助。
+第七条，个人觉得这个才是最重要的，解释清楚修改的原因以及方式，引用别人文章里面的一个例子:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>commit eb0b56b19017ab5c16c745e6da39c53126924ed6
+</span><span class='line'>Author: Pieter Wuille &lt;pieter.wuille@gmail.com&gt;
+</span><span class='line'>Date:   Fri Aug 1 22:57:55 2014 +0200
+</span><span class='line'>
+</span><span class='line'>   Simplify serialize.h's exception handling
+</span><span class='line'>
+</span><span class='line'>   Remove the 'state' and 'exceptmask' from serialize.h's stream
+</span><span class='line'>   implementations, as well as related methods.
+</span><span class='line'>
+</span><span class='line'>   As exceptmask always included 'failbit', and setstate was always
+</span><span class='line'>   called with bits = failbit, all it did was immediately raise an
+</span><span class='line'>   exception. Get rid of those variables, and replace the setstate
+</span><span class='line'>   with direct exception throwing (which also removes some dead
+</span><span class='line'>   code).
+</span><span class='line'>
+</span><span class='line'>   As a result, good() is never reached after a failure (there are
+</span><span class='line'>   only 2 calls, one of which is in tests), and can just be replaced
+</span><span class='line'>   by !eof().
+</span><span class='line'>
+</span><span class='line'>   fail(), clear(n) and exceptions() are just never called. Delete
+</span><span class='line'>   them.
+</span><span class='line'> ```
+</span><span class='line'>业务相关的代码修改，可以将story ID加在最前面，方便issue track。
+</span><span class='line'>
+</span><span class='line'> 为了让大家统一提交的格式，可以新建一个提交的template，配置git[使用](https://robots.thoughtbot.com/better-commit-messages-with-a-gitmessage-template)。 过程如下:
+</span><span class='line'>
+</span><span class='line'> 1. 在`~/.gitconfig`中加入下面的内容：
+</span><span class='line'> ```
+</span><span class='line'> [commit]
+</span><span class='line'>  template = ~/.gitmessage</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>新建<code>~/.gitmessage</code>这个template文件并且填入自定义模板：</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Brief here:
+</span><span class='line'>
+</span><span class='line'>Reason to change:
+</span><span class='line'>*
+</span><span class='line'>
+</span><span class='line'>Way to change:
+</span><span class='line'>
+</span><span class='line'>*</span></code></pre></td></tr></table></div></figure>
+
+
+<p>配置完成后在项目中做修改，<code>git ci -a</code>就可以在模板的基础上修改了。</p>
+
+<p>举一个项目中的一个例子，里面包含了业务需求的github issue的链接：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>commit 2196e866261dee6d7c17f266cc15987f
+</span><span class='line'>Author: Alex Jin &lt;alex.jin@example.com&gt;
+</span><span class='line'>Date:   Wed Aug 17 13:24:41 2016 +0800
+</span><span class='line'>    Make trend bigger and modify link color. :pear: Luke
+</span><span class='line'>
+</span><span class='line'>    * Reason to change:
+</span><span class='line'>      see [lob/project#208]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果是用Pull Request方式工作的话，麻烦的地方在于修改的原因可能还得在comments里面再写一遍。解决的办法是创建issue/PR的template，参考<a href="https://github.com/blog/2111-issue-and-pull-request-templates">这里</a>。</p>
+
+<p>什么，你问我为什么还没有被开除么？
+因为领导不看提交 :)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[On Dockerising a Frontend Build Pipeline]]></title>
+    <link href="http://iambowen.github.com/docker/ci/2016/08/16/on-dockerising-a-frontend-build-pipeline"/>
+    <updated>2016-08-16T15:08:58+10:00</updated>
+    <id>http://iambowen.github.com/docker/ci/2016/08/16/on-dockerising-a-frontend-build-pipeline</id>
+    <content type="html"><![CDATA[<p>最近花了一段时间把主站的build pipeline docker化了，时间长到感觉自己的reputation都要被毁了。
+在此总结下这个过程以及碰到的问题，希望对大家能有所帮助。</p>
+
+<h3>背景</h3>
+
+<p>这是一个纯前端的项目，两年前前后端分离的时候的项目，Grunt workflow，测试框架使用Karma，用Phantomjs<code>1.8.2</code>运行headless的测试，开发环境使用Chrome/Safari做功能性测试。开发环境基于node <code>0.12</code>，一些基础设施的更新，部署的脚本，smoke test是基于Ruby的，版本为<code>2.0</code>。</p>
+
+<p>这个前端的工程部署在两个不同的AWS Region的S3上，互为fail over，最前面有Akamai为它们做负载均衡。</p>
+
+<p>持续集成的工具使用Bamboo，其agent需要有<code>ruby 2.0</code>，<code>node 0.12</code>，<code>Phantomjs 1.8.2</code>的环境才可以运行具体的任务。整个过程已经做到了持续部署，一个完整的build过程如下：</p>
+
+<ol>
+<li>提交代码</li>
+<li>trigger build，执行单元测试和集成测试</li>
+<li>自动部署staging 环境</li>
+<li>自动部署production 环境</li>
+<li>对部署后的产品做性能测试</li>
+<li>上传工程中依赖的第三方类库信息到S3 bucket(出于安全的考虑)</li>
+</ol>
+
+
+<h3>存在的问题</h3>
+
+<p>太长时间没有人做技术上的升级，导致下面的一些隐患和问题：
+1. 开发的工具版本落后，node当前版本已经是<code>6.3</code>了，ruby 2.0的版本应该已经不维护了，同样，对应的Karma，Phantomjs都以及更新了很多
+2. 运行build依赖的agent是共用的，如果有人对agent的环境进行修改，会影响该项目的持续集成
+3. 未来需要将CI工具从Bamboo迁移到Buildkite，用pipeline as code的方式去构建，每个组自己去管理build agent，使用Docker会更加方便迁移</p>
+
+<h3>过程以及遇到的一些难点</h3>
+
+<p>测试部分通过的过程及问题
+1. 首先做的事情是构建一个基础的docker 镜像，包含最新的node <code>6.3.1</code>，phantomjs <code>2.1.1</code>，后来发现其实不用Phantomjs，这个有点多余了。 成果在这里: <a href="https://github.com/iambowen/node_on_docker%EF%BC%8C%E5%9B%A0%E4%B8%BA%E8%BF%99%E6%A0%B7%E7%9A%84%E7%8E%AF%E5%A2%83%E6%9B%B4%E5%8A%A0%E9%80%9A%E7%94%A8%E4%BA%9B%EF%BC%8C%E6%89%80%E4%BB%A5%E6%89%8Dpublish%E5%88%B0%E5%AE%98%E6%96%B9%E7%9A%84docker">https://github.com/iambowen/node_on_docker%EF%BC%8C%E5%9B%A0%E4%B8%BA%E8%BF%99%E6%A0%B7%E7%9A%84%E7%8E%AF%E5%A2%83%E6%9B%B4%E5%8A%A0%E9%80%9A%E7%94%A8%E4%BA%9B%EF%BC%8C%E6%89%80%E4%BB%A5%E6%89%8Dpublish%E5%88%B0%E5%AE%98%E6%96%B9%E7%9A%84docker</a> repository里面。
+2. 在这个镜像的基础上，构建一个我们工程依赖环境的基础镜像，额外安装了Ruby <code>2.3</code>，最新的Chrome，git以及一些git的配置，因为需要从企业版github上pull代码。
+3. 本地升级node版本，以及相关的grunt，karma，Phantomjs的版本，运行测试通过。
+4. 将工程mount容器中，然后运行测试，<code>npm install</code>失败，原因是安装<code>fsevent</code>出错。查看了下这个包，原来只是给OSX下使用的。删除<code>npm-shrinkwrap.json</code>后重新运行可以通过。原因是有人在OSX下运行了<code>npm shrinkwrap</code>去生成的这个锁定版本的文件，真是烦人。于是反其道行之在容器里面生成<code>npm-shrinkwrap.json</code>，在host上运行测试一切完好，就这样解决了这个问题。
+5. 在Bamboo创建一个branch，然后针对我的分支代码运行测试
+6. 测试里面的一个步骤是做<code>bower install</code>安装第三方js类库，但是比较恶心的是，有些第三方类库是以<code>git</code>的协议去下载，而不是<code>https</code>。本地运行一切都好，但是在Bamboo Agent上运行的时候却出现了连接超时的问题，很有可能是Bamboo所在AWS的network ACL或者是security group没有允许<code>9418</code>端口的TCP访问。不过最后解决的方式并不是修改防火墙或者将协议改为<code>https</code>，而是直接把类库checking到git中，这样对应的修改Gruntfile，不用再运行<code>bower install</code>。check in之后在Bamboo上运行还是失败，本地却可以通过，仔细检查，原来是一部分bower module目录名为<code>dist</code>被git ignore掉了。</p>
+
+<p>通过测试后，接下来就是部署了。部署要解决的问题是，如何让容器拿到AWS role的动态权限去做文件的上传更新操作。ECS好像是支持容器去assume role的操作，但是我们没有用ECS，所以只能考虑其它方式。</p>
+
+<p>我想到的方式在bamboo 的 docker agent上 <code>assume role</code>，拿到对应的credential后，将其作为环境变量传入到容器中。实验证明这样的方式是可行的，万幸bamboo的docker agent支持aws cli命令，不过没有<code>jq</code>稍微增大了点提取credential的难度，脚本如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if [ "$DEPLOY_ENV" = "staging" ]; then
+</span><span class='line'>  AWS_ACCOUNT_ID='1111111111'
+</span><span class='line'>elif [ "$DEPLOY_ENV" == "production" ]; then
+</span><span class='line'>  AWS_ACCOUNT_ID='2222222222'
+</span><span class='line'>fi
+</span><span class='line'>
+</span><span class='line'>credentials=$(aws sts assume-role  --role-arn       arn:aws:iam::"$AWS_ACCOUNT_ID":role/roleName \
+</span><span class='line'>          --role-session-name roleSessionName \
+</span><span class='line'>            --query 'Credentials.[SecretAccessKey, SessionToken, AccessKeyId]'  \
+</span><span class='line'>            --output text)
+</span><span class='line'>
+</span><span class='line'>SecretAccessKey=$(echo $credentials | cut -d' ' -f1)
+</span><span class='line'>SessionToken=$(echo $credentials | cut -d' ' -f2)
+</span><span class='line'>AccessKeyId=$(echo $credentials | cut -d' ' -f3)
+</span><span class='line'>
+</span><span class='line'>docker run  -e BUILD_VERSION="$BUILD_VERSION" \
+</span><span class='line'>    -e DEPLOY_ENV="$DEPLOY_ENV" -e AWS_SECRET_ACCESS_KEY="$SecretAccessKey" \
+</span><span class='line'>    -e AWS_SESSION_TOKEN="$SessionToken" -e AWS_ACCESS_KEY_ID="$AccessKeyId" --rm docker_image bash -c 'grunt deploy'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因为部署是用aws node 的sdk，所以读取的环境变量名字不太一样，要稍微注意下。</p>
+
+<p>在CI上运行后，staging部署通过，手动在bamboo的docker agent上测试下是否能assume产品环境的部署的role，结果可以，那就是说产品环境的部署应该也可以通过了。</p>
+
+<h3>总结</h3>
+
+<ol>
+<li><code>npm</code> sucks，更糟糕的是程序员在引入依赖的时候缺乏考虑，我在<code>package.json</code>里面见到了不少无人维护的component，后续的升级维护是一个问题，联想以前的ruby项目也是一样。一旦有版本升级，碰到无人维护的gem时会非常痛苦。</li>
+<li>一个工程里面用了太多的语言，也是一件很糟糕的事情，明明可以用node的aws sdk来做到所有的部署，不知道为何用ruby去实现，无形中增大了维护的成本。</li>
+<li>一般来说，我们认为docker可以保证不同环境的一致性，但是由于一些特殊原因，如我上面提到的防火墙问题，bower module被git ignore掉的问题，在CI环境下才能暴露出来。所以在PR被merge到master之前，一定要保证修改在CI上也运行通过。</li>
+</ol>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[One Interesting Docker Issue]]></title>
+    <link href="http://iambowen.github.com/docker/2016/08/11/one-interesting-docker-issue"/>
+    <updated>2016-08-11T17:52:10+10:00</updated>
+    <id>http://iambowen.github.com/docker/2016/08/11/one-interesting-docker-issue</id>
+    <content type="html"><![CDATA[<p>项目上Akamai的回归测试运行在数据中心一台用Puppet管理的固定的虚拟服务器上，这台服务器是Bamboo Agent，负责运行所有遗留系统的自动化部署任务。
+前几天一个客户的Ops找我帮忙一起让这台服务器支持Docker，然后将测试放在docker中运行。我们修改puppet脚本，然后更新了Docker，结果发现2.6的内核最多运行docker 1.7，而运行测试的docker compose需要的docker客户端要高于1.7。 鉴于改动较大，于是我们换一种思路，用在AWS账户下已有的Bamboo docker agent去运行测试。所以revert了Puppet修改，并且在服务器上运行。
+以为一切都结束了，没想到过了几天，另一个组的Ops来找我说staging的部署失败了，问我什么原因，提示大意是没有找到NetScaler服务器的路由。我觉得很奇怪，就看了眼服务器上的路由表。结果发现了下面的现象：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+</span><span class='line'>172.17.0.0      *               255.255.0.0     U     0      0        0 docker0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>囧，staging的IP range也是<code>172.17</code>，原来是这个原因。
+于是，先停止这个网络设备，然后删除，之后再重启网络服务解决问题。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ip link down docker0
+</span><span class='line'>ip link del docker0
+</span><span class='line'>service network restart
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我觉得从这个错误中可以学到两个事情</p>
+
+<ol>
+<li>配置管理工具的不可靠性，Puppet并没有完整的清理掉所有docker相关的东西</li>
+<li>这种<code>Pet</code>服务器的不可靠性，如果服务器是每天都按照配置重新创建也不会出现这样的问题</li>
+</ol>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Cloudformation Introduction and Usage]]></title>
+    <link href="http://iambowen.github.com/2016/07/11/cloudformation-introduction-and-usage"/>
+    <updated>2016-07-11T13:16:21+10:00</updated>
+    <id>http://iambowen.github.com/2016/07/11/cloudformation-introduction-and-usage</id>
+    <content type="html"><![CDATA[<h2>Cloudformation介绍</h2>
+
+<p><a href="https://aws.amazon.com/cloudformation/">Cloudformation</a> 是AWS的一项用来管理AWS相关的资源以及对资源的部署以及更新的服务。它具有以下几个特点：</p>
+
+<h2>Cloudformation的相关概念</h2>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Hand Over DNS Resolve to VirutalBox]]></title>
     <link href="http://iambowen.github.com/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox"/>
-    <updated>2016-01-20T17:16:12+08:00</updated>
+    <updated>2016-01-20T20:16:12+11:00</updated>
     <id>http://iambowen.github.com/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox</id>
     <content type="html"><![CDATA[<p>当你用<a href="https://www.vagrantup.com/">vagrant</a>新建一个虚拟机(driver 为virtualbox)并使用NAT方式让guest虚拟机连接外网时，如果有无线网络的变化，虚拟机中<code>/etc/resolv.conf</code>不会对应的修改，导致域名解析失败。</p>
 
@@ -54,7 +593,7 @@
   <entry>
     <title type="html"><![CDATA[Using Akamai Diagnostic tools/API]]></title>
     <link href="http://iambowen.github.com/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api"/>
-    <updated>2016-01-19T13:32:46+08:00</updated>
+    <updated>2016-01-19T16:32:46+11:00</updated>
     <id>http://iambowen.github.com/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api</id>
     <content type="html"><![CDATA[<p>有时候在Akamai上提交应用修改后，因为配置的问题，可能出现错误，像下面这样：</p>
 
@@ -152,7 +691,7 @@
   <entry>
     <title type="html"><![CDATA[AWS KMS and Its Usage]]></title>
     <link href="http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage"/>
-    <updated>2016-01-15T09:33:30+08:00</updated>
+    <updated>2016-01-15T12:33:30+11:00</updated>
     <id>http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage</id>
     <content type="html"><![CDATA[<h2>什么是KMS</h2>
 
@@ -400,7 +939,7 @@
   <entry>
     <title type="html"><![CDATA[Ci Solution With Mesos]]></title>
     <link href="http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos"/>
-    <updated>2016-01-10T14:33:29+08:00</updated>
+    <updated>2016-01-10T17:33:29+11:00</updated>
     <id>http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos</id>
     <content type="html"><![CDATA[<p>上次在<a href="http://www.meetup.com/Infrastructure-Coders/">Melbourne Infrastructure-Coders</a>上介绍过一次，比较惨，改进了一遍后，这次重新在<a href="http://gdgxian.org/">GDG Xi'an</a>讲了下，还是中文讲起来比较6。</p>
 
@@ -417,9 +956,9 @@
   
   <entry>
     <title type="html"><![CDATA[Stop Wrapping AWS SDK to Create Tools]]></title>
-    <link href="http://iambowen.github.com/aws/practice/2015/12/28/stopping-creating-new-wheels"/>
-    <updated>2015-12-28T22:24:42+08:00</updated>
-    <id>http://iambowen.github.com/aws/practice/2015/12/28/stopping-creating-new-wheels</id>
+    <link href="http://iambowen.github.com/aws/practice/2015/12/29/stopping-creating-new-wheels"/>
+    <updated>2015-12-29T01:24:42+11:00</updated>
+    <id>http://iambowen.github.com/aws/practice/2015/12/29/stopping-creating-new-wheels</id>
     <content type="html"><![CDATA[<p>大概4-5年前，客户开始使用AWS作为他们的开发和测试环境，因为澳洲当时没有亚马逊的数据中心，所以只好
 使用us-east, us-west这些region。后来澳洲有了AWS的数据中心，应用的产品就都迁移到新的region
 和新的AWS账户下。由于这个历史原因，一部分bake AMI的任务以及部署的任务，都是跨账户以及region
@@ -477,7 +1016,7 @@ SDK去实现，从使用的角度，依赖更少，从维护的角度，成本�
   <entry>
     <title type="html"><![CDATA[更加安全和简单的方式通过堡垒机ssh]]></title>
     <link href="http://iambowen.github.com/ssh/security/2015/12/19/ssh-securely-and-handy"/>
-    <updated>2015-12-19T14:24:30+08:00</updated>
+    <updated>2015-12-19T17:24:30+11:00</updated>
     <id>http://iambowen.github.com/ssh/security/2015/12/19/ssh-securely-and-handy</id>
     <content type="html"><![CDATA[<p>理想情况下的运维，是不需要ops去ssh到服务器上检查问题(包括安全问题)/日志等，这些是可以通过更好
 监控,如使用newrelic,或者更好的日志收集系统，如splunk等去避免。不过现实不总是完美的，加上历史
@@ -606,7 +1145,7 @@ control channel socket文件，并且成为control channel的master</li>
   <entry>
     <title type="html"><![CDATA[Don't Copy/paste Keys From Chatting Tools]]></title>
     <link href="http://iambowen.github.com/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools"/>
-    <updated>2015-12-17T16:58:30+08:00</updated>
+    <updated>2015-12-17T19:58:30+11:00</updated>
     <id>http://iambowen.github.com/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools</id>
     <content type="html"><![CDATA[<p>今天，别的组的同事过来问我一个关于SSH的问题，问题是这样的:</p>
 
@@ -681,7 +1220,7 @@ ssh信息<code>ssh -vvvv</code>也没有看到什么有用信息(其实是我忽
   <entry>
     <title type="html"><![CDATA[Make Everything Production Like - (2/2)]]></title>
     <link href="http://iambowen.github.com/practice/aws/2015/12/06/make-everything-production-like-2-slash-2"/>
-    <updated>2015-12-06T17:12:21+08:00</updated>
+    <updated>2015-12-06T20:12:21+11:00</updated>
     <id>http://iambowen.github.com/practice/aws/2015/12/06/make-everything-production-like-2-slash-2</id>
     <content type="html"><![CDATA[<p><a href="http://iambowen.github.io/2015/07/05/make-everything-production-like/">开发环境出问题的时候，影响到只是自己</a>，如果持续集成环境或者其相关的基础设施出了问题，那影响到的就
 是所有人以及整个开发的进展，我们曾经遇到一次这样的事故，整个 <a href="https://www.atlassian.com/software/bamboo">Bamboo</a>(CI)环境的Master和Database都被干掉了，出乎意料的是AWS RDS的自动镜像同时也被删除,于是所有的人花了一个礼拜才重新建好了全部的流水线。</p>
@@ -762,7 +1301,7 @@ snapshot比较好。</li>
   <entry>
     <title type="html"><![CDATA[Specifying Amazon Credentials in Packer]]></title>
     <link href="http://iambowen.github.com/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer"/>
-    <updated>2015-12-02T20:50:33+08:00</updated>
+    <updated>2015-12-02T23:50:33+11:00</updated>
     <id>http://iambowen.github.com/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer</id>
     <content type="html"><![CDATA[<p><a href="https://packer.io/">Packer</a>是一个用一份配置构建跨平台镜像的工具，它支持EC2 AMI，Vmware，
 QEMU，Virtualbox，docker等多个平台。</p>
@@ -880,7 +1419,7 @@ Packer会通过如下的步骤去自动查找credential:</p>
   <entry>
     <title type="html"><![CDATA[Solution for Joseph Question]]></title>
     <link href="http://iambowen.github.com/2015/09/14/solution-for-joseph-question"/>
-    <updated>2015-09-14T00:00:00+08:00</updated>
+    <updated>2015-09-14T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/2015/09/14/solution-for-joseph-question</id>
     <content type="html"><![CDATA[<p><a href="https://www.coursera.org/learn/jisuanji-biancheng/programming/nXnUt/shu-ju-cheng-fen-ying-yong-lian-xi">囧瑟夫问题</a>:</p>
 
@@ -1022,7 +1561,7 @@ Packer会通过如下的步骤去自动查找credential:</p>
   <entry>
     <title type="html"><![CDATA[Deploy Netty Example App to Heroku]]></title>
     <link href="http://iambowen.github.com/2015/09/02/deploy-netty-example-app-to-heroku"/>
-    <updated>2015-09-02T00:00:00+08:00</updated>
+    <updated>2015-09-02T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/2015/09/02/deploy-netty-example-app-to-heroku</id>
     <content type="html"><![CDATA[<p>作为一名java的弱鸡，为了在公共的服务器上重现netty的一个<a href="http://iambowen.github.io/2015/08/25/tracing-and-production-bug-about-netty/">bug</a>，我也是很努力的自己setup了一个简单的netty的<a href="https://github.com/iambowen/netty-example">java</a>工程，然后计划
 部署在heroku上面，这样在github上提交issue的说服力更强一些。</p>
@@ -1171,7 +1710,7 @@ Packer会通过如下的步骤去自动查找credential:</p>
   <entry>
     <title type="html"><![CDATA[Tracing and Production Bug About Netty]]></title>
     <link href="http://iambowen.github.com/2015/08/25/tracing-and-production-bug-about-netty"/>
-    <updated>2015-08-25T00:00:00+08:00</updated>
+    <updated>2015-08-25T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/2015/08/25/tracing-and-production-bug-about-netty</id>
     <content type="html"><![CDATA[<p>CTO在slack上给我们通报了一个bug，具体表现为网站请求的一个服务，在接受完请求后，再发起新请求可能会
 返回504.</p>
@@ -1226,716 +1765,6 @@ request升级它依赖的netty版本号。不过，花了好长时间也没有�
 这个问题。</p>
 
 <p>通过解决这次的bug，学到了很多追踪、分析和解决问题的方式，受益匪浅。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Mysql Access Control]]></title>
-    <link href="http://iambowen.github.com/mysql/2015/08/18/mysql-access-control"/>
-    <updated>2015-08-18T00:00:00+08:00</updated>
-    <id>http://iambowen.github.com/mysql/2015/08/18/mysql-access-control</id>
-    <content type="html"><![CDATA[<p>连接到Mysql的请求被接受或者拒绝的条件是:</p>
-
-<ol>
-<li>是否通过身份验证</li>
-<li>账号是否被锁定</li>
-</ol>
-
-
-<p>身份验证利用了<code>mysq.user</code>表中的<code>user</code>,<code>host</code>和<code>password</code>字段，账号锁定与否是用<code>account_locked</code>
-字段进行判断。身份的内容基于连接的客户端的主机和连接时使用的用户名。</p>
-
-<p>当user字段为空时，意味着它可以匹配任意用户，不为空时，只有用户名和主机名都匹配时，才能进入下一个验证
-的阶段。连接的用户名为空时，又被称为匿名用户，如果测试下本地的mysql user表，可能会发现如下的一些内容:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>+------------------+--------------+---------------+
-</span><span class='line'>| user             | host         | password      |
-</span><span class='line'>+------------------+--------------+---------------+
-</span><span class='line'>|                  | localhost    |               |</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这就是为什么我们可以用<code>mysql</code>命令直接进入mysql的控制台，因为它匹配到了来自本地的空用户名，空密码的
-这条记录。</p>
-
-<p>从这条记录也可以看到，用户的密码也可以为空，这意味着该用户登录不要指定密码。非空的密码并非明文存储，
-而是通过<code>PASSWORD()</code>函数加密。</p>
-
-<p>主机名不会为空，缺省为<code>%</code>，意为匹配任意主机。<code>144.155.166.%</code>意为匹配144.155.166的C类地址。</p>
-
-<p>mysql在验证请求时，会将现有的<code>mysql.user</code>排序，然后先按照host，再按照user，顺序匹配。如这样的
-mysql user表</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>+-----------+----------+-
-</span><span class='line'>| Host      | User     | ...
-</span><span class='line'>+-----------+----------+-
-</span><span class='line'>| %         | root     | ...
-</span><span class='line'>| %         | jeffrey  | ...
-</span><span class='line'>| localhost | root     | ...
-</span><span class='line'>| localhost |          | ...
-</span><span class='line'>+-----------+----------+-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>排序后就变成</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>+-----------+----------+-
-</span><span class='line'>| Host      | User     | ...
-</span><span class='line'>+-----------+----------+-
-</span><span class='line'>| localhost | root     | ...
-</span><span class='line'>| localhost |          | ...
-</span><span class='line'>| %         | jeffrey  | ...
-</span><span class='line'>| %         | root     | ...
-</span><span class='line'>+-----------+----------+-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>可以通过<code>CURRENT_UER()</code>函数来查看当前连接使用的用户信息。</p>
-
-<p>之所以会总结关于mysql连接验证的知识，是因为最近在配置一个新的服务的时候遇到了这样的一个问题。
-AWS Staging VPC通过Direct Connection连回数据中心，而在Staging环境的服务需要连接到数据中心
-的数据库服务器。在数据库服务器添加账号的时候，Host的信息填的是NetScaler的地址，比如"192.168.%.%&ldquo;
-但实际上应用服务器的网络属于"10.15.%.%"，导致连接出错。话说我刚觉得应用服务器配置的DB地址应该用
-NetScaler VIP的地址而不是DB服务器的地址…………，shit。</p>
-
-<hr />
-
-<h4>Reference:</h4>
-
-<ol>
-<li><a href="http://dev.mysql.com/doc/refman/5.7/en/connection-access.html">mysql connection access</a></li>
-<li><a href="http://dev.mysql.com/doc/refman/5.7/en/request-access.html">mysql request access</a></li>
-</ol>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Speed Up Downloading Docker Images by Using Daocloud Mirror]]></title>
-    <link href="http://iambowen.github.com/docker/2015/08/03/speed-up-downloading-docker-images-by-using-daocloud-mirror"/>
-    <updated>2015-08-03T00:00:00+08:00</updated>
-    <id>http://iambowen.github.com/docker/2015/08/03/speed-up-downloading-docker-images-by-using-daocloud-mirror</id>
-    <content type="html"><![CDATA[<p>因为要试用下<a href="http://hyper.sh/">hyper</a>这个新工具，不得不去下载docker镜像，不过官方的registry
-简直慢如狗，加了VPN也很慢。以前有个docker.cn的镜像源也不见了，不过在搜索的时候发现了国内的一家容器
-公司<a href="http://daocloud.io/">daocloud</a>提供了免费的镜像服务。抱着试一试的态度，注册了个账号，在个人
-的dashboard页面点击“加速器”，就可以看到定制的镜像链接，如“<a href="http://xxxxxxxx.m.daocloud.io%E2%80%9D%E3%80%82">http://xxxxxxxx.m.daocloud.io%E2%80%9D%E3%80%82</a>
-下面的文档中给出了不同系统下配置镜像的方法，我的host是Ubuntu系统，需要做如下的修改:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">echo</span> <span class="s2">&quot;DOCKER_OPTS=\&quot;\$DOCKER_OPTS --registry-mirror=http://d32e3878.m.daocloud.io\&quot;&quot;</span> <span class="p">|</span> sudo tee -a /etc/default/docker
-</span><span class='line'>sudo service docker restart
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>再试着pull一下新的image.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant@vagrant-ubuntu-trusty-64:~<span class="nv">$ </span><span class="nb">time </span>docker pull ubuntu
-</span><span class='line'>Pulling repository ubuntu
-</span><span class='line'>d2a0ecffe6fa: Download <span class="nb">complete</span>
-</span><span class='line'>83e4dde6b9cf: Download <span class="nb">complete</span>
-</span><span class='line'>b670fb0c7ecd: Download <span class="nb">complete</span>
-</span><span class='line'>29460ac93442: Download <span class="nb">complete</span>
-</span><span class='line'>Status: Downloaded newer image <span class="k">for</span> ubuntu:latest
-</span><span class='line'>
-</span><span class='line'>real  2m0.469s
-</span><span class='line'>user  0m0.034s
-</span><span class='line'>sys   0m0.034s
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这是我在公司里面下载70m左右的容器镜像所耗时间，其实在家只要30s左右，公司网络太差了。</p>
-
-<p>Anyway, 虽然镜像流量使用配额只有1000GB，但是一般情况下应该是够用了，为daocloud公司点个赞，良心企业。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Make Everything Production Like - (1/2)]]></title>
-    <link href="http://iambowen.github.com/2015/07/05/make-everything-production-like"/>
-    <updated>2015-07-05T00:00:00+08:00</updated>
-    <id>http://iambowen.github.com/2015/07/05/make-everything-production-like</id>
-    <content type="html"><![CDATA[<p>一般来说，软件生命周期涉及到的环境的典型划分如下：</p>
-
-<ol>
-<li>Development</li>
-<li>Test</li>
-<li>Staging</li>
-<li>Production</li>
-</ol>
-
-
-<p>通常Staging和Production的环境非常的接近，差别可能只在于服务器的性能、数量以及数据的完整性等方面，
-而且Staging/Production也会得到更多的照顾，什么<code>DR</code>,<code>Infrastructure as code</code>。各种monitoring，Active崩了有Inactive顶着，Master挂了，Slave顶上来，出了问题分分钟就有人来修好。
-反观于Dev和Test环境，真是各种苦逼，14年Java经验的工程师设置了三天还没有把Ruby开发环境搞好，一
-个前端工程师去解决为什么用Phantomjs在bamboo centos agent上运行测试不稳定，痛苦的要自尽。</p>
-
-<p>除了这些，开发环境的不一致也会带来一些问题。最有名的就是“It works on my machine”。不过
-这也不稀奇，毕竟不是所有人的开发环境和产品环境都是一致的。可能你在用Mac开发Ruby程序，但是在它
-产品环境它却需要在Centos的机器上去运行。</p>
-
-<p>对于开发环境来说，这些痛点总结来说，大概有如下几种场景:</p>
-
-<ol>
-<li>开发环境和系统环境混在一起, 任何对于开发环境的修改可能会影响系统环境。</li>
-<li>开发环境和产品环境的不一致。</li>
-<li>本地开发时，除了运行必要的测试，还要启动多个依赖的服务，做一些手工的验证测试。
-针对这些问题，有如下的解决办法。</li>
-</ol>
-
-
-<hr />
-
-<h3>使用环境隔离的工具</h3>
-
-<p>可以使用一些类似沙盒的工具去管理开发环境，比如，</p>
-
-<ol>
-<li><a href="http://rbenv.org/">rbenv</a></li>
-<li><a href="http://rvm.io/">rvm</a></li>
-<li><a href="https://github.com/postmodern/chruby">chruby</a></li>
-<li><a href="https://virtualenv.pypa.io/en/latest/">virtualenv</a></li>
-<li><a href="http://jenv.io/">jenv</a></li>
-</ol>
-
-
-<p>前三个工具都是针对Ruby语言版本管理，开发环境下常用的是rbenv和rvm，测试和产品环境有可能用到chruby，
-因为它更加轻量。这些工具本质上都是修改BIN PATH，cd等，以rvm为例，推荐的使用方式如下：
-安装开发环境需要的ruby版本如2.0</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>rvm install 2.0.0
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>安装bundler，用来管理项目依赖</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>rvm use 2.0.0
-</span><span class='line'>gem install bundler
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>对于ruby的项目，将依赖的gem安装在工程的<code>vendor/bundle</code>下，而不是装在<code>~/.rvm</code>的gemsets目录下。
-进一步将环境隔离到工程内，同时最好将<code>vendor/bundle</code>加在<code>.gitignore</code>的列表中，这样不会将gem提交
-到repository中。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>bundle install --path<span class="o">=</span>vendor/bundle
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>virtualenv针对的是Python的环境管理，Jenv针对的是JVM系列的语言，Java/Scala/Clojure。
-这些工具最大的作用在于项目和系统环境的隔离，不能用来保证环境一致性，一旦有系统环境变动，如，
-mysql版本升级，OpenSSL升级等，就得重新编译链接类库，很不方便。</p>
-
-<hr />
-
-<h3>用Vagrant解决环境一致性问题</h3>
-
-<p>我们很容易能够想到用虚拟机来解决环境一致性的问题，不用说，就是<a href="https://www.vagrantup.com/">vagrant</a>
-这个工具。vagrant是一个跨平台的虚拟机管理工具，通过Vagrantfile，可以配置：</p>
-
-<ol>
-<li>管理virtualbox或者VMware的虚拟机</li>
-<li>以headless/gui的方式运行虚拟机</li>
-<li>配置私有/NAT网络</li>
-<li>bash/puppet/chef/ansible多种provision的方式</li>
-<li>共享/同步host/guest machine目录内容</li>
-</ol>
-
-
-<p>Vagrantfile本身也可以看做是ruby文件，可以用ruby语言编写更加复杂的配置文件。<a href="https://vagrantcloud.com">vagrantcloud</a>
-提供了现成的base box，可以很方便的下载和发布box，比如，在vagrantcloud找到最新的Ubuntu14.04的box<code>ubuntu/trusty64</code>，
-在工程中运行命令:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant init ubuntu/trusty64
-</span><span class='line'>vagrant up
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>即可生成Vagrantfile并且启动虚拟机。对于一些开发环境要求比较复杂的项目，可以先用bash/chef/puppet
-自动化配置的过程，然后运行<code>vagrant provision</code>配置即可。假设当前为gradle/java项目，guest共享的
-目录为<code>/vagrant</code>，运行:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>vagrant -c <span class="s1">&#39;cd /vagrant &amp;&amp; ./gradlew test&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>即可在虚拟机中运行测试。<code>vagrant package</code>命令可以将当前的配置好的虚拟机打包为新的镜像，共享给团队的其他同事。这里有一点要注意的地方，虚拟机<code>/etc/udev/rule.d/70-persistent-net.rules</code>保存了当前虚拟机持久化网络设备udev规则。创建新的虚拟机时，新分配的设备和规则不符，导致网络出问题。所以在打包镜像之前，需要删除这个文件。</p>
-
-<hr />
-
-<h3>vagrant+docker解决依赖多个服务的问题</h3>
-
-<p>在微服务大行其道的今天，一个前端的工程可能会依赖多个微服务。前几天参加会议，还有人说微服务就是大家用
-自己喜欢的语言/框架实现一个简单的服务。我替各位前端工程师们送他一句cnm，走好不送。
-即便有类似<a href="https://github.com/realestate-com-au/pact">Pact</a>
-这样的基于<a href="http://martinfowler.com/articles/consumerDrivenContracts.html">CDC</a>的更加轻量的集成测试方式，还是需要真实的启动浏览器，
-请求真实的服务去在本地做测试，尽快的获得反馈。在本地配置这样的e2e或者模拟产品环境，大致有如下的几种思路：</p>
-
-<ol>
-<li>clone所有依赖的工程，配置每个工程的环境，在不同的端口启动服务，覆写<code>hosts</code>配置，并且可能还需要
-安装<code>nginx</code>做反向代理。这样做的成本比较高，而且对全局的环境影响比较大，也太过复杂。</li>
-<li>用vagrant为其它微服务配置好虚拟机，同样可能需要覆写<code>hosts</code>或者安装<code>nginx</code>做反向代理。这样
-启动多台虚拟机，开销太高，还能不能愉快的开发。</li>
-<li>用vagrant+docker在一台虚拟机的多个容器上运行微服务，同时在虚拟机上用<code>nginx</code>作反向代理。</li>
-<li>修改<code>hosts</code>,将其他微服务指向测试环境或者staging环境，这样做的代价较小，但是公用环境可能会导致
-数据问题。而且如果同时修改前端项目和其中一个微服务，这样做可能就比较困难了。</li>
-</ol>
-
-
-<p>不卖关子了，第三种方案也就是我一年前在项目中使用过的方案，剥离了业务相关内容后放在了<a href="https://github.com/iambowen/leviathan">github</a>。设计思路可以参见下面的架构图，以及项目中的文档。
-<img src="https://dl.dropboxusercontent.com/u/92660221/images/Screen%20Shot%202014-07-30%20at%2012.53.05%20AM.png" style="width:800px;height=600px;">
-这个设计相对是比较灵活，因为可以根据<code>nginx</code>配置的不同，选择使用哪个环境上的微服务，同时host环境几乎不需要做任何修改。当时没有选择使用<code>vagrant package</code>的方式去打包配置好的镜像，因为这样生成的镜像太大，客户的程序员下载太慢。所以选择从头provision的方式，但是当时的docker版本较低，docker-registry的性能也比较差，pull image的速度确实慢，所以真正的用户只有我同事一个人o(╯□╰)o，现在要好很多了。
-我想说的是这样的方式是可行的，当然还需要继续改进。</p>
-
-<p>下一节，我会继续介绍如何让测试环境更加接近产品环境。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[A Good Lesson on Security When Provisioning]]></title>
-    <link href="http://iambowen.github.com/2015/06/02/a-good-lesson-on-security-when-provisioning"/>
-    <updated>2015-06-02T00:00:00+08:00</updated>
-    <id>http://iambowen.github.com/2015/06/02/a-good-lesson-on-security-when-provisioning</id>
-    <content type="html"><![CDATA[<p>客户很多老的(legacy)系统都部署在租用的数据中心中，其中部署的方式大多是通过puppet去做zero-downtime
-或者blue-green部署。绝大多数服务器都使用基于Centos的base image,其中包含基础架构需要的软件，如
-nagios agent, splunk agent等。应用程序通过流水线打包为rpm package，上传到<a href="http://fedoraproject.org/wiki/Koji/ServerHowTo">Koji</a>, Koji将repo
-分为三类，dev,staging,production，大致的持续交付流程如下:</p>
-
-<ol>
-<li>代码提交后触发ci的build job，通过所有测试后生成package，上传到Koji，并tag在dev repo下面；</li>
-<li>自动化部署测试环境，服务器的<code>yum repo</code>的配置中缺省enable dev，所以<code>yum install</code>即可更新package；</li>
-<li>接受测试结束后，运行build去promote这个package到staging repo；</li>
-<li>在部署的build中执行deploy staging 的<code>dry-run</code>job和实际应用的job，由于staging服务器缺省
-enable的repo是staging，所以它也会自动安装最新的package，并不需要你在puppet脚本中指定package的
-版本号，<code>ensure =&gt; latest</code>即可。</li>
-<li>产品环境的部署过程同staging类似。</li>
-</ol>
-
-
-<p>看上去还不错，然而这里面有几个问题:</p>
-
-<ol>
-<li>每次上传新的rpm包到koji时，它需要重新indexing去更新metadata，这个时间很长，可能有10几分钟，
-会极大的影响持续交付流水线的时间</li>
-<li>现在没有专门的团队去照看它，一旦koji出现问题，会极大的影响应用的部署上线时间</li>
-</ol>
-
-
-<p>按道理说我们应该去解决Koji的indexing的问题，这样比较一劳永逸。但是客户的重心逐渐都转移到了AWS上，
-所以不愿意再投入时间去修复这个问题，加之CI工具，Bamboo或者Jenkins都可以host rpm artifact，所以
-后来的解决方案就是直接从Bamboo或者Jenkins取package，然后安装更新。我们在应用的部署上已经采取了这样
-的方式，提交跑完流水线加部署到产品环境大概需要20分钟多点的时间，是以前的一半，当然这不是完美的解决方案，
-如其中有安全问题，如产品环境(数据中心)需要通过代理去访问AWS部署的CI的artifact。不过作为过渡方案，
-目前来说大家还都能接受。</p>
-
-<p>好，该说到今天的问题了，Koji服务器不能显示导入的package，致使一个应用不能部署最新的package，其中
-包含一个比较紧急的bug修复，于是客户问我试试通过Jenkins去获取rpm包进行部署，绕过Koji。</p>
-
-<p>首先，我做了如下的测试:</p>
-
-<ol>
-<li>下载Jenkins host的rpm包是否需要验证(用户名/密码)，答案是否定的，Bamboo需要验证，Jenkins的
-安全性比较差，but anyway.</li>
-<li>是否能在staging和production服务器上下载在Jenkins上的package，答案也是可以。</li>
-</ol>
-
-
-<p>那么我就有了一个大致的思路，通过传入buildnumber, 用puppet脚本调用wget等命令将package下载到服
-务器的/tmp下，然后在package定义中，通过指定rpm文件，进行local install.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">package</span> <span class="p">{</span> <span class="s">&quot;my-app&quot;</span><span class="p">:</span>
-</span><span class='line'>   <span class="na">provider</span> <span class="o">=&gt;</span> <span class="s">&quot;rpm&quot;</span><span class="p">,</span>
-</span><span class='line'>   <span class="na">ensure</span> <span class="o">=&gt;</span> <span class="s">&quot;$version&quot;</span><span class="p">,</span>
-</span><span class='line'>   <span class="na">source</span> <span class="o">=&gt;</span> <span class="k">File</span><span class="p">[</span><span class="s">&quot;/tmp/$package_name&quot;</span><span class="p">],</span>
-</span><span class='line'>   <span class="na">require</span> <span class="o">=&gt;</span> <span class="k">File</span><span class="p">[</span><span class="s">&quot;/tmp/$package_name&quot;</span><span class="p">]</span>
-</span><span class='line'> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>因为对puppet的type理解不足，我总以为<code>File["/tmp/$package_name"]</code> 返回的是文件的路径，但是
-没想到返回的却是一个字符串，类似这样<code>"file /tmp/my-app-version.rpm"</code>，所以rpm update总是
-失败。因为有点着急，我就开始各种hack，通过<code>Exec</code>类型，执行<code>yum localinstall</code>的方式更新，然后，
-我就被客户的安全专家怒喷……，针对我的puppet修改提交，他提出的几点关于安全方面的原因如下:</p>
-
-<ol>
-<li>puppet脚本不应该用root账号去执行，而是应该用一个专用的限定权限的账号，如puppet,并且只授予安装
-删除以及在某些特定目录下修改文件的权限，这样它就不能执行一些其他的命令；</li>
-<li>将文件放在/tmp下是非常危险的，因为当黑客通过web应用程序漏洞获得<code>www</code>用户权限时，他可以将一些
-恶意的文件(如包含恶意脚本的rpm包)放在/tmp下，这时候如果我安装rpm包，很有可能中招。</li>
-</ol>
-
-
-<p>大神在喷完我后给出了几点建议:</p>
-
-<ol>
-<li>鉴于情况比较特殊，所以可以沿用当前的方式，但是可以将文件下载到如/opt之类只有root用户组才能访问的
-目录中；</li>
-<li>可以考虑使用S3作为yum的repository(这个以前我们就有讨论过，以后应该就是这种方式了)</li>
-</ol>
-
-
-<p>我觉得他说的很有道理，所以先静下心来，找到了为什么source文件找不到的原因，然后修改了保存pacakge的
-目录，最后的<code>package</code>定义脚本如下:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='puppet'><span class='line'><span class="k">package</span> <span class="p">{</span> <span class="s">&quot;my-app&quot;</span><span class="p">:</span>
-</span><span class='line'>  <span class="na">provider</span> <span class="o">=&gt;</span> <span class="s">&quot;rpm&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">ensure</span> <span class="o">=&gt;</span> <span class="s">&quot;$version&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">source</span> <span class="o">=&gt;</span> <span class="s">&quot;/opt/$package_name&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="na">require</span> <span class="o">=&gt;</span> <span class="k">File</span><span class="p">[</span><span class="s">&quot;/opt/$package_name&quot;</span><span class="p">]</span>
-</span><span class='line'> <span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>虽然被喷有点尴尬，但是学到了东西感觉还是很开心的，以后要更加稳重些，多找下root cause和best
-practice。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[One Company]]></title>
-    <link href="http://iambowen.github.com/2015/06/01/one-company"/>
-    <updated>2015-06-01T00:00:00+08:00</updated>
-    <id>http://iambowen.github.com/2015/06/01/one-company</id>
-    <content type="html"><![CDATA[<p>客户公司的前任CEO有次来办公室访问，提到一个很有意思的话题，就是公司的任何一个员工或者管理者，都要从
-一个公司“One Company”整体的利益出发去考虑问题。看上去是任何一家公司或者党政机关领导冠冕堂皇的话，实际上
-是很难做到这点的。已知的一个比较成功的例子是中国共产党，在高达的帮助下，他们全国一盘棋的策略，战胜了
-国军，夺取了政权。</p>
-
-<p>联系到一个客户有次问我的一个问题: 如果你在团队A，在使用团队B开发的工具的时候遇到一个问题，你是要通过
-hack的方式绕过这个问题，还是投入时间，修复这个问题，发pull/request，跟踪问题直到该问题得到解决？
-我很诚实的告诉他，It depends。因为我做的是交付项目，如果我的直接客户，也就是对方的项目经理，在意
-我当前任务的交付时间，我会将这个问题在github上提交一个issue或者在slack channel通知团队B。如果
-他认为这问题，是公司开发团队都要面临的问题，并且认为停下我当前的任务，去修复这个问题是值得的，那我就
-去做。</p>
-
-<p>我想说的是我们的客户会更乐意让我修复这个问题，但是我从知乎上看到的国内的这些大小互联网公司，我觉得
-如果他们的员工遇到同样的问题，可能不会选择去修复这个问题，其中很重要的原因就是KPI。我从毕业开始就
-一直在一个奉行敏捷文化的小公司工作，没有机会体会大公司的文化，但是就我了解到的，大公司的KPI造成了
-人与人，团队与团队之间的对立。Dev的考核变成加班时间和代码行数而不是代码质量，QA的考核变成查出的bug
-数而不是更关注产品的质量，Ops的考核变成Incidents的数量而不是运维的质量，再往上点就变成了团队资源
-争夺以及政治斗争。</p>
-
-<p>我曾经参与过一个大型的通信公司关于持续交付的讨论，讲到最后考评制度，大家都纷纷开始叹气，真是一件让人
-觉得悲伤的事情，为什么不能把KPI定义为产品的成功与否，或者团队的成功与否，如此QA，Dev，Ops，PM能
-够协力去将产品变得更好。</p>
-
-<p>有感于最近知乎上关于陈皓离职以及阿里的HR事件的一些讨论，随便扯了些，可能是这个世界太复杂，我想的太简单了。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Riding Accross Taibai Mountain]]></title>
-    <link href="http://iambowen.github.com/2015/05/08/riding-accross-taibai-mountain"/>
-    <updated>2015-05-08T00:00:00+08:00</updated>
-    <id>http://iambowen.github.com/2015/05/08/riding-accross-taibai-mountain</id>
-    <content type="html"><![CDATA[<p>五一假期期间和同学从西安骑到了汉中，全程约360KM，均速约18.3KM/H。经过路线大致为西安-省道107(关中
-环线)-眉县(眉太线)-太白县-汉中，其中穿过太白山的路线基本上就是重走以前的褒斜栈道。具体路线如下:</p>
-
-<p><img src="http://iambowen.github.com/images/riding_roadmap.png" style="width: 600px; "></p>
-
-<h2>褒斜栈道的历史背景</h2>
-
-<p>提到<a href="http://baike.baidu.com/view/171738.htm">褒斜栈道</a>，很多人第一时间想到的应该就是三国
-时期，诸葛亮北伐出斜谷，走的就是这条道。其实，褒斜道由来已久，武王伐纣时，蜀王相助出兵，走的就是这条
-道。《大秦帝国》中描述的司马错收巴蜀，也是在秦国修复的褒斜栈道的基础上进入汉中。此后历代都有在修复和
-使用。整条栈路南起褒城，北出斜口，沿着褒河，逆流而上。也是从蜀地到关中(长安)最容易的一条道路，在古代的
-军事以及经济文化交流上起着非常重要的作用。</p>
-
-<h2>骑行过程</h2>
-
-<p>我们从在4月30号下班后出发，接连骑行了两天，于5月2号下午5点多到达汉中市。简单的介绍下这几天的过程。</p>
-
-<h3>第一天</h3>
-
-<p>上班前就带好了各种装备，下班立即从软件园出发，先到郭渡和朋友集合，然后往北直走到沣裕口，向西进入s107
-沿着关中环线和秦岭一路向西骑。时间到八点左右，天色变暗，骑行速度大减，从西边过来的车都是开远光灯，完全
-失去了前面路段的视线，麻痹诅咒你们天天被贴条，太没素质。107省道比较好的地方就是有分割开的自行车道，
-这样不用担心一头撞到汽车上去，不过还是出现了几次差点撞到道牙子的情况。9点多吃完饭后，狂风大作，逆风
-实在太难受，除了风阻，还有各种砂石，噼里啪啦的打在身上，比中冰雹还惨。堪堪的在11点前骑到了楼观镇，
-附近的楼观台就是传说中老子讲道的地方。很顺利的找到了旅店，标间100，有无线可洗澡。不过因为太累，洗完
-倒头就睡着了。</p>
-
-<p>第一天骑行70km，从锦业一路软件园到楼观镇。</p>
-
-<h3>第二天</h3>
-
-<p>醒来已是早上7点多，果然如天气预报所言，下雨了，而且还是中雨，没办法，吃完早饭，只能继续往前骑。后悔
-车子上没有装全包的挡泥板，没有带大点的雨披。朋友的装备要更好些，所以只有裤腿湿了。看来出远门不能怕丑，
-实用最重要。国道108和310比环线的107省道路况要差些，所以一早上都骑的很慢，到下午1点才来到眉县，五个
-多小时骑了60km。万幸雨停了，这样就可以安全的进山了。吃了海量的干拌哨子面和一口香，又充满了力量！</p>
-
-<p><a href="http://pan.baidu.com/s/12hPLk">图片</a></p>
-
-<p>进入眉太线后不久，就开始了爬坡之旅，刚开始就是个200米的陡坡，不过后面就是些缓坡了。先过温家山隧道，</p>
-
-<p><a href="http://pan.baidu.com/s/1ntpAjup">图片</a></p>
-
-<p>之后就是石头沟水库。一路上都是太白县的宣传画，很多都是介绍三国时期发生在这条栈道上的故事。海拔逐步
-升高时，就可以看到太白山的积雪。过了衙岭，就到了眉太公路的最高点，海拔大约有1700多米。此时距太白县
-约有10km，一路缓下坡，可以多蹬几下，很快就到了太白县。</p>
-
-<p><a href="http://pan.baidu.com/s/1dDB5nBN">图片</a></p>
-
-<p>这里的旅馆很奇怪，很少有带卫生间的标间，洗浴都是公共的，不过好在价格低廉，只要88块甚至更加便宜。洗完
-出门，费了好大劲才找到吃饭的地方。夜晚的太白特别冷，冻得人直哆嗦，吃完回去钻被窝就睡着了。</p>
-
-<p>第二天从楼观镇经眉县到太白县，共130km。</p>
-
-<h3>第三天</h3>
-
-<p>早早的起了床，虽然是大晴天，但是依然很冷，把能穿的衣服都裹在了身上，吃了豆花和饼，向汉中挺进。从太白
-县到汉中，海拔会下降510米，所以这一路基本上就是缓下坡了，速度也不会特别快，这样，可以将眼睛解放出来
-看看风景。我们的右手边是褒河，周围是群山环绕，在这河谷中穿行，听着鸟语，闻着花香，感觉真是棒棒。唯一
-影响心情的是不断出现的隧道，还有偶尔遇到的车祸事故，一个可怜的卡车司机翻车了，还好他没有事。
-我们用了4个多小时就到达了武关驿镇，走了约90多公里。武关驿镇也是古时候的褒斜栈道中设立的驿站之一。武关
-驿镇的西北边是留坝县，我亲戚告诉我说这是一座在森林中的城市，可惜这次由于时间原因不能去了，下次可以从
-G316经留坝到汉中。</p>
-
-<p><a href="http://pan.baidu.com/s/1qWFm7PM">图片</a></p>
-
-<p>因为正在修几条高速公路的缘故，来往的大卡车很多，一些路段的路况也不是很好。离开武关10km左右，就是传说
-中萧何追韩信处，成就了历史的佳话，同时目送一处即将要上演的悲剧。过了青桥驿镇不久，就到了赤崖，这里是
-现存的三处古栈道遗址之一。诸葛亮一出祁山，赵云邓芝守萁谷，被魏将曹真击败，两人退到赤崖，这两个逗比为了
-防止魏军追击，烧了北边上百里的栈道，不成想天降大雨，将赤崖以南的栈道又冲毁，两人只好屯兵赤崖。</p>
-
-<p><a href="http://pan.baidu.com/s/1c01xOkC">图片</a></p>
-
-<p>赤崖附近的遗址不少，还有诸葛亮屯兵处等。
-继续前行就是石门水库，或者石门栈道，曾经这里有很多的遗址，后来因为修水库，都迁到了汉中市内。水库过去是
-个大下坡，路上有个大坑，差点骑进去。下了坡，距汉中市只有15km，道路宽又平。到汉中已经过了5点，先去
-火车站把车子托运，路上买了点特产，西乡牛肉和汉中仙毫，就赶紧去高客站买票。6点半发车，时间比较紧张，都
-没有时间去吃下汉中著名的小吃米皮。
-第三天，从太白县到汉中，共骑行160km。</p>
-
-<h2>总结</h2>
-
-<p>一路骑行下来，共完成以下成就:</p>
-
-<ol>
-<li>逆风骑行</li>
-<li>雨中骑行</li>
-<li>爬坡</li>
-<li>被狗追</li>
-<li>一命通关</li>
-</ol>
-
-
-<p>需要改进的地方有两点:</p>
-
-<ol>
-<li>长途骑行，车子一定要加装全包的挡泥板，雨披也得带大点的，还有些塑料袋，防水也可以罩脚</li>
-<li>骑行过的路线，如果没有什么趣味，可以直接跳过，其实我们可以提前托运车子，然后从宝鸡出发，直接穿太白</li>
-</ol>
-
-
-<p>古代汉中通往关中的道路有四条，褒斜道、故道、傥骆道、子午道。其中傥骆道已经不复存在，比较接近它得是
-国道108穿过黑河，佛坪，洋县到汉中的路。相比褒斜道，那条路风景的风景更好，骑行的难度更大，沿途的补给
-也更为困难。除了隧道过多，褒斜道的骑行难度是比较低的，除了缓上坡之后就是150km的下坡，一路上都是历史
-文化遗迹。故道又称陈仓道，就是“暗度陈仓”那条栈道。上次本来有机会走的，因为大雨放弃了，后面有机会要去
-试试，直接到宝鸡，然后再走陈仓道，经凤县到汉中。子午道略近似于现在的210国道，经分水岭，宁陕到洋县最后
-再到汉中。这条路应该是最有挑战的，因为要穿过分水岭，一路的风景也要更加迷人，将来也一定得走一次。</p>
-
-<p><a href="http://pan.baidu.com/s/1ntkQ7Tf">途中用GoPro拍得一些视频</a>，忘带充电线，导致断断续续的只录
-了不到30分钟。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Bag of Tricks]]></title>
-    <link href="http://iambowen.github.com/2015/05/08/bag-of-tricks"/>
-    <updated>2015-05-08T00:00:00+08:00</updated>
-    <id>http://iambowen.github.com/2015/05/08/bag-of-tricks</id>
-    <content type="html"><![CDATA[<p>客户的程序员和Ops大都很有经验而且很聪明，很多有用的知识都是和客户程序员/Ops结对的时候学到的。我从
-其中一个客户那里，学到了一句很有意思的话叫做“bag of tricks”。</p>
-
-<p>这个是什么意思呢？大意就是说，首先解决问题要有多种思路，至于你用到那种是另外一回事；其次，相对来说，
-细节没有特别重要。</p>
-
-<p>这也就是为什么IT领域的人需要多学习或者了解前言技术和知识的一个原因，丰富你的技能包，可以不精通，但是
-要知道它能干吗。比如部署的工具，有Chef，Puppet，Ansible，Babushka等，这样在你做部署的方案的时候
-就更加容易些。</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Facter]]></title>
-    <link href="http://iambowen.github.com/puppet/2015/04/21/facter"/>
-    <updated>2015-04-21T00:00:00+08:00</updated>
-    <id>http://iambowen.github.com/puppet/2015/04/21/facter</id>
-    <content type="html"><![CDATA[<p><a href="https://github.com/puppetlabs/facter]">facter</a>是一个以key/value形式收集系统信息的工具。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">[</span>root@localhost ~<span class="o">]</span><span class="c"># yum provides /usr/bin/facter</span>
-</span><span class='line'>1:facter-1.6.17-1.el6.x86_64 : Ruby module <span class="k">for</span> collecting simple facts about a host operating system
-</span><span class='line'>Repo        : installed
-</span><span class='line'>Matched from:
-</span><span class='line'>Other       : Provides-match: /usr/bin/facter
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Ansible和Puppet都用它来收集系统信息。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[</span><span class="n">root</span><span class="vi">@localhost</span> <span class="o">~]</span><span class="c1"># facter</span>
-</span><span class='line'><span class="n">architecture</span> <span class="o">=&gt;</span> <span class="n">x86_64</span>
-</span><span class='line'><span class="n">boardproductname</span> <span class="o">=&gt;</span> <span class="no">VirtualBox</span>
-</span><span class='line'><span class="n">facterversion</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="o">.</span><span class="mi">6</span><span class="o">.</span><span class="mi">17</span>
-</span><span class='line'><span class="n">hardwareisa</span> <span class="o">=&gt;</span> <span class="n">x86_64</span>
-</span><span class='line'><span class="n">hardwaremodel</span> <span class="o">=&gt;</span> <span class="n">x86_64</span>
-</span><span class='line'><span class="n">ipaddress</span> <span class="o">=&gt;</span> <span class="mi">10</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">2</span><span class="o">.</span><span class="mi">15</span>
-</span><span class='line'><span class="n">ipaddress_eth0</span> <span class="o">=&gt;</span> <span class="mi">10</span><span class="o">.</span><span class="mi">0</span><span class="o">.</span><span class="mi">2</span><span class="o">.</span><span class="mi">15</span>
-</span><span class='line'><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span><span class="n">.</span><span class="o">.</span>
-</span><span class='line'><span class="n">operatingsystem</span> <span class="o">=&gt;</span> <span class="no">CentOS</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>facter是跨平台的，所以可以利用它来获取不同服务器的信息。
-比如Ansible中有专门的facter模块。</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="o">~&gt;</span> <span class="n">ansible</span> <span class="n">vagrant</span> <span class="o">-</span><span class="n">m</span> <span class="n">facter</span> <span class="o">-</span><span class="n">i</span> <span class="n">hosts</span>
-</span><span class='line'><span class="n">vagrant</span> <span class="o">|</span> <span class="n">success</span> <span class="o">&gt;&gt;</span> <span class="p">{</span>
-</span><span class='line'>   <span class="s">&quot;architecture&quot;</span><span class="p">:</span> <span class="s">&quot;x86_64&quot;</span><span class="p">,</span>
-</span><span class='line'>   <span class="s">&quot;augeasversion&quot;</span><span class="p">:</span> <span class="s">&quot;0.9.0&quot;</span><span class="p">,</span>
-</span><span class='line'>   <span class="s">&quot;changed&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
-</span><span class='line'>   <span class="s">&quot;domain&quot;</span><span class="p">:</span> <span class="s">&quot;localdomain&quot;</span><span class="p">,</span>
-</span><span class='line'>   <span class="s">&quot;facterversion&quot;</span><span class="p">:</span> <span class="s">&quot;1.6.17&quot;</span><span class="p">,</span>
-</span><span class='line'>   <span class="s">&quot;fqdn&quot;</span><span class="p">:</span> <span class="s">&quot;localhost.localdomain&quot;</span><span class="p">,</span>
-</span><span class='line'>   <span class="s">&quot;hardwareisa&quot;</span><span class="p">:</span> <span class="s">&quot;x86_64&quot;</span><span class="p">,</span>
-</span><span class='line'> <span class="o">......</span>
-</span><span class='line'> <span class="sb">``</span><span class="err">`</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">在</span><span class="n">puppet</span><span class="err">中，可以如此使用</span><span class="p">:</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>puppet
-case $::operatingsystem {
-  &lsquo;CentOS&rsquo;: { include centos }
-  &lsquo;MacOS&rsquo;:  { include mac }
-}</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="err">因为</span><span class="n">facter</span><span class="err">的变量都是</span><span class="k">global</span><span class="err">的，所以直接使用</span><span class="sb">`$operatingsystem`</span><span class="err">也是可以的。</span>
-</span><span class='line'>
-</span><span class='line'><span class="err">有两种方式可以添加自定义的</span><span class="n">facter</span><span class="err">变量</span><span class="p">(</span><span class="n">fact</span><span class="p">)</span><span class="err">，其中通过环境变量的方式会比较容易，只要环境变量名是以</span><span class="sb">`FACTOR_`</span>
-</span><span class='line'><span class="err">开头，都可以通过</span><span class="n">facter</span><span class="err">读取到该变量。</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>bash
-~> export FACTER_cartman_is_gay=&ldquo;true&rdquo;
-~> facter | grep cartman
-cartman_is_gay => true</p>
-
-<p>~> export FACTER_KYLE_MOM_IS_BITCH=&ldquo;true&rdquo;
-~> facter | grep kyle
-kyle_mom_is_bitch => true</p>
-
-<p>~> export FACTER_cartman_is_gay=&ldquo;false&rdquo;
-~> facter | grep cartman
-cartman_is_gay => false</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='python'><span class='line'><span class="err">可以看出，</span><span class="n">fact</span><span class="err">变量的大小写无关的，自定义的</span><span class="n">fact</span><span class="err">可以被</span><span class="n">override</span><span class="err">的，</span><span class="n">puppetlabs</span><span class="err">的文档中说系统</span><span class="n">fact</span>
-</span><span class='line'><span class="err">不能被</span><span class="n">override</span><span class="err">，但是貌似可以，不知道哪里出了问题。</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>bash
-[vagrant@localhost ~]$ facter | grep operatingsystem
-operatingsystem => CentOS
-operatingsystemrelease => 6.4
-[vagrant@localhost ~]$ export FACTER_operatingsystem=&ldquo;Rock&rdquo;
-[vagrant@localhost ~]$ facter | grep operatingsystem
-operatingsystem => Rock
-operatingsystemrelease => 2.6.32-358.el6.x86_64
-```</p>
-
-<p>我们老一点的系统都部署在数据中心，所有的服务器的配置用puppet管理，基本上都是虚拟化，基于一个标准的
-镜像，标准镜像spin up的服务器中会添加一个自定义的fact，用来判断是否是自定义的系统。我其实不太喜欢
-这样的使用方式，首先这让puppet manifest的可读性降低了，找遍整个repo都不找不到在哪里定义的这个变
-量，其次，让puppet manifest对系统产生了依赖性，不够灵活。</p>
-
-<hr />
-
-<p><a href="https://puppetlabs.com/blog/facter-part-1-facter-101">1</a></p>
 ]]></content>
   </entry>
   

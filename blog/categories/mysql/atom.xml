@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Mysql | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/mysql/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Mysql Access Control]]></title>
     <link href="http://iambowen.github.com/mysql/2015/08/18/mysql-access-control"/>
-    <updated>2015-08-18T00:00:00+08:00</updated>
+    <updated>2015-08-18T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/mysql/2015/08/18/mysql-access-control</id>
     <content type="html"><![CDATA[<p>连接到Mysql的请求被接受或者拒绝的条件是:</p>
 
@@ -94,7 +94,7 @@ NetScaler VIP的地址而不是DB服务器的地址…………，shit。</p>
   <entry>
     <title type="html"><![CDATA[Mysql--on Duplicate Key Update]]></title>
     <link href="http://iambowen.github.com/mysql/2011/11/26/on-duplicate-key-update"/>
-    <updated>2011-11-26T00:00:00+08:00</updated>
+    <updated>2011-11-26T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/mysql/2011/11/26/on-duplicate-key-update</id>
     <content type="html"><![CDATA[<p>On duplicate key update is to stop the duplication in unique index or primary
 key, and try to update the row with new value.And it only functions with mysql

@@ -1,0 +1,317 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Don't Put Emoji in Commit Message - Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="随着项目上越来越多的使用Slack以及Emoji的流行，很多人情不自禁的会在各种地方使用emoji表情。比如
+在channel里面发:bicyclist::skin-tone-2: :house: :thunder_cloud_and_rain: :disappointed:。更甚者会在git &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Don't Put Emoji in Commit Message</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-11-03T23:47:07+11:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>11:47 pm</span></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>随着项目上越来越多的使用Slack以及Emoji的流行，很多人情不自禁的会在各种地方使用emoji表情。比如
+在channel里面发<code>:bicyclist::skin-tone-2: :house: :thunder_cloud_and_rain: :disappointed:</code>。更甚者会在git commit message中添加emoji。比如像这样</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>finish story xxxx. :pear: xiao.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>意思是完成这个开发的需求是和<code>xiao</code>结对做的。pull request发出后，review的人除了会发:+1:这样的表情表示支持外，还会用:shipit:,:ship:之类的表示赞同，可以merge。
+这样的emoji为开发增添了乐趣，但是有时候也会带来麻烦，比如我今天就遇到了这样的情况。
+在清理完一些旧代码后，我在提交信息里面➕了下面的消息:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>clean up the :older_man::skin-tone-2: code.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>提交merge后，过了一段时间看了下build，还没有到运行阶段就挂了。查看了下原因，发现是bamboo在保存提交信息时遇到了一个复杂字符出错了。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(org.springframework.jdbc.UncategorizedSQLException : Hibernate flushing: Could not execute JDBC batch update; uncategorized SQLException for SQL [insert into USER_COMMIT (REPOSITORY_CHANGESET_ID, AUTHOR_ID, COMMIT_DATE, COMMIT_REVISION, COMMIT_COMMENT_CLOB, FOREIGN_COMMIT, COMMIT_ID) values (?, ?, ?, ?, ?, ?, ?)]; SQL state [HY000]; error code [1366]; Incorrect string value: '\xF0\x9F\x91\xB4 ...' for column 'COMMIT_COMMENT_CLOB' at row 1; nested exception is java.sql.BatchUpdateException: Incorrect string value: '\xF0\x9F\x91\xB4 ...' for column 'COMMIT_COMMENT_CLOB' at row 1)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当时就感觉是这个emoji出问题了，搜了下提示的编码的十六进制，果然是这个原因……。没办法只好reset下，push force，再重新修改提交信息再push。
+同事告诉了我这个事故的根本原因是mysql的utf-8对Emoji的支持不够，解决的办法就是把数据库的charset设置为<code>utf8mb4</code>，详见这篇<a href="https://mathiasbynens.be/notes/mysql-utf8mb4">文章</a>.
+所以，以后玩emoji的时候一定得先确认系统支持，否则可能会带来一些:shit:。</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bowen Ma</span></span>
+
+      
+
+
+
+
+<time class='entry-date' datetime='2016-11-03T23:47:07+11:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>11:47 pm</span></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/bamboo/'>bamboo</a>, <a class='category' href='/blog/categories/emoji/'>emoji</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message" data-via="boweniam" data-counturl="http://iambowen.github.com/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/2016/08/19/gpgand-keybase-introduction-and-usage" title="Previous Post: Gpgand Keybase Introduction And Usage">&laquo; Gpgand Keybase Introduction And Usage</a>
+      
+      
+        <a class="basic-alignment right" href="/dns/2016/11/15/issue-raised-by-dns" title="Next Post: issue raised by DNS">issue raised by DNS &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/log/spring/2016/11/17/supressing-an-warning-log">Supressing an Warning Log</a>
+      </li>
+    
+      <li class="post">
+        <a href="/dns/2016/11/15/issue-raised-by-dns">Issue Raised by DNS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message">Don't Put Emoji in Commit Message</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2016/08/19/gpgand-keybase-introduction-and-usage">Gpgand Keybase Introduction and Usage</a>
+      </li>
+    
+      <li class="post">
+        <a href="/git/2016/08/17/how-to-write-useful-git-commit-message">How to Write Useful Git Commit Message</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://iambowen.github.com/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message';
+        var disqus_url = 'http://iambowen.github.com/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Database | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/database/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Be Careful When You Playing With History Database]]></title>
     <link href="http://iambowen.github.com/database/2013/10/26/be-careful-when-you-playing-with-history-database"/>
-    <updated>2013-10-26T00:00:00+08:00</updated>
+    <updated>2013-10-26T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/database/2013/10/26/be-careful-when-you-playing-with-history-database</id>
     <content type="html"><![CDATA[<p>When we talking about History database, we are generally saying the database that deposit the actions performed on other databases by application. It is freaking important for recording the critical action that performed by users in both  business and development point of view.  With the help of ChangeLog database, we can easily track that an purchased transaction has or has not happened at certain time, thus by querying this table, we will 100% sure if the user wants to confirm with the transaction.</p>
 
@@ -78,7 +78,7 @@ Create Table: CREATE TABLE `ChangeLog` (
   <entry>
     <title type="html"><![CDATA[Way to Deal With "Transaction Log for Database Is Full" Issue]]></title>
     <link href="http://iambowen.github.com/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database"/>
-    <updated>2013-03-04T00:00:00+08:00</updated>
+    <updated>2013-03-04T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database</id>
     <content type="html"><![CDATA[<p>Recently, the ci build has failed with the following error message:</p>
 

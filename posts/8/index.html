@@ -9,7 +9,8 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="In the morning, i was writing a automation sql script for QA. And after move the source file from mac mini to my machine. It met such warning as i &hellip;">
+  <meta name="description" content="在如下两种情况下，你需要重新配置git commit 的author。 在一个新的repo上面工作;
+用别人的机器(或者pair machine上)提交代码，而关于你的author信息并未添加在git配置中; 假设你global git config ~/.gitconfg 中配置信息如下: 1 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -85,6 +86,743 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/git/2013/06/19/reset-commit-author">Reset Commit Author</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-06-19T00:00:00+10:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/git/2013/06/19/reset-commit-author#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/git/2013/06/19/reset-commit-author">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>在如下两种情况下，你需要重新配置git commit 的author。</p>
+
+<ul>
+<li>在一个新的repo上面工作;</li>
+<li>用别人的机器(或者pair machine上)提交代码，而关于你的author信息并未添加在git配置中;</li>
+</ul>
+
+
+<p>假设你global git config ~/.gitconfg 中配置信息如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
+</span><span class='line'>     name = example
+</span><span class='line'>     email = example@example.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>别人的机器(或者pair机器)的repo中git 配置信息如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
+</span><span class='line'>     name = pair
+</span><span class='line'>     email = pair@pair.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>而你期望的提交信息为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>name = serious
+</span><span class='line'>email = serious@serious.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在第一种情况下，当你修改完代码提交后，log中对应的author信息为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Author: example &lt;example@example.com&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>在第二种情况下，当你修改完代码提交后，log中对应的author信息为:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Author: pair &lt;pair@pair.com&gt;</span></code></pre></td></tr></table></div></figure>
+
+
+<p>两种情况下，想要修改提交中的author信息，都可以通过:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git commit --amend --author=“serious &lt;serious@serious.com&gt;”</span></code></pre></td></tr></table></div></figure>
+
+
+<p>来重新设置。</p>
+
+<p>第一种情况，如果你需要将来长期在这个repo上工作的话。首先，修改repo下的.git/config文件，添加</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[user]
+</span><span class='line'>     name = serious
+</span><span class='line'>     email = serious@serious.com</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后重新设置提交的author信息:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>git commit --amend -C HEAD --reset-author</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Done</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix">Ubuntu 12.04 Compile Ruby Enterprise Error Fix</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-04-23T00:00:00+10:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>23</span><span class='date-suffix'>rd</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Recently I&rsquo;ve been learn to use <a href="http://vagrantup.com">Vagrant</a>. to set up a production like env under ubuntu 12.04. However, when I tried to compile REE- ruby enterprise version, I caught into the following error:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>./libtool: line 983: warning: setlocale: LC_CTYPE: cannot change locale <span class="o">(</span>UTF-8<span class="o">)</span>
+</span><span class='line'>src/tcmalloc.cc:1672:54: error: conflicting declaration <span class="s1">&#39;void * (* __memalign_hook)(size_t, size_t, const void *)&#39;</span>
+</span><span class='line'>/usr/include/malloc.h:183:39: error: <span class="s2">&quot;__memalign_hook&quot;</span> has a previous declaration as <span class="s1">&#39;void * (* volatile __memalign_hook) (size_t, size_t, const void *)&#39;</span>
+</span><span class='line'>src/tcmalloc.cc: In <span class="k">function</span> <span class="s1">&#39;void PrintStats(int)&#39;</span>:
+</span><span class='line'>src/tcmalloc.cc:523:47: warning: ignoring <span class="k">return</span> value of <span class="s1">&#39;ssize_t write(int, const void *, size_t)&#39;</span>, declared with attribute warn_unused_result <span class="o">(</span>-Wunused-result<span class="o">)</span>
+</span><span class='line'>src/tcmalloc.cc: In <span class="k">function</span> <span class="s1">&#39;void {anonymous}::ReportLargeAlloc(Length, void *)&#39;</span><span class="p">;</span>
+</span><span class='line'>src/tcmalloc.cc:1010:47: warning: ignoring <span class="k">return</span> value of <span class="s1">&#39;ssize_t write(int, const void *, size_t)&#39;</span>, declared with attribute warn_unused_result <span class="o">[</span>-Wunused-result<span class="o">]</span>
+</span><span class='line'>make: *** <span class="o">(</span>libtcmalloc_minimal_la-tcmalloc.lo<span class="o">)</span> Error 1
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I dig a little throught google and it turns out to be a very easy solution. Just redefine the fucntion name</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>void *<span class="o">(</span>* __memalign_hook<span class="o">)</span> <span class="o">(</span>size_t, size_t, const void *<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>to be</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>void *<span class="o">(</span>*  volatile  __memalign_hook<span class="o">)</span> <span class="o">(</span>size_t, size_t, const void *<span class="o">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>in the tcmalloc.cc src file . To declare it to be volatile type function can solve that issue and keep the compiling on. Actually, I could have found the reason because as to what the log says, the issue is pretty clear. Seems like I depend on google too much&hellip;.. it&rsquo;s not good.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/go/2013/03/28/using-go-tutorial">Using Go Tutorial</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-28T00:00:00+11:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/go/2013/03/28/using-go-tutorial#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/go/2013/03/28/using-go-tutorial">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Just trying to use Go for I find it looks like C, and the cost of writing a hello world is quite small, plus the tutorial is petty easy to fetch. Just list what I&rsquo;ve done to get the tutorial and write the hello world example, which already posted thousands time in the internet.</p>
+
+<p><em>Install hg:</em></p>
+
+<p>  # brew install hg  (mac)</p>
+
+<p>  #_ apt-get install mercurial (ubuntu)</p>
+
+<p><em>Download go:</em></p>
+
+<p>  # wget <a href="https://go.googlecode.com/files/go1.0.3.darwin-amd64.tar.gz">https://go.googlecode.com/files/go1.0.3.darwin-amd64.tar.gz</a></p>
+
+<p>  #_ wget <a href="https://go.googlecode.com/files/go1.0.3.linux-amd64.tar.gz">https://go.googlecode.com/files/go1.0.3.linux-amd64.tar.gz</a></p>
+
+<p><em>Install go:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   *  tar -C /usr/local/ -zxf go1.0.3.darwin-amd64.tar.gz
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Export path:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   * <span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$PATH</span>:/usr/local/go/bin
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Get go tutorial:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   * go get code.google.com/p/go-tour/gotour
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Run go tour:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>   *  gotour
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After run the hello world program, you can leave this alone and declare that you can actually play with go now&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;&hellip;.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle">Using Watch to Excecute Commands in Cycle</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-25T00:00:00+11:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>25</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/2013/03/25/using-watch-to-excecute-commands-in-cycle">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>项目的集成测试环境以及UAT环境都部署在亚马逊的虚拟云节点上面，早上9点之前，一个cron job会自动将这些节点启动。有时候会遇到当前可用的节点不足而导致节点创建失败, 需要不停的尝试启动节点的命令，看看什么时候运气垂青，碰到有其他节点被destroy时，可以抢到这样的“token”去启动我们的节点。
+这个effort显然过大了，作为懒人是不能接受的，同事介绍了watch这个工具，它可以周期性的执行一个命令，同时将结果输出，轻松的解决了问题。</p>
+
+<p><em>安装:</em>
+大部分的linux发行版应该都包括了这个应用，MAC下面需要自己安装，用brew也很方便。</p>
+
+<p><em>+brew install watch+</em></p>
+
+<p><em>用法介绍:</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>Usage: watch <span class="o">[</span>-dhntv<span class="o">]</span> <span class="o">[</span>--differences<span class="o">[=</span>cumulative<span class="o">]]</span> <span class="o">[</span>--help<span class="o">]</span> <span class="o">[</span>--interval<span class="o">=</span>&lt;n&gt;<span class="o">]</span> <span class="o">[</span>--no-title<span class="o">]</span> <span class="o">[</span>--version<span class="o">]</span> &lt;<span class="nb">command</span>&gt;
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>+-n, &ndash;interval = <seconds>+ : 设定相隔多长时间重新运行下监控的命令并输出结果
++-d, &ndash;differences[=cumulative]+ : 高亮显示监控的命令输出相比上次输出变化的区域
++-v, &ndash;version+ : 显示watch的版本号
+注: mac 下的watch版本略低，0.3.0的版本提供了更多的功能，比如彩色输出，退出响铃之类的
+<em>使用场景:</em></p>
+
+<p>watch 的帮助文档中，给出了一些使用的场景， 比如:</p>
+
+<p>   # 监控当前目录中某些用户的文件变化:   @watch -d ‘ls -l | grep root’@</p>
+
+<p>   #_ 偷窥其他用户的窗口行为:  @watch tty7@ (假设tty7有用户登陆)</p>
+
+<p>能想到的还有一个,当时还想自己实现这样的一个脚本，后来看到watch，就放弃了……:</p>
+
+<p>   #_ 正在编辑haml文件，同时想在浏览器上面看到更改后的html文件: @watch -d &lsquo;haml input.haml input.html&rsquo;@</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database">Way to Deal With "Transaction Log for Database Is Full" Issue</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-04T00:00:00+11:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/database/2013/03/04/way-to-deal-with-transaction-log-for-database-is-full-of-database">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Recently, the ci build has failed with the following error message:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>_ODBC::Error: <span class="m">37000</span> <span class="o">(</span>9002<span class="o">)</span> <span class="o">[</span>unixODBC<span class="o">][</span>FreeTDS<span class="o">][</span>SQL Server<span class="o">]</span>The transaction log <span class="k">for</span>
+</span><span class='line'>database <span class="s1">&#39;Warehouse&#39;</span> is full. To find out why space in the log cannot be reused,
+</span><span class='line'>see the log_reuse_wait_desc column in sys.databases <span class="o">(</span>Sequel::DatabaseError<span class="o">)</span>_*%
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The reason is, so far as I known, that firstly the database has the log recorded
+and when the volume of log increasing, it would cause the &ldquo;out of space&rdquo; error
+if it exceeds the threshold of log size limit.</p>
+
+<p>The knowledge that we should know is:</p>
+
+<p>   # Scheme of way to record transaction log is store in <em>log_reuse_wait_desc</em>
+   # column of <em>sys.databases</em>, check &ldquo;this&rdquo;:<a href="http://msdn.microsoft.com/en-us/library/ms178534.aspx,">http://msdn.microsoft.com/en-us/library/ms178534.aspx,</a> it gives all the choices of how to deal with the transaction log</p>
+
+<p>A little bit log for this document, I will just cut the cliche and show how I
+solve this issue with the knowledge I found from Internet.</p>
+
+<p><em>Given</em> our current build is using data warehouse &ldquo;Warehouse&rdquo; and such error happens</p>
+
+<p><em>First</em> thing is to connect to the data warehouse, and check whether the log is
+full by using <em>DBCC</em> tools.</p>
+
+<p>Check log spaces used:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>DBCC SQLPERF<span class="o">(</span>LOGSPACE<span class="o">)</span> //from the output information you can also see the log name of corresponding database
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then you will see the log size for <em>&ldquo;Warehouse&rdquo;</em> is 100%
+After knowing it is the right reason as the error message shows, we have two steps to go:</p>
+
+<h1>set the data warehouse into recovery mode and set the log_reuse_wait_desc using no backup for reserving logs</h1>
+
+<h1>truncate the currently logs and shrink its size</h1>
+
+<p>Way to change the database recovery mode and set backup scheme:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="n">USE</span> <span class="n">Warehouse</span>
+</span><span class='line'><span class="k">GO</span>
+</span><span class='line'><span class="k">ALTER</span> <span class="k">DATABASE</span> <span class="n">Warehouse</span> <span class="k">SET</span> <span class="n">RECOVERY</span> <span class="k">full</span>
+</span><span class='line'><span class="k">GO</span>
+</span><span class='line'><span class="k">ALTER</span> <span class="k">DATABASE</span> <span class="n">Warehouse</span> <span class="k">SET</span> <span class="n">RECOVERY</span> <span class="k">SIMPLE</span> <span class="k">WITH</span> <span class="n">NO_WAIT</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>way to shrink the log file:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="n">USE</span> <span class="n">Warehouse</span>
+</span><span class='line'><span class="n">DBCC</span> <span class="n">SHRINKFILE</span><span class="p">(</span><span class="s1">&#39;Warehouse_log&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">TRUNCATEONLY</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then you will get new log scheme with no backup and a log size less than 1MB. Of
+course, the most important thing is that the ci build won&rsquo;t fail&hellip;.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments">Simple Introduction About Vimium and Some Comments</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2013-03-02T00:00:00+11:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2013</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/productivity/2013/03/02/simple-introduction-about-vimium-and-some-comments">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Vimium 是Chrome下的一个插件，可以让你用类似vim的方式用全键盘的方式浏览网页。其所有快捷键如下(web页面下按？也可以查看):</p>
+
+<p>Vimium Help</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>vigating the page
+</span><span class='line'>j, &lt;c-e&gt;: Scroll down
+</span><span class='line'>k, &lt;c-y&gt;: Scroll up
+</span><span class='line'>h:the Scroll left
+</span><span class='line'>l: Scroll right
+</span><span class='line'>gg: Scroll to the top of the page
+</span><span class='line'>G:Scroll Scroll to the bottom of the page
+</span><span class='line'>zH: Scroll all the way to the left
+</span><span class='line'>zL: Scroll all the way to the right
+</span><span class='line'>d: Scroll a page down
+</span><span class='line'>u: Scroll a page up
+</span><span class='line'>r: Reload the page
+</span><span class='line'>gs: View page <span class="nb">source</span>
+</span><span class='line'>yy: Copy the current URL to the clipboard
+</span><span class='line'>yf: Copy a link URL to the clipboard
+</span><span class='line'>post: Open the clipboard<span class="s1">&#39;s URL in the current tab</span>
+</span><span class='line'><span class="s1">P: Open the clipboard&#39;</span>s URL in a new tab
+</span><span class='line'>gu: Go up the URL hierarchy
+</span><span class='line'>i: Enter insert mode
+</span><span class='line'>gi: Focus the first <span class="o">(</span>or n-th<span class="o">)</span> text box on the page
+</span><span class='line'>f: Open a link in the current tab
+</span><span class='line'>F: Open a link in a new tab
+</span><span class='line'>&lt;a-f&gt;: Open multiple links in a new tab
+</span><span class='line'>o: Open URL, bookmark, or <span class="nb">history </span>entry
+</span><span class='line'>O: Open URL, bookmark, <span class="nb">history </span>entry, in a new tab
+</span><span class='line'>T: Search through your orpen tabs
+</span><span class='line'>b: Open a bookmark
+</span><span class='line'>B: Open a bookmark in a new tab
+</span><span class='line'><span class="o">[[</span>: Follow the link labeled previous or &lt;
+</span><span class='line'><span class="o">]]</span>: Follow the link labeled next or &gt;
+</span><span class='line'>gf: Cycle forward to the next frame on the page
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查找:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>/: Enter find mode
+</span><span class='line'>n: Cycle forward to the next find match
+</span><span class='line'>N: Cycle backward to the previous find match
+</span><span class='line'>Navigating <span class="nb">history</span>
+</span><span class='line'>H: Go back in <span class="nb">history</span>
+</span><span class='line'>L: Go forward in <span class="nb">history</span>
+</span><span class='line'>Manipulating tabs
+</span><span class='line'>K, gt: Go one tab right
+</span><span class='line'>J, gT: Go one tab left
+</span><span class='line'>g0: Go to the first tab
+</span><span class='line'>g<span class="nv">$:</span> Go to the last tab
+</span><span class='line'>t: Create new tab
+</span><span class='line'>x: Close current tab
+</span><span class='line'>X: Restore closed tab
+</span><span class='line'>Miscellaneous
+</span><span class='line'>?: Show <span class="nb">help</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>觉得比较有用的几个快捷键:</p>
+
+<ul>
+<li>滚到网页底部和顶部: 和vim一样 G，gg</li>
+<li>向下(上)移一页: d/u (vim 得加 ctrl键)</li>
+<li>拷贝当前地址栏url: yy, chrome对应的快捷键是command + alt + c(- 但是最新的chrome不知道为什么和develop工具的快捷键冲突了)</li>
+<li>拷贝网页中某链接到剪贴板中:yf 之后选择你需要拷贝的链接，用 p键在当前页面打开，大P在新的tab中打开</li>
+<li>打开书签、地址或者历史记录: o/O在当前页面/新页面打开，如果只想打开书签中记录的url，可以用b/B</li>
+<li>查找模式: / 后输入搜索关键字，用n/N在搜索结果中向前或者向后查询，用的不多……，比浏览器默认的搜索稍微方便点</li>
+<li>查找tab: T，输入关键字，跳转到相关的tab，这个很方便</li>
+<li>tab间移动: K/gt 移到右边的tab， J/gT移到左边的tab。不是很方便，一般都用浏览器默认的快捷键，shift+tab或者是alt+command+方向键</li>
+<li>创建/关闭/恢复前一个关闭掉的tab: t/x/X, 用的也不多，浏览器默认的快捷键用习惯了</li>
+</ul>
+
+
+<p>使用vimium有好处也有不好的地方，我自己的使用感觉如下:</p>
+
+<p>好处:</p>
+
+<p>系统无关，在任何系统下只要是使用chrome浏览器，不需要再去记忆快捷键;
+对于键盘控来说，无疑是一个好东西，比默认的浏览器快捷键要强大，基本可以免去触摸板和鼠标操作；</p>
+
+<p>坏处:</p>
+
+<p>页面如果没有load, vimium也不会被加载，所有的快捷键也都失效了，这个时候还是需要浏览器默认的快捷键才可以继续撸键盘；
+有时候vimium的js会和某些页面的js冲突，比如googlereader页面，而且在浏览器上调试的时候如果遇到js冲突还是挺讨厌的，
+这种情况就得禁用vimium;
+Firefox下据说有更强大的工具，叫做vimoperator,听说功能更加强大，不过我基本只用，所以没怎么尝试过。Anyway，如果你只相信啪啪啪的，可以试试这个插件。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/linux/shell/2011/12/04/how-source-works-under-shell">How Source Works Under Shell</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-12-04T00:00:00+11:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>4</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/linux/shell/2011/12/04/how-source-works-under-shell#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/linux/shell/2011/12/04/how-source-works-under-shell">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><em>Well</em>, it&rsquo;s a fare long story.During the trainning, Aimee asked me a question about
+how the source command works under shell. Haven&rsquo;t done a deep search at that time
+though it does not seem like a tough question. Now, i figure out how this stuff work, but
+the trainning is over and Aimee is gone.</p>
+
+<p>It&rsquo;s really simple for the function of source. It helps the current shell reload the variables
+from script file so that they could be recongnized.In another word&ndash;read and execute
+commands from the filename argument in the current shell context. Let&rsquo;s just cut the
+crap and try some examples.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>touch test.sh
+</span><span class='line'>chmod +x test.sh
+</span><span class='line'>vi test.sh
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>And input the following content</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">A</span> <span class="o">=</span> <span class="s2">&quot;shit happens&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>We just define an variable named A in the script file. ok,let&rsquo;s run this script with</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>sh test.sh <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="nv">$A</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>which will show nothing even shit because it creates a new subshell and the invariables
+created in the subshell will not show in the parent shell. Then you use</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">source </span>test.sh
+</span><span class='line'><span class="nb">echo</span> <span class="nv">$A</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>now you can see the shit by yourself.</p>
+
+<p>So? What&rsquo;s the difference between source and .?Well,basically, they are the same.
+Instead of using source, you can use . test.sh to get the same effect of using source
+even the file test.sh is not executable.It is said that use .test.sh means execute the
+hidden file, definetly not working on osx.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/python/2011/12/02/Introduction-of-virtualenv">Introduction of Virtualenv</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-12-02T00:00:00+11:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/python/2011/12/02/Introduction-of-virtualenv#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/python/2011/12/02/Introduction-of-virtualenv">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>什么是 <em>virtualenv</em>:
+virtualenv 是一款用来创建隔离的Python开发环境的工具，有点类似ruby下的rvm.通过virtualenv，可以为不同的python项目定制所需要的环境.</p>
+
+<p>OSX下安装的过程:
+本来想自己写，但是这位阿三哥写的太好了，就节省下体力……: &ldquo;猛击这里&rdquo;:<a href="http://blog.praveengollakota.com/47430655">http://blog.praveengollakota.com/47430655</a>
+OSX系统自带的python版本是2.6，而我们开发使用的版本是2.7，直接升级很容易，但是其中有些配置会稍微麻烦一些。
+主要的步骤:</p>
+
+<h1>安装 <em>Python 2.7</em></h1>
+
+<h1>_ 下载 <em>easy_install</em>,安装对应python2.7的 easy_install：</h1>
+
+<p>@sh setuptools-0.6c11-py2.7.egg@</p>
+
+<h1>_ 使用easy_install 安装 pip, pip是一个python下的包管理工具:</h1>
+
+<p>@easy_install pip@</p>
+
+<h1>_ 使用pip 去安装 <em>virtualenv</em> 以及 <em>virtualenvwrapper</em> :</h1>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>pip install virtualenv
+</span><span class='line'>pip install virtualenvwrapper
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h1>_ 配置 <em>.bashrc/.bash_profile</em> 文件使得 <em>virtualenvwrapper</em> 的命令可以在bash下运行:</h1>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir ~/.virtualenv
+</span><span class='line'><span class="nb">export </span><span class="nv">WORKON_HOME</span><span class="o">=</span><span class="nv">$HOME</span>/.virtualenvs
+</span><span class='line'><span class="nb">source</span> /Library/Frameworks/Python.framework/Versions/2.7/bin/virtualenvwrapper.sh
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>之后 <code>source ~/.bash_profile</code> ，就可以在命令行中使用 <code>vritualenvwrapper</code> 中的命令了.</p>
+
+<p><em>如何使用virtualenv:</em></p>
+
+<h1>创建一个虚拟环境:</h1>
+
+<p><code>mkvirtualenv  test</code></p>
+
+<h1>_ 查看当前的虚拟环境的列表:</h1>
+
+<p><code>workon</code></p>
+
+<h1>_ 使用某一个虚拟环境:</h1>
+
+<p><code>workon test</code></p>
+
+<p>之后就回看到shell的提示符前面出现了环境的名称，这里就可以大胆的去做各种环境配置了，用pip去安装所有你需要的python包。
+想退出的话，可以直接 <code>command + d</code> 或者用 <code>deactivate</code> 命令即可.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification">Invalid Gemspec Because of the Date Format in Specification</a></h1>
     
     
@@ -94,7 +832,7 @@
 
 
 
-<time class='entry-date' datetime='2011-11-29T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+<time class='entry-date' datetime='2011-11-29T00:00:00+11:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>29</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
         
            | <a href="/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification#disqus_thread"
              data-disqus-identifier="http://iambowen.github.com/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification">Comments</a>
@@ -148,7 +886,7 @@
 
 
 
-<time class='entry-date' datetime='2011-11-26T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+<time class='entry-date' datetime='2011-11-26T00:00:00+11:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
         
            | <a href="/mysql/2011/11/26/on-duplicate-key-update#disqus_thread"
              data-disqus-identifier="http://iambowen.github.com/mysql/2011/11/26/on-duplicate-key-update">Comments</a>
@@ -288,252 +1026,9 @@ because it is not standard SQL grammar.</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/tools/2011/11/09/set-up-github-pages">Set Up Github Page</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2011-11-09T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/tools/2011/11/09/set-up-github-pages#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/tools/2011/11/09/set-up-github-pages">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h1>创建一个<a href="www.github.com">github</a>账户</h1>
-
-<h1>设置好用户名，email和github的token</h1>
-
-<h1>创建一个新的repository，命名规则为username.github.com, 比如我创建的就是iambowen.github.com</h1>
-
-<h1>设置好remote的repos后在本地创建同样的repos，然后添加README和index.html文件,本地提交</h1>
-
-<h1>@git push -u origin master@,大约10分钟之后访问username.github.com,就可以看到新添加的index页面，比如<a href="http://iambowen.github.com">我的</a></h1>
-
-<h1>安装<a href="https://github.com/mojombo/jekyll/wiki/install">jekyll模版</a>, @gem install jekyll@</h1>
-
-<p>jekyll 是一个文本转换引擎(text transformation engine),
-它可以将Texttile/Markdown的标记语言转换为html的layout.通常的site基本结构如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>|-- _config.yml
-</span><span class='line'>|-- _includes
-</span><span class='line'>|-- _layouts
-</span><span class='line'>|   |-- default.html
-</span><span class='line'>|   `-- post.html
-</span><span class='line'>|-- _posts
-</span><span class='line'>|   |-- 2007-10-29-why-every-programmer-should-play-nethack.textile
-</span><span class='line'>|   `-- 2009-04-26-barcamp-boston-4-roundup.textile
-</span><span class='line'>|-- _site `-- index.html</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>_config.yml</code></p>
-
-<p>保存配置的文件.</p>
-
-<p><em>_includes</em>
-这里保存公用的patilal文件，在 <em>layouts 和 </em>posts 的文件中可以复用这些文件。</p>
-
-<p><em>_layout</em> 这里保存文章的模版文件</p>
-
-<p><em>_posts</em> 这里保存blog的文章,文件的格式通常使用YEAR-MONTH-DATE-title.MARKUP,然后github会自动的将这些文件转换.
-<em>_site</em>
-这里的文件可以由命令 @jekyll &ndash;pygments@生成之后在命令行启动 jekyll的服务器,@jekyll &ndash;server@.通过访问<a href="http://127.0.0.1/4000%E5%8E%BB%E9%A2%84%E8%A7%88post._site%E6%96%87%E4%BB%B6%E4%B8%8D%E9%9C%80%E8%A6%81push%E5%88%B0remote">http://127.0.0.1/4000%E5%8E%BB%E9%A2%84%E8%A7%88post._site%E6%96%87%E4%BB%B6%E4%B8%8D%E9%9C%80%E8%A6%81push%E5%88%B0remote</a> repos上,把它加到.gitignore文件中就可以了.</p>
-
-<p>写完一篇blog，预览后，就可以本地提交，push到远程主机上了。过几分钟，应该就能看到博文^_^了.</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/git/2011/11/09/dont-panic-when-you-used-git-reset-hard">Don't Panic When You Use Git Reset --hard</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2011-11-09T00:00:00+08:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/git/2011/11/09/dont-panic-when-you-used-git-reset-hard#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/git/2011/11/09/dont-panic-when-you-used-git-reset-hard">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>It&rsquo;s not a problem when you use to <code>git reset --hard</code> to throw away commit. But often times, you need to first check whether there&rsquo;s still useful stuff to keeOf course, &ndash;soft is the best choice, however, what if you use <code>git reset --hard</code> without realizing that the commit you just throw is useful. And the following should be one solution to this accident.</p>
-
-<p>Given i reset the commit:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git reset --hard HEAD^@
-</span><span class='line'>
-</span><span class='line'>HEAD is now at 43856d7 modify <span class="nb">test </span>to raise conflict
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Then i use ref the log:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git reflog -4@
-</span><span class='line'>
-</span><span class='line'>43856d7 HEAD@<span class="o">{</span>0<span class="o">}</span>: HEAD^: updating HEAD
-</span><span class='line'>3378cf7 HEAD@<span class="o">{</span>1<span class="o">}</span>: commit: that part is easy.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And i see 3378cf7 is the commit i just reset, i use git show to see commit
-detail</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git show 3378cf7@
-</span><span class='line'>
-</span><span class='line'>commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
-</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
-</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
-</span><span class='line'>    that part is easy.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And i check out the commit:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git checkout 3378cf7f1c8a197492796b3cdb2c79f0183c9efe@
-</span><span class='line'>
-</span><span class='line'>Note: checking out <span class="s1">&#39;3378cf7f1c8a197492796b3cdb2c79f0183c9efe&#39;</span>.
-</span><span class='line'>You are in <span class="s1">&#39;detached HEAD&#39;</span> state. You can look around, make experimental
-</span><span class='line'>changes and commit them, and you can discard any commits you make in this
-</span><span class='line'>state without impacting any branches by performing another checkout.
-</span><span class='line'>
-</span><span class='line'>If you want to create a new branch to retain commits you create, you may
-</span><span class='line'><span class="k">do</span> so <span class="o">(</span>now or later<span class="o">)</span> by using -b with the checkout <span class="nb">command </span>again. Example:
-</span><span class='line'>
-</span><span class='line'>  git checkout -b new_branch_name
-</span><span class='line'>
-</span><span class='line'>HEAD is now at 3378cf7... that part is easy.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Then I follow the notification to create a new branch and check log:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>git checkout -b recover
-</span><span class='line'><span class="nv">$ </span>git log
-</span><span class='line'>
-</span><span class='line'>commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
-</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
-</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
-</span><span class='line'>
-</span><span class='line'>    that part is easy.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And i find the commit is in this branch, then i go back to master branch merge recover branch:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$git</span> co master
-</span><span class='line'><span class="nv">$git</span> merge recover
-</span><span class='line'>
-</span><span class='line'>Updating 43856d7..3378cf7
-</span><span class='line'>Fast-forward
-</span><span class='line'> README   <span class="p">|</span>    <span class="m">1</span> -
-</span><span class='line'> whatever <span class="p">|</span>    <span class="m">1</span> +
-</span><span class='line'> <span class="m">2</span> files changed, <span class="m">1</span> insertions<span class="o">(</span>+<span class="o">)</span>, <span class="m">1</span> deletions<span class="o">(</span>-<span class="o">)</span>
-</span><span class='line'> create mode <span class="m">100644</span> whatever
-</span><span class='line'>
-</span><span class='line'><span class="nv">$ </span>git log -1
-</span><span class='line'>
-</span><span class='line'>bc. commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
-</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
-</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
-</span><span class='line'>    that part is easy.
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>And we can see the reseted commit is coming back, that part is easy.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
+    
+      <a class="prev" href="/posts/9">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -548,23 +1043,23 @@ detail</p>
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox">Hand Over DNS Resolve to VirutalBox</a>
+        <a href="/log/spring/2016/11/17/supressing-an-warning-log">Supressing an Warning Log</a>
       </li>
     
       <li class="post">
-        <a href="/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api">Using Akamai Diagnostic tools/API</a>
+        <a href="/dns/2016/11/15/issue-raised-by-dns">Issue Raised by DNS</a>
       </li>
     
       <li class="post">
-        <a href="/aws/kms/2016/01/15/aws-kms-and-its-usage">AWS KMS and Its Usage</a>
+        <a href="/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message">Don't Put Emoji in Commit Message</a>
       </li>
     
       <li class="post">
-        <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
+        <a href="/2016/08/19/gpgand-keybase-introduction-and-usage">Gpgand Keybase Introduction and Usage</a>
       </li>
     
       <li class="post">
-        <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
+        <a href="/git/2016/08/17/how-to-write-useful-git-commit-message">How to Write Useful Git Commit Message</a>
       </li>
     
   </ul>

@@ -1,0 +1,463 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Bowen's Blog</title>
+  <meta name="author" content="Bowen Ma">
+
+  
+  <meta name="description" content="创建一个github账户 设置好用户名，email和github的token 创建一个新的repository，命名规则为username.github.com, 比如我创建的就是iambowen.github.com 设置好remote的repos后在本地创建同样的repos， &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://iambowen.github.com/posts/9/">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="/javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-40335675-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Bowen's Blog</a></h1>
+  
+    <h2>Respect My Authorita.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss email">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+    <li><a href="iambowen.m@gmail.com" rel="subscribe-email" title="subscribe via email">Email</a></li>
+  
+</ul>
+  
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="sitesearch" value="iambowen.github.com">
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/tools/2011/11/09/set-up-github-pages">Set Up Github Page</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-11-09T00:00:00+11:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/tools/2011/11/09/set-up-github-pages#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/tools/2011/11/09/set-up-github-pages">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h1>创建一个<a href="www.github.com">github</a>账户</h1>
+
+<h1>设置好用户名，email和github的token</h1>
+
+<h1>创建一个新的repository，命名规则为username.github.com, 比如我创建的就是iambowen.github.com</h1>
+
+<h1>设置好remote的repos后在本地创建同样的repos，然后添加README和index.html文件,本地提交</h1>
+
+<h1>@git push -u origin master@,大约10分钟之后访问username.github.com,就可以看到新添加的index页面，比如<a href="http://iambowen.github.com">我的</a></h1>
+
+<h1>安装<a href="https://github.com/mojombo/jekyll/wiki/install">jekyll模版</a>, @gem install jekyll@</h1>
+
+<p>jekyll 是一个文本转换引擎(text transformation engine),
+它可以将Texttile/Markdown的标记语言转换为html的layout.通常的site基本结构如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>|-- _config.yml
+</span><span class='line'>|-- _includes
+</span><span class='line'>|-- _layouts
+</span><span class='line'>|   |-- default.html
+</span><span class='line'>|   `-- post.html
+</span><span class='line'>|-- _posts
+</span><span class='line'>|   |-- 2007-10-29-why-every-programmer-should-play-nethack.textile
+</span><span class='line'>|   `-- 2009-04-26-barcamp-boston-4-roundup.textile
+</span><span class='line'>|-- _site `-- index.html</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>_config.yml</code></p>
+
+<p>保存配置的文件.</p>
+
+<p><em>_includes</em>
+这里保存公用的patilal文件，在 <em>layouts 和 </em>posts 的文件中可以复用这些文件。</p>
+
+<p><em>_layout</em> 这里保存文章的模版文件</p>
+
+<p><em>_posts</em> 这里保存blog的文章,文件的格式通常使用YEAR-MONTH-DATE-title.MARKUP,然后github会自动的将这些文件转换.
+<em>_site</em>
+这里的文件可以由命令 @jekyll &ndash;pygments@生成之后在命令行启动 jekyll的服务器,@jekyll &ndash;server@.通过访问<a href="http://127.0.0.1/4000%E5%8E%BB%E9%A2%84%E8%A7%88post._site%E6%96%87%E4%BB%B6%E4%B8%8D%E9%9C%80%E8%A6%81push%E5%88%B0remote">http://127.0.0.1/4000%E5%8E%BB%E9%A2%84%E8%A7%88post._site%E6%96%87%E4%BB%B6%E4%B8%8D%E9%9C%80%E8%A6%81push%E5%88%B0remote</a> repos上,把它加到.gitignore文件中就可以了.</p>
+
+<p>写完一篇blog，预览后，就可以本地提交，push到远程主机上了。过几分钟，应该就能看到博文^_^了.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/git/2011/11/09/dont-panic-when-you-used-git-reset-hard">Don't Panic When You Use Git Reset --hard</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2011-11-09T00:00:00+11:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>9</span><span class='date-suffix'>th</span>, <span class='date-year'>2011</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/git/2011/11/09/dont-panic-when-you-used-git-reset-hard#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/git/2011/11/09/dont-panic-when-you-used-git-reset-hard">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>It&rsquo;s not a problem when you use to <code>git reset --hard</code> to throw away commit. But often times, you need to first check whether there&rsquo;s still useful stuff to keeOf course, &ndash;soft is the best choice, however, what if you use <code>git reset --hard</code> without realizing that the commit you just throw is useful. And the following should be one solution to this accident.</p>
+
+<p>Given i reset the commit:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git reset --hard HEAD^@
+</span><span class='line'>
+</span><span class='line'>HEAD is now at 43856d7 modify <span class="nb">test </span>to raise conflict
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then i use ref the log:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git reflog -4@
+</span><span class='line'>
+</span><span class='line'>43856d7 HEAD@<span class="o">{</span>0<span class="o">}</span>: HEAD^: updating HEAD
+</span><span class='line'>3378cf7 HEAD@<span class="o">{</span>1<span class="o">}</span>: commit: that part is easy.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And i see 3378cf7 is the commit i just reset, i use git show to see commit
+detail</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git show 3378cf7@
+</span><span class='line'>
+</span><span class='line'>commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
+</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
+</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
+</span><span class='line'>    that part is easy.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And i check out the commit:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>@git checkout 3378cf7f1c8a197492796b3cdb2c79f0183c9efe@
+</span><span class='line'>
+</span><span class='line'>Note: checking out <span class="s1">&#39;3378cf7f1c8a197492796b3cdb2c79f0183c9efe&#39;</span>.
+</span><span class='line'>You are in <span class="s1">&#39;detached HEAD&#39;</span> state. You can look around, make experimental
+</span><span class='line'>changes and commit them, and you can discard any commits you make in this
+</span><span class='line'>state without impacting any branches by performing another checkout.
+</span><span class='line'>
+</span><span class='line'>If you want to create a new branch to retain commits you create, you may
+</span><span class='line'><span class="k">do</span> so <span class="o">(</span>now or later<span class="o">)</span> by using -b with the checkout <span class="nb">command </span>again. Example:
+</span><span class='line'>
+</span><span class='line'>  git checkout -b new_branch_name
+</span><span class='line'>
+</span><span class='line'>HEAD is now at 3378cf7... that part is easy.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then I follow the notification to create a new branch and check log:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>git checkout -b recover
+</span><span class='line'><span class="nv">$ </span>git log
+</span><span class='line'>
+</span><span class='line'>commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
+</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
+</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
+</span><span class='line'>
+</span><span class='line'>    that part is easy.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And i find the commit is in this branch, then i go back to master branch merge recover branch:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$git</span> co master
+</span><span class='line'><span class="nv">$git</span> merge recover
+</span><span class='line'>
+</span><span class='line'>Updating 43856d7..3378cf7
+</span><span class='line'>Fast-forward
+</span><span class='line'> README   <span class="p">|</span>    <span class="m">1</span> -
+</span><span class='line'> whatever <span class="p">|</span>    <span class="m">1</span> +
+</span><span class='line'> <span class="m">2</span> files changed, <span class="m">1</span> insertions<span class="o">(</span>+<span class="o">)</span>, <span class="m">1</span> deletions<span class="o">(</span>-<span class="o">)</span>
+</span><span class='line'> create mode <span class="m">100644</span> whatever
+</span><span class='line'>
+</span><span class='line'><span class="nv">$ </span>git log -1
+</span><span class='line'>
+</span><span class='line'>bc. commit 3378cf7f1c8a197492796b3cdb2c79f0183c9efe
+</span><span class='line'>Author: bowen &lt;iambowen.m@gmail.com&gt;
+</span><span class='line'>Date:   Mon Oct <span class="m">31</span> 16:26:45 <span class="m">2011</span> +0800
+</span><span class='line'>    that part is easy.
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And we can see the reseted commit is coming back, that part is easy.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+    <a class="next" href="/posts/8">Newer &rarr;</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/log/spring/2016/11/17/supressing-an-warning-log">Supressing an Warning Log</a>
+      </li>
+    
+      <li class="post">
+        <a href="/dns/2016/11/15/issue-raised-by-dns">Issue Raised by DNS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message">Don't Put Emoji in Commit Message</a>
+      </li>
+    
+      <li class="post">
+        <a href="/2016/08/19/gpgand-keybase-introduction-and-usage">Gpgand Keybase Introduction and Usage</a>
+      </li>
+    
+      <li class="post">
+        <a href="/git/2016/08/17/how-to-write-useful-git-commit-message">How to Write Useful Git Commit Message</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/iambowen">@iambowen</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'iambowen',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/iambowen.m@gmail.com?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - Bowen Ma -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'iambowen';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

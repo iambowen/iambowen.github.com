@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Python | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/python/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Introduction of Virtualenv]]></title>
     <link href="http://iambowen.github.com/python/2011/12/02/Introduction-of-virtualenv"/>
-    <updated>2011-12-02T00:00:00+08:00</updated>
+    <updated>2011-12-02T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/python/2011/12/02/Introduction-of-virtualenv</id>
     <content type="html"><![CDATA[<p>什么是 <em>virtualenv</em>:
 virtualenv 是一款用来创建隔离的Python开发环境的工具，有点类似ruby下的rvm.通过virtualenv，可以为不同的python项目定制所需要的环境.</p>

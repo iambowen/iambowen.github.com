@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ruby | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/ruby/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Ubuntu 12.04 Compile Ruby Enterprise Error Fix]]></title>
     <link href="http://iambowen.github.com/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix"/>
-    <updated>2013-04-23T00:00:00+08:00</updated>
+    <updated>2013-04-23T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/ruby/2013/04/23/ubuntu-1204-compile-ruby-enterprise-error-fix</id>
     <content type="html"><![CDATA[<p>Recently I&rsquo;ve been learn to use <a href="http://vagrantup.com">Vagrant</a>. to set up a production like env under ubuntu 12.04. However, when I tried to compile REE- ruby enterprise version, I caught into the following error:</p>
 
@@ -47,7 +47,7 @@ make: *** (libtcmalloc_minimal_la-tcmalloc.lo) Error 1
   <entry>
     <title type="html"><![CDATA[Invalid Gemspec Because of the Date Format in Specification]]></title>
     <link href="http://iambowen.github.com/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification"/>
-    <updated>2011-11-29T00:00:00+08:00</updated>
+    <updated>2011-11-29T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/ruby/2011/11/29/invalid-gemspec-because-of-the-date-format-in-specification</id>
     <content type="html"><![CDATA[<p>In the morning, i was writing a automation sql script for QA. And after move the source file from mac mini to my machine. It met such warning as i tried to run the file.</p>
 

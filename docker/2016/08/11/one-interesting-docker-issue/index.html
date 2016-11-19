@@ -5,13 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Stop Wrapping AWS SDK to Create Tools - Bowen's Blog</title>
+  <title>One Interesting Docker Issue - Bowen's Blog</title>
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="大概4-5年前，客户开始使用AWS作为他们的开发和测试环境，因为澳洲当时没有亚马逊的数据中心，所以只好
-使用us-east, us-west这些region。后来澳洲有了AWS的数据中心，应用的产品就都迁移到新的region
-和新的AWS账户下。由于这个历史原因，一部分bake &hellip;">
+  <meta name="description" content="项目上Akamai的回归测试运行在数据中心一台用Puppet管理的固定的虚拟服务器上，这台服务器是Bamboo Agent，负责运行所有遗留系统的自动化部署任务。
+前几天一个客户的Ops找我帮忙一起让这台服务器支持Docker，然后将测试放在docker中运行。我们修改puppet脚本， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -20,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://iambowen.github.com/aws/practice/2015/12/28/stopping-creating-new-wheels">
+  <link rel="canonical" href="http://iambowen.github.com/docker/2016/08/11/one-interesting-docker-issue">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Bowen's Blog" type="application/atom+xml">
@@ -84,7 +83,7 @@
   
   <header>
     
-      <h1 class="entry-title">Stop Wrapping AWS SDK to Create Tools</h1>
+      <h1 class="entry-title">One Interesting Docker Issue</h1>
     
     
       <p class="meta">
@@ -93,7 +92,7 @@
 
 
 
-<time class='entry-date' datetime='2015-12-28T22:24:42+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:24 pm</span></time>
+<time class='entry-date' datetime='2016-08-11T17:52:10+10:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:52 pm</span></time>
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://iambowen.github.com">Comments</a>
@@ -103,57 +102,35 @@
   </header>
 
 
-<div class="entry-content"><p>大概4-5年前，客户开始使用AWS作为他们的开发和测试环境，因为澳洲当时没有亚马逊的数据中心，所以只好
-使用us-east, us-west这些region。后来澳洲有了AWS的数据中心，应用的产品就都迁移到新的region
-和新的AWS账户下。由于这个历史原因，一部分bake AMI的任务以及部署的任务，都是跨账户以及region
-的。</p>
+<div class="entry-content"><p>项目上Akamai的回归测试运行在数据中心一台用Puppet管理的固定的虚拟服务器上，这台服务器是Bamboo Agent，负责运行所有遗留系统的自动化部署任务。
+前几天一个客户的Ops找我帮忙一起让这台服务器支持Docker，然后将测试放在docker中运行。我们修改puppet脚本，然后更新了Docker，结果发现2.6的内核最多运行docker 1.7，而运行测试的docker compose需要的docker客户端要高于1.7。 鉴于改动较大，于是我们换一种思路，用在AWS账户下已有的Bamboo docker agent去运行测试。所以revert了Puppet修改，并且在服务器上运行。
+以为一切都结束了，没想到过了几天，另一个组的Ops来找我说staging的部署失败了，问我什么原因，提示大意是没有找到NetScaler服务器的路由。我觉得很奇怪，就看了眼服务器上的路由表。结果发现了下面的现象：</p>
 
-<p>这些任务的工具，都是用ruby的<code>aws-sdk</code>包装的，从表面上看，这么做有如下的好处:</p>
-
-<ol>
-<li>更细粒度去控制这些任务以及过程</li>
-<li>代码可测试</li>
-<li>打包/发布/共享会更加容易些</li>
-<li>只要SDK支持，你都可以用自己熟悉的语言去实现这些工具</li>
-<li>写代码实现感觉很牛逼</li>
-</ol>
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+</span><span class='line'>172.17.0.0      *               255.255.0.0     U     0      0        0 docker0</span></code></pre></td></tr></table></div></figure>
 
 
-<p>对于程序员来说，这么做感觉棒棒哒，写完很有满足感。但是实际中会带来很大的问题，具体表现在维护方面。
-我举两个例子：</p>
+<p>囧，staging的IP range也是<code>172.17</code>，原来是这个原因。
+于是，先停止这个网络设备，然后删除，之后再重启网络服务解决问题。</p>
 
-<ol>
-<li>不是所有人都喜欢这个工具，有些人会提交patch，改进这个工具，有些人会重新实现一个类似功能的工
-具，比如我喜欢用Java，但是现有的工具是用Ruby实现，我表示不服，重头写一个。维护的难度在这种分散
-的项目和语言中增大了。</li>
-<li>实现者没有在对工具进行维护，其中依赖的sdk已经过期，而作为工具的使用者，并没有察觉到这件事情，
-在实际的使用中会遇到问题，面对非常深的stacktrace，debug的难度较高。</li>
-</ol>
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ip link down docker0
+</span><span class='line'>ip link del docker0
+</span><span class='line'>service network restart
+</span></code></pre></td></tr></table></div></figure>
 
 
-<p>最近，我和同事就碰到了这样的问题。我们AMI构建和部署的工具是用Ruby的<code>aws-sdk</code>实现，我们要做的工
-作是把构建AMI和部署的任务从一个AWS Account移到另外一个Account，原本的验证方式是通过Hard
-Code的Credentials如<code>AWS_SECRET_ACCESS_KEY/AWS_ACCESS_KEY_ID</code>。更好的实践是通过STS服务
-，用AssumeRole的方式去获得临时的Credential。听上去并没有什么太大的难度，但是当我们去迁移的时
-候，发现始终提示权限不足，而仔细检查role的权限后发现没有任何不妥，于是百思不得其解，尝试追踪
-stacktrace也没什么结果。</p>
-
-<p>无意中看了眼<code>Gemfile</code>，感觉<code>aws-sdk</code>的版本有点低，随手升了个级，然后试了下，竟然可以通过验证
-了……。</p>
-
-<p>多花了两个小时，就是因为没有再去维护这个工具。而这个工具实际实现的功能，用<code>aws-cli</code>也可
-以很容易实现，而且依赖更少：</p>
+<p>我觉得从这个错误中可以学到两个事情</p>
 
 <ol>
-<li>本地使用，只需要有<code>aws-cli</code>(可能还有python，除了windows，一般的系统默认都会有)和bash就可
-以了</li>
-<li>CI的slave上使用，可以让<code>aws-cli</code>在镜像启动时自动更新，这样就完全不需要维护</li>
-<li>如果cli参数有变动，提示会更加直接些，也容易追踪</li>
+<li>配置管理工具的不可靠性，Puppet并没有完整的清理掉所有docker相关的东西</li>
+<li>这种<code>Pet</code>服务器的不可靠性，如果服务器是每天都按照配置重新创建也不会出现这样的问题</li>
 </ol>
 
-
-<p>所以，如果大家要针对AWS做一些开发，比如镜像构建，清理或者自动化部署，推荐使用CLI的方式，而不是
-SDK去实现，从使用的角度，依赖更少，从维护的角度，成本更低。</p>
 </div>
 
 
@@ -169,12 +146,12 @@ SDK去实现，从使用的角度，依赖更少，从维护的角度，成本�
 
 
 
-<time class='entry-date' datetime='2015-12-28T22:24:42+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:24 pm</span></time>
+<time class='entry-date' datetime='2016-08-11T17:52:10+10:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:52 pm</span></time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/practice/'>practice</a>
+    <a class='category' href='/blog/categories/docker/'>docker</a>
   
 </span>
 
@@ -183,7 +160,7 @@ SDK去实现，从使用的角度，依赖更少，从维护的角度，成本�
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/aws/practice/2015/12/28/stopping-creating-new-wheels" data-via="boweniam" data-counturl="http://iambowen.github.com/aws/practice/2015/12/28/stopping-creating-new-wheels" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://iambowen.github.com/docker/2016/08/11/one-interesting-docker-issue" data-via="boweniam" data-counturl="http://iambowen.github.com/docker/2016/08/11/one-interesting-docker-issue" >Tweet</a>
   
   
   
@@ -194,10 +171,10 @@ SDK去实现，从使用的角度，依赖更少，从维护的角度，成本�
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/ssh/security/2015/12/19/ssh-securely-and-handy" title="Previous Post: 更加安全和简单的方式通过堡垒机ssh">&laquo; 更加安全和简单的方式通过堡垒机ssh</a>
+        <a class="basic-alignment left" href="/2016/07/11/cloudformation-introduction-and-usage" title="Previous Post: Cloudformation introduction and usage">&laquo; Cloudformation introduction and usage</a>
       
       
-        <a class="basic-alignment right" href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos" title="Next Post: ci solution with mesos">ci solution with mesos &raquo;</a>
+        <a class="basic-alignment right" href="/docker/ci/2016/08/16/on-dockerising-a-frontend-build-pipeline" title="Next Post: on dockerising a frontend build pipeline">on dockerising a frontend build pipeline &raquo;</a>
       
     </p>
   </footer>
@@ -218,23 +195,23 @@ SDK去实现，从使用的角度，依赖更少，从维护的角度，成本�
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox">Hand Over DNS Resolve to VirutalBox</a>
+        <a href="/log/spring/2016/11/17/supressing-an-warning-log">Supressing an Warning Log</a>
       </li>
     
       <li class="post">
-        <a href="/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api">Using Akamai Diagnostic tools/API</a>
+        <a href="/dns/2016/11/15/issue-raised-by-dns">Issue Raised by DNS</a>
       </li>
     
       <li class="post">
-        <a href="/aws/kms/2016/01/15/aws-kms-and-its-usage">AWS KMS and Its Usage</a>
+        <a href="/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message">Don't Put Emoji in Commit Message</a>
       </li>
     
       <li class="post">
-        <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
+        <a href="/2016/08/19/gpgand-keybase-introduction-and-usage">Gpgand Keybase Introduction and Usage</a>
       </li>
     
       <li class="post">
-        <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
+        <a href="/git/2016/08/17/how-to-write-useful-git-commit-message">How to Write Useful Git Commit Message</a>
       </li>
     
   </ul>
@@ -301,8 +278,8 @@ SDK去实现，从使用的角度，依赖更少，从维护的角度，成本�
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://iambowen.github.com/aws/practice/2015/12/28/stopping-creating-new-wheels';
-        var disqus_url = 'http://iambowen.github.com/aws/practice/2015/12/28/stopping-creating-new-wheels';
+        var disqus_identifier = 'http://iambowen.github.com/docker/2016/08/11/one-interesting-docker-issue';
+        var disqus_url = 'http://iambowen.github.com/docker/2016/08/11/one-interesting-docker-issue';
         var disqus_script = 'embed.js';
       
     (function () {

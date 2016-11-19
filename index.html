@@ -9,7 +9,7 @@
   <meta name="author" content="Bowen Ma">
 
   
-  <meta name="description" content="当你用vagrant新建一个虚拟机(driver 为virtualbox)并使用NAT方式让guest虚拟机连接外网时，如果有无线网络的变化，虚拟机中/etc/resolv.conf不会对应的修改，导致域名解析失败。 解决的办法是将DNS解析的任务交给虚拟机管理工具如virtualbox， &hellip;">
+  <meta name="description" content="客户的主站系统是一个基于Spring的单块系统，每天的流量大概在几千万，其所有的应用日志以及访问日志，都会上传到Splunk服务器上。随着服务数量的增加，日志的数量也越来越多，对应的Splunk的费用也越来越感人，鉴于主站的系统对日志的贡献最多，所以就从它入手降低无用日志的上传。 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -85,6 +85,729 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/log/spring/2016/11/17/supressing-an-warning-log">Supressing an Warning Log</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-11-17T22:49:53+11:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>10:49 pm</span></time>
+        
+           | <a href="/log/spring/2016/11/17/supressing-an-warning-log#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/log/spring/2016/11/17/supressing-an-warning-log">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>客户的主站系统是一个基于Spring的单块系统，每天的流量大概在几千万，其所有的应用日志以及访问日志，都会上传到<a href="https://www.splunk.com">Splunk</a>服务器上。随着服务数量的增加，日志的数量也越来越多，对应的Splunk的费用也越来越感人，鉴于主站的系统对日志的贡献最多，所以就从它入手降低无用日志的上传。</p>
+
+<p>其中的一条无用的warning日志信息显示如下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>WARN org.apache.commons.httpclient.HttpMethodBase - Going to buffer response body of large or unknown size. Using getResponseBodyAsStream instead is recommended.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>一周内这条warning的数量超过百万条，还是比较可观的。简单查询下其原因是<code>httpclient</code>里面的<code>getResponseBody()</code>调用触发的。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'>            <span class="kt">int</span> <span class="n">limit</span> <span class="o">=</span> <span class="n">getParams</span><span class="o">().</span><span class="na">getIntParameter</span><span class="o">(</span><span class="n">HttpMethodParams</span><span class="o">.</span><span class="na">BUFFER_WARN_TRIGGER_LIMIT</span><span class="o">,</span> <span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="o">);</span>
+</span><span class='line'>            <span class="k">if</span> <span class="o">((</span><span class="n">contentLength</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">||</span> <span class="o">(</span><span class="n">contentLength</span> <span class="o">&gt;</span> <span class="n">limit</span><span class="o">))</span> <span class="o">{</span>
+</span><span class='line'>                <span class="n">LOG</span><span class="o">.</span><span class="na">warn</span><span class="o">(</span><span class="s">&quot;Going to buffer response body of large or unknown size. &quot;</span>
+</span><span class='line'>                        <span class="o">+</span><span class="s">&quot;Using getResponseBodyAsStream instead is recommended.&quot;</span><span class="o">);</span>
+</span><span class='line'>            <span class="o">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>看完这个后我们的理解是，有些请求的response body过大，超过缺省的1M(代码会从<code>Content-Length</code> header中获取这个大小)，就会触发这个warning，当时没有意识到还有可能是确实不知道response body的长度。
+相关的方法调用在代码中有10几处，当时我们也无法定位那段代码引发了这个问题，无脑修改的话，成本比较高，可能要增加一些测试用例，以及做回归测试。所以当时就想着用成本最低的方式修改，从配置文件中给<code>BUFFER_WARN_TRIGGER_LIMIT</code>赋一个更大的值，如20M，毕竟这是个遗留项目，熟悉代码的人以及比较少了。没有选择调整日志的级别是因为<code>HttpMethodBase</code>类是个超类，粗暴调整可能会掩盖其它有用的warning日志。
+部署完成后比较日志数量发现并没有太大变化，不得不让我们重新回来审视这个问题的根本原因在哪里。幸好当时系统加了一个transactionID的功能，每次的请求过来时，在应用中用UUID生成一个transactionID写入应用日志，response返回时再写入access log。这样我们就在请求和对应的代码调用之间建立了联系。
+功能上线后重新在splunk中搜索，立刻就定位了是在请求Google Map API时触发了这个warning，而且在本地可以稳定重现。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'> <span class="o">~&gt;</span> <span class="n">curl</span> <span class="o">-</span><span class="n">I</span>   <span class="s">&quot;https://maps.google.com.au/maps/api/geocode/json?address=Sunnydale%2C+SA+5354&amp;language=en_AU&amp;sensor=false&quot;</span>
+</span><span class='line'><span class="n">HTTP</span><span class="o">/</span><span class="mf">1.1</span> <span class="mi">200</span> <span class="n">OK</span>
+</span><span class='line'><span class="n">Content</span><span class="o">-</span><span class="nl">Type:</span> <span class="n">application</span><span class="o">/</span><span class="n">json</span><span class="o">;</span> <span class="n">charset</span><span class="o">=</span><span class="n">UTF</span><span class="o">-</span><span class="mi">8</span>
+</span><span class='line'><span class="nl">Date:</span> <span class="n">Fri</span><span class="o">,</span> <span class="mi">18</span> <span class="n">Nov</span> <span class="mi">2016</span> <span class="mi">23</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mi">16</span> <span class="n">GMT</span>
+</span><span class='line'><span class="nl">Expires:</span> <span class="n">Sat</span><span class="o">,</span> <span class="mi">19</span> <span class="n">Nov</span> <span class="mi">2016</span> <span class="mi">23</span><span class="o">:</span><span class="mi">20</span><span class="o">:</span><span class="mi">16</span> <span class="n">GMT</span>
+</span><span class='line'><span class="n">Cache</span><span class="o">-</span><span class="nl">Control:</span> <span class="kd">public</span><span class="o">,</span> <span class="n">max</span><span class="o">-</span><span class="n">age</span><span class="o">=</span><span class="mi">86400</span>
+</span><span class='line'><span class="n">Access</span><span class="o">-</span><span class="n">Control</span><span class="o">-</span><span class="n">Allow</span><span class="o">-</span><span class="nl">Origin:</span> <span class="o">*</span>
+</span><span class='line'><span class="nl">Server:</span> <span class="n">mafe</span>
+</span><span class='line'><span class="n">X</span><span class="o">-</span><span class="n">XSS</span><span class="o">-</span><span class="nl">Protection:</span> <span class="mi">1</span><span class="o">;</span> <span class="n">mode</span><span class="o">=</span><span class="n">block</span>
+</span><span class='line'><span class="n">X</span><span class="o">-</span><span class="n">Frame</span><span class="o">-</span><span class="nl">Options:</span> <span class="n">SAMEORIGIN</span>
+</span><span class='line'><span class="n">Alt</span><span class="o">-</span><span class="nl">Svc:</span> <span class="n">quic</span><span class="o">=</span><span class="s">&quot;:443&quot;</span><span class="o">;</span> <span class="n">ma</span><span class="o">=</span><span class="mi">2592000</span><span class="o">;</span> <span class="n">v</span><span class="o">=</span><span class="s">&quot;36,35,34&quot;</span>
+</span><span class='line'><span class="n">Transfer</span><span class="o">-</span><span class="nl">Encoding:</span> <span class="n">chunked</span>
+</span><span class='line'><span class="n">Accept</span><span class="o">-</span><span class="nl">Ranges:</span> <span class="n">none</span>
+</span><span class='line'><span class="nl">Vary:</span> <span class="n">Accept</span><span class="o">-</span><span class="n">Encoding</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>然后发现原来返回是没有<code>Content-Length</code>的:(。
+<code>Content-Length</code> header是客户端用于了解服务器返回body的大小，从而在获得等大的内容后，结束连接，节省开销。但在实际的应用中，<code>Content-Length</code>有可能无法准确反映返回body的大小，其值过大会导致pending，过小内容又会被截断。
+<code>Transfer-Encoding: chunked</code> 是用来分块编码传输内容，每个分块中包含了长度值和数据，最后一个分块长度值是0，这样就可以准确知道边界了。
+定位到问题在哪里之后就很容易解决了，最后只要改动一行代码:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='java'><span class='line'><span class="o">-</span>            <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="na">getResponseBodyAsString</span><span class="o">();</span>
+</span><span class='line'><span class="o">+</span>            <span class="n">String</span> <span class="n">response</span> <span class="o">=</span> <span class="n">IOUtils</span><span class="o">.</span><span class="na">toString</span><span class="o">(</span><span class="n">query</span><span class="o">.</span><span class="na">getResponseBodyAsStream</span><span class="o">());</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>回过头来反思整个过程，因为是遗留系统，所以处理的方式有些粗糙，如果当时我们遵循下面的过程也许会更好些:
+1) 定位问题，找到根本原因(有transactionID的配合会更方便)，而不是盲目用生产环境来测试配置的正确性;
+2) 在本地重现问题，应用解决方案，并与熟悉遗留系统的同事沟通
+3) 回归测试后上线</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/dns/2016/11/15/issue-raised-by-dns">Issue Raised by DNS</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-11-15T21:33:22+11:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:33 pm</span></time>
+        
+           | <a href="/dns/2016/11/15/issue-raised-by-dns#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/dns/2016/11/15/issue-raised-by-dns">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近在客户现场出差，见证了不少有趣的线上事故，下面要讲的就是其中之一。
+一段时间依赖，某个微服务在生产环境的response的延迟陡然增加了几百毫秒，而部署的代码并不是造成延迟原因。从Newrelic的监控可以发现，该API的延迟增大的主要原因是它依赖的一个服务响应时间增大了。</p>
+
+<p>我们暂且把这个外部的服务称为service.mycompany.com，这个服务分别部署在澳洲和欧洲的两个数据中心，入口处是Akamai，做负载均衡，尽可能的按照访问来源去分发请求。</p>
+
+<p>该微服务部署在AWS悉尼的数据中心，所以理论上来讲，当它请求service.mycompany.com时，Akamai应该返回的是位于悉尼的edge节点的IP，同时其访问的origin服务器也应该位于悉尼。但是通过在该微服务的服务器debug，发现ping值以及traceroute的值都比较高，办公室访问却都一切正常。当时怀疑是Akamai的GEOIP判断出了问题，把来自亚马逊悉尼的请求当成了来自美国的IP的请求，于是用部署于欧洲的数据中心的服务处理请求。和基础设施部门管理网络的人讨论，再次调查后结论类似。</p>
+
+<p>问题出在这个AWS账户下的VPC的DHCP options的配置。因为是比较早期使用的share的AWS账户，所以下面的网络配置比较复杂，配置有Direct Connect 连往其他数据中心，以及很多VPC Peering。不知道因为什么原因，这个微服务部署的Cloudformation template里面选择了包含google DNS <code>8.8.8.8</code>和<code>8.8.8.4</code>的DHCP Options。我们都知道对于在Akamai上注册的服务service.mycompany.com来说，如:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> ~&gt; host service.mycompany.com
+</span><span class='line'>service.mycompany.com is an alias for mycompany.generic.edgekey.net.
+</span><span class='line'>mycompany.generic.edgekey.net is an alias for e8888.g.akamaiedge.net.
+</span><span class='line'>e8888.g.akamaiedge.net has address 104.116.190.24</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第一次DNS请求返回的记录是CName，之后进一步返回Akamai动态DNS的CName，也就是edge server的CName，之后再根据DNS服务器返回对应的edge服务器的IP地址，如果查询的是Google的DNS，那么它会返回美国的edge服务器地址……。我们可以测试下:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> ~&gt; dig @8.8.8.8 service.mycompany.com
+</span><span class='line'>
+</span><span class='line'>; &lt;&lt;&gt;&gt; DiG 9.8.3-P1 &lt;&lt;&gt;&gt; @8.8.8.8 service.mycompany.com
+</span><span class='line'>; (1 server found)
+</span><span class='line'>;; global options: +cmd
+</span><span class='line'>;; Got answer:
+</span><span class='line'>;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 44304
+</span><span class='line'>;; flags: qr rd ra; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 0
+</span><span class='line'>
+</span><span class='line'>;; QUESTION SECTION:
+</span><span class='line'>;service.mycompany.com.   IN  A
+</span><span class='line'>
+</span><span class='line'>;; ANSWER SECTION:
+</span><span class='line'>service.mycompany.com. 86399 IN   CNAME   mycompany.generic.edgekey.net.
+</span><span class='line'>mycompany.generic.edgekey.net. 263    IN  CNAME   e8888.g.akamaiedge.net.
+</span><span class='line'>e8888.g.akamaiedge.net.   19  IN  A   23.53.156.156
+</span><span class='line'>
+</span><span class='line'>;; Query time: 603 msec
+</span><span class='line'>;; SERVER: 8.8.8.8#53(8.8.8.8)
+</span><span class='line'>;; WHEN: Tue Nov 15 22:15:52 2016
+</span><span class='line'>;; MSG SIZE  rcvd: 130</span></code></pre></td></tr></table></div></figure>
+
+
+<p>查询下IP地址信息，</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'> ~&gt; whois 23.53.156.156 | grep Country
+</span><span class='line'>Country:        US</span></code></pre></td></tr></table></div></figure>
+
+
+<p>所以，这个微服务的请求先到Akamai美国的edge服务器，之后很有可能请求被发送到了欧洲的origin服务器，这个延迟不增加才👻了……。</p>
+
+<p>解决的办法很简单，更新配置，DHCP Options选择Amazon提供的DNS就可以了，响应时间就降下去了。</p>
+
+<p>这个事情给我们的教训就是，不管怎么样都不能崇洋媚外，虽然澳洲一直follow美国，但是DNS还是得用自己的。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message">Don't Put Emoji in Commit Message</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-11-03T23:47:07+11:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>3</span><span class='date-suffix'>rd</span>, <span class='date-year'>2016</span></span> <span class='time'>11:47 pm</span></time>
+        
+           | <a href="/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>随着项目上越来越多的使用Slack以及Emoji的流行，很多人情不自禁的会在各种地方使用emoji表情。比如
+在channel里面发<code>:bicyclist::skin-tone-2: :house: :thunder_cloud_and_rain: :disappointed:</code>。更甚者会在git commit message中添加emoji。比如像这样</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>finish story xxxx. :pear: xiao.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>意思是完成这个开发的需求是和<code>xiao</code>结对做的。pull request发出后，review的人除了会发:+1:这样的表情表示支持外，还会用:shipit:,:ship:之类的表示赞同，可以merge。
+这样的emoji为开发增添了乐趣，但是有时候也会带来麻烦，比如我今天就遇到了这样的情况。
+在清理完一些旧代码后，我在提交信息里面➕了下面的消息:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>clean up the :older_man::skin-tone-2: code.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>提交merge后，过了一段时间看了下build，还没有到运行阶段就挂了。查看了下原因，发现是bamboo在保存提交信息时遇到了一个复杂字符出错了。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>(org.springframework.jdbc.UncategorizedSQLException : Hibernate flushing: Could not execute JDBC batch update; uncategorized SQLException for SQL [insert into USER_COMMIT (REPOSITORY_CHANGESET_ID, AUTHOR_ID, COMMIT_DATE, COMMIT_REVISION, COMMIT_COMMENT_CLOB, FOREIGN_COMMIT, COMMIT_ID) values (?, ?, ?, ?, ?, ?, ?)]; SQL state [HY000]; error code [1366]; Incorrect string value: '\xF0\x9F\x91\xB4 ...' for column 'COMMIT_COMMENT_CLOB' at row 1; nested exception is java.sql.BatchUpdateException: Incorrect string value: '\xF0\x9F\x91\xB4 ...' for column 'COMMIT_COMMENT_CLOB' at row 1)</span></code></pre></td></tr></table></div></figure>
+
+
+<p>当时就感觉是这个emoji出问题了，搜了下提示的编码的十六进制，果然是这个原因……。没办法只好reset下，push force，再重新修改提交信息再push。
+同事告诉了我这个事故的根本原因是mysql的utf-8对Emoji的支持不够，解决的办法就是把数据库的charset设置为<code>utf8mb4</code>，详见这篇<a href="https://mathiasbynens.be/notes/mysql-utf8mb4">文章</a>.
+所以，以后玩emoji的时候一定得先确认系统支持，否则可能会带来一些:shit:。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2016/08/19/gpgand-keybase-introduction-and-usage">Gpgand Keybase Introduction and Usage</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-08-19T00:00:00+10:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>12:00 am</span></time>
+        
+           | <a href="/2016/08/19/gpgand-keybase-introduction-and-usage#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2016/08/19/gpgand-keybase-introduction-and-usage">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>.&mdash;
+layout: post
+title: &ldquo;GPG and keybase.io introduction/usage&rdquo;
+date: 2016-08-19 17:29:49 +0800
+comments: true</p>
+
+<h2>categories: [&ldquo;GPG&rdquo;, &ldquo;keybase.io&rdquo;, &ldquo;Security&rdquo;]</h2>
+
+<h2>什么是GPG</h2>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/git/2016/08/17/how-to-write-useful-git-commit-message">How to Write Useful Git Commit Message</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-08-17T13:20:33+10:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>1:20 pm</span></time>
+        
+           | <a href="/git/2016/08/17/how-to-write-useful-git-commit-message#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/git/2016/08/17/how-to-write-useful-git-commit-message">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>相信大家在自己项目的历史提交里面看到类似的提交记录
+<img src="http://imgs.xkcd.com/comics/git_commit.png" alt="" />
+我还见过更加糟糕的，类似这样</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>53ee0c7 fix build again
+</span><span class='line'>7a63a11 fix build</span></code></pre></td></tr></table></div></figure>
+
+
+<p>这样的提交信息的问题在于不表意，没有简要的说明修改的内容，为什么要这样的修改，别人只能去查看具体的代码改动才能知道发生了什么，但是可能无法知道为什么这样修改。当然，这样的提交我自己也写过，原因包括
+1. 语法、拼写错误，羞于示人
+2. 解释原因得写很长，懒的敲键盘
+3. 无法解释为什么这样的修改就能work
+这其实算是一种比较不负责任的行为，估计别人看到会比较崩溃，幸运的是还没有领导看到，所以至今没有被开除。举个例子，假设某个提交引起了产品环境的错误，别人需要迅速定位是哪个提交引起的问题，但是如果提交都是类似<code>Perfectly complete a new story</code>，而且每次代码修改的量都比较庞大，那就得花很多时间才能定位。相反如果提交信息很清晰，<code>BAU-1008 add xxx form in xxx page. :pear: Kevin</code>。你用<code>git log --oneline --after "Aug 10 2016"</code>可以迅速看到对应的提交，进一步的可以查看修改内容再查找具体的问题。</p>
+
+<p>今天早上客户跟我们一起做了一个关于如何有效的提交<code>git commit</code>信息。他提到了<code>git commit message</code>的7个<a href="http://chris.beams.io/posts/git-commit/">规则</a>。他认为从项目维护性的角度考虑，应当注意提交的信息以及规范。一个项目的提交信息首先得从下面三个方面达成一致:</p>
+
+<ol>
+<li>格式。消息体的格式，如Markdown，语法应该是什么样子，大写的规则等。</li>
+<li>内容。提交的信息中应当包含什么，不应当包含什么。</li>
+<li>元数据。问题跟踪的ID（Jira，Leankit等）要不要引用，PR的sha code要不要引用。</li>
+</ol>
+
+
+<p>具体的规则有下面7点：</p>
+
+<ol>
+<li>用空行将内容和主题分开</li>
+<li>提交的主题限制在50个字符</li>
+<li>主题首字母大写</li>
+<li>主题结尾不要使用句号</li>
+<li>主题需要使用祈使/肯定语气</li>
+<li>内容每72个字符换行</li>
+<li>在内容中解释清楚修改的原因及方式</li>
+</ol>
+
+
+<p>第一条，如果内容和主题没有分开，<code>git log --oneline</code>主题和下面的内容会一起显示。
+第二条，主题超过50个字符时超过的部分在github上显示为<code>...</code>，提交PR的时候超过的部分会被折断到comments中，很烦人。用vim去编辑提交信息的时候，如果看到主题的字的颜色变化了，就说明超过了50个字符。
+第三、四条不评价，感觉更多是从美观和规范上统一的。
+第五条，感觉这样可以少写一些字，而且和git 缺省的提交信息，如revert的提交信息一致。</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Revert "Add the thing with the stuff"
+</span><span class='line'>
+</span><span class='line'>This reverts commit cc87791524aedd593cff5a74532befe7ab69ce9d.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>第六条，因为git不会帮你wrap文字，所以得手动的来做这个事情，这里可以借助一些编辑器，如VI的帮助。
+第七条，个人觉得这个才是最重要的，解释清楚修改的原因以及方式，引用别人文章里面的一个例子:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>commit eb0b56b19017ab5c16c745e6da39c53126924ed6
+</span><span class='line'>Author: Pieter Wuille &lt;pieter.wuille@gmail.com&gt;
+</span><span class='line'>Date:   Fri Aug 1 22:57:55 2014 +0200
+</span><span class='line'>
+</span><span class='line'>   Simplify serialize.h's exception handling
+</span><span class='line'>
+</span><span class='line'>   Remove the 'state' and 'exceptmask' from serialize.h's stream
+</span><span class='line'>   implementations, as well as related methods.
+</span><span class='line'>
+</span><span class='line'>   As exceptmask always included 'failbit', and setstate was always
+</span><span class='line'>   called with bits = failbit, all it did was immediately raise an
+</span><span class='line'>   exception. Get rid of those variables, and replace the setstate
+</span><span class='line'>   with direct exception throwing (which also removes some dead
+</span><span class='line'>   code).
+</span><span class='line'>
+</span><span class='line'>   As a result, good() is never reached after a failure (there are
+</span><span class='line'>   only 2 calls, one of which is in tests), and can just be replaced
+</span><span class='line'>   by !eof().
+</span><span class='line'>
+</span><span class='line'>   fail(), clear(n) and exceptions() are just never called. Delete
+</span><span class='line'>   them.
+</span><span class='line'> ```
+</span><span class='line'>业务相关的代码修改，可以将story ID加在最前面，方便issue track。
+</span><span class='line'>
+</span><span class='line'> 为了让大家统一提交的格式，可以新建一个提交的template，配置git[使用](https://robots.thoughtbot.com/better-commit-messages-with-a-gitmessage-template)。 过程如下:
+</span><span class='line'>
+</span><span class='line'> 1. 在`~/.gitconfig`中加入下面的内容：
+</span><span class='line'> ```
+</span><span class='line'> [commit]
+</span><span class='line'>  template = ~/.gitmessage</span></code></pre></td></tr></table></div></figure>
+
+
+<ol>
+<li>新建<code>~/.gitmessage</code>这个template文件并且填入自定义模板：</li>
+</ol>
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Brief here:
+</span><span class='line'>
+</span><span class='line'>Reason to change:
+</span><span class='line'>*
+</span><span class='line'>
+</span><span class='line'>Way to change:
+</span><span class='line'>
+</span><span class='line'>*</span></code></pre></td></tr></table></div></figure>
+
+
+<p>配置完成后在项目中做修改，<code>git ci -a</code>就可以在模板的基础上修改了。</p>
+
+<p>举一个项目中的一个例子，里面包含了业务需求的github issue的链接：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>commit 2196e866261dee6d7c17f266cc15987f
+</span><span class='line'>Author: Alex Jin &lt;alex.jin@example.com&gt;
+</span><span class='line'>Date:   Wed Aug 17 13:24:41 2016 +0800
+</span><span class='line'>    Make trend bigger and modify link color. :pear: Luke
+</span><span class='line'>
+</span><span class='line'>    * Reason to change:
+</span><span class='line'>      see [lob/project#208]</span></code></pre></td></tr></table></div></figure>
+
+
+<p>如果是用Pull Request方式工作的话，麻烦的地方在于修改的原因可能还得在comments里面再写一遍。解决的办法是创建issue/PR的template，参考<a href="https://github.com/blog/2111-issue-and-pull-request-templates">这里</a>。</p>
+
+<p>什么，你问我为什么还没有被开除么？
+因为领导不看提交 :)</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/docker/ci/2016/08/16/on-dockerising-a-frontend-build-pipeline">On Dockerising a Frontend Build Pipeline</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-08-16T15:08:58+10:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>16</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>3:08 pm</span></time>
+        
+           | <a href="/docker/ci/2016/08/16/on-dockerising-a-frontend-build-pipeline#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/docker/ci/2016/08/16/on-dockerising-a-frontend-build-pipeline">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近花了一段时间把主站的build pipeline docker化了，时间长到感觉自己的reputation都要被毁了。
+在此总结下这个过程以及碰到的问题，希望对大家能有所帮助。</p>
+
+<h3>背景</h3>
+
+<p>这是一个纯前端的项目，两年前前后端分离的时候的项目，Grunt workflow，测试框架使用Karma，用Phantomjs<code>1.8.2</code>运行headless的测试，开发环境使用Chrome/Safari做功能性测试。开发环境基于node <code>0.12</code>，一些基础设施的更新，部署的脚本，smoke test是基于Ruby的，版本为<code>2.0</code>。</p>
+
+<p>这个前端的工程部署在两个不同的AWS Region的S3上，互为fail over，最前面有Akamai为它们做负载均衡。</p>
+
+<p>持续集成的工具使用Bamboo，其agent需要有<code>ruby 2.0</code>，<code>node 0.12</code>，<code>Phantomjs 1.8.2</code>的环境才可以运行具体的任务。整个过程已经做到了持续部署，一个完整的build过程如下：</p>
+
+<ol>
+<li>提交代码</li>
+<li>trigger build，执行单元测试和集成测试</li>
+<li>自动部署staging 环境</li>
+<li>自动部署production 环境</li>
+<li>对部署后的产品做性能测试</li>
+<li>上传工程中依赖的第三方类库信息到S3 bucket(出于安全的考虑)</li>
+</ol>
+
+
+<h3>存在的问题</h3>
+
+<p>太长时间没有人做技术上的升级，导致下面的一些隐患和问题：
+1. 开发的工具版本落后，node当前版本已经是<code>6.3</code>了，ruby 2.0的版本应该已经不维护了，同样，对应的Karma，Phantomjs都以及更新了很多
+2. 运行build依赖的agent是共用的，如果有人对agent的环境进行修改，会影响该项目的持续集成
+3. 未来需要将CI工具从Bamboo迁移到Buildkite，用pipeline as code的方式去构建，每个组自己去管理build agent，使用Docker会更加方便迁移</p>
+
+<h3>过程以及遇到的一些难点</h3>
+
+<p>测试部分通过的过程及问题
+1. 首先做的事情是构建一个基础的docker 镜像，包含最新的node <code>6.3.1</code>，phantomjs <code>2.1.1</code>，后来发现其实不用Phantomjs，这个有点多余了。 成果在这里: <a href="https://github.com/iambowen/node_on_docker%EF%BC%8C%E5%9B%A0%E4%B8%BA%E8%BF%99%E6%A0%B7%E7%9A%84%E7%8E%AF%E5%A2%83%E6%9B%B4%E5%8A%A0%E9%80%9A%E7%94%A8%E4%BA%9B%EF%BC%8C%E6%89%80%E4%BB%A5%E6%89%8Dpublish%E5%88%B0%E5%AE%98%E6%96%B9%E7%9A%84docker">https://github.com/iambowen/node_on_docker%EF%BC%8C%E5%9B%A0%E4%B8%BA%E8%BF%99%E6%A0%B7%E7%9A%84%E7%8E%AF%E5%A2%83%E6%9B%B4%E5%8A%A0%E9%80%9A%E7%94%A8%E4%BA%9B%EF%BC%8C%E6%89%80%E4%BB%A5%E6%89%8Dpublish%E5%88%B0%E5%AE%98%E6%96%B9%E7%9A%84docker</a> repository里面。
+2. 在这个镜像的基础上，构建一个我们工程依赖环境的基础镜像，额外安装了Ruby <code>2.3</code>，最新的Chrome，git以及一些git的配置，因为需要从企业版github上pull代码。
+3. 本地升级node版本，以及相关的grunt，karma，Phantomjs的版本，运行测试通过。
+4. 将工程mount容器中，然后运行测试，<code>npm install</code>失败，原因是安装<code>fsevent</code>出错。查看了下这个包，原来只是给OSX下使用的。删除<code>npm-shrinkwrap.json</code>后重新运行可以通过。原因是有人在OSX下运行了<code>npm shrinkwrap</code>去生成的这个锁定版本的文件，真是烦人。于是反其道行之在容器里面生成<code>npm-shrinkwrap.json</code>，在host上运行测试一切完好，就这样解决了这个问题。
+5. 在Bamboo创建一个branch，然后针对我的分支代码运行测试
+6. 测试里面的一个步骤是做<code>bower install</code>安装第三方js类库，但是比较恶心的是，有些第三方类库是以<code>git</code>的协议去下载，而不是<code>https</code>。本地运行一切都好，但是在Bamboo Agent上运行的时候却出现了连接超时的问题，很有可能是Bamboo所在AWS的network ACL或者是security group没有允许<code>9418</code>端口的TCP访问。不过最后解决的方式并不是修改防火墙或者将协议改为<code>https</code>，而是直接把类库checking到git中，这样对应的修改Gruntfile，不用再运行<code>bower install</code>。check in之后在Bamboo上运行还是失败，本地却可以通过，仔细检查，原来是一部分bower module目录名为<code>dist</code>被git ignore掉了。</p>
+
+<p>通过测试后，接下来就是部署了。部署要解决的问题是，如何让容器拿到AWS role的动态权限去做文件的上传更新操作。ECS好像是支持容器去assume role的操作，但是我们没有用ECS，所以只能考虑其它方式。</p>
+
+<p>我想到的方式在bamboo 的 docker agent上 <code>assume role</code>，拿到对应的credential后，将其作为环境变量传入到容器中。实验证明这样的方式是可行的，万幸bamboo的docker agent支持aws cli命令，不过没有<code>jq</code>稍微增大了点提取credential的难度，脚本如下：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>if [ "$DEPLOY_ENV" = "staging" ]; then
+</span><span class='line'>  AWS_ACCOUNT_ID='1111111111'
+</span><span class='line'>elif [ "$DEPLOY_ENV" == "production" ]; then
+</span><span class='line'>  AWS_ACCOUNT_ID='2222222222'
+</span><span class='line'>fi
+</span><span class='line'>
+</span><span class='line'>credentials=$(aws sts assume-role  --role-arn       arn:aws:iam::"$AWS_ACCOUNT_ID":role/roleName \
+</span><span class='line'>          --role-session-name roleSessionName \
+</span><span class='line'>            --query 'Credentials.[SecretAccessKey, SessionToken, AccessKeyId]'  \
+</span><span class='line'>            --output text)
+</span><span class='line'>
+</span><span class='line'>SecretAccessKey=$(echo $credentials | cut -d' ' -f1)
+</span><span class='line'>SessionToken=$(echo $credentials | cut -d' ' -f2)
+</span><span class='line'>AccessKeyId=$(echo $credentials | cut -d' ' -f3)
+</span><span class='line'>
+</span><span class='line'>docker run  -e BUILD_VERSION="$BUILD_VERSION" \
+</span><span class='line'>    -e DEPLOY_ENV="$DEPLOY_ENV" -e AWS_SECRET_ACCESS_KEY="$SecretAccessKey" \
+</span><span class='line'>    -e AWS_SESSION_TOKEN="$SessionToken" -e AWS_ACCESS_KEY_ID="$AccessKeyId" --rm docker_image bash -c 'grunt deploy'</span></code></pre></td></tr></table></div></figure>
+
+
+<p>因为部署是用aws node 的sdk，所以读取的环境变量名字不太一样，要稍微注意下。</p>
+
+<p>在CI上运行后，staging部署通过，手动在bamboo的docker agent上测试下是否能assume产品环境的部署的role，结果可以，那就是说产品环境的部署应该也可以通过了。</p>
+
+<h3>总结</h3>
+
+<ol>
+<li><code>npm</code> sucks，更糟糕的是程序员在引入依赖的时候缺乏考虑，我在<code>package.json</code>里面见到了不少无人维护的component，后续的升级维护是一个问题，联想以前的ruby项目也是一样。一旦有版本升级，碰到无人维护的gem时会非常痛苦。</li>
+<li>一个工程里面用了太多的语言，也是一件很糟糕的事情，明明可以用node的aws sdk来做到所有的部署，不知道为何用ruby去实现，无形中增大了维护的成本。</li>
+<li>一般来说，我们认为docker可以保证不同环境的一致性，但是由于一些特殊原因，如我上面提到的防火墙问题，bower module被git ignore掉的问题，在CI环境下才能暴露出来。所以在PR被merge到master之前，一定要保证修改在CI上也运行通过。</li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/docker/2016/08/11/one-interesting-docker-issue">One Interesting Docker Issue</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-08-11T17:52:10+10:00'><span class='date'><span class='date-month'>Aug</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:52 pm</span></time>
+        
+           | <a href="/docker/2016/08/11/one-interesting-docker-issue#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/docker/2016/08/11/one-interesting-docker-issue">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>项目上Akamai的回归测试运行在数据中心一台用Puppet管理的固定的虚拟服务器上，这台服务器是Bamboo Agent，负责运行所有遗留系统的自动化部署任务。
+前几天一个客户的Ops找我帮忙一起让这台服务器支持Docker，然后将测试放在docker中运行。我们修改puppet脚本，然后更新了Docker，结果发现2.6的内核最多运行docker 1.7，而运行测试的docker compose需要的docker客户端要高于1.7。 鉴于改动较大，于是我们换一种思路，用在AWS账户下已有的Bamboo docker agent去运行测试。所以revert了Puppet修改，并且在服务器上运行。
+以为一切都结束了，没想到过了几天，另一个组的Ops来找我说staging的部署失败了，问我什么原因，提示大意是没有找到NetScaler服务器的路由。我觉得很奇怪，就看了眼服务器上的路由表。结果发现了下面的现象：</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+</span><span class='line'>172.17.0.0      *               255.255.0.0     U     0      0        0 docker0</span></code></pre></td></tr></table></div></figure>
+
+
+<p>囧，staging的IP range也是<code>172.17</code>，原来是这个原因。
+于是，先停止这个网络设备，然后删除，之后再重启网络服务解决问题。</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>ip link down docker0
+</span><span class='line'>ip link del docker0
+</span><span class='line'>service network restart
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>我觉得从这个错误中可以学到两个事情</p>
+
+<ol>
+<li>配置管理工具的不可靠性，Puppet并没有完整的清理掉所有docker相关的东西</li>
+<li>这种<code>Pet</code>服务器的不可靠性，如果服务器是每天都按照配置重新创建也不会出现这样的问题</li>
+</ol>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/2016/07/11/cloudformation-introduction-and-usage">Cloudformation Introduction and Usage</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+<time class='entry-date' datetime='2016-07-11T13:16:21+10:00'><span class='date'><span class='date-month'>Jul</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>1:16 pm</span></time>
+        
+           | <a href="/2016/07/11/cloudformation-introduction-and-usage#disqus_thread"
+             data-disqus-identifier="http://iambowen.github.com/2016/07/11/cloudformation-introduction-and-usage">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>Cloudformation介绍</h2>
+
+<p><a href="https://aws.amazon.com/cloudformation/">Cloudformation</a> 是AWS的一项用来管理AWS相关的资源以及对资源的部署以及更新的服务。它具有以下几个特点：</p>
+
+<h2>Cloudformation的相关概念</h2>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox">Hand Over DNS Resolve to VirutalBox</a></h1>
     
     
@@ -94,7 +817,7 @@
 
 
 
-<time class='entry-date' datetime='2016-01-20T17:16:12+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>20</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>5:16 pm</span></time>
+<time class='entry-date' datetime='2016-01-20T20:16:12+11:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>20</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>8:16 pm</span></time>
         
            | <a href="/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox#disqus_thread"
              data-disqus-identifier="http://iambowen.github.com/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox">Comments</a>
@@ -155,7 +878,7 @@
 
 
 
-<time class='entry-date' datetime='2016-01-19T13:32:46+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>1:32 pm</span></time>
+<time class='entry-date' datetime='2016-01-19T16:32:46+11:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>4:32 pm</span></time>
         
            | <a href="/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api#disqus_thread"
              data-disqus-identifier="http://iambowen.github.com/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api">Comments</a>
@@ -262,1060 +985,6 @@
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/aws/kms/2016/01/15/aws-kms-and-its-usage">AWS KMS and Its Usage</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-15T09:33:30+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>15</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>9:33 am</span></time>
-        
-           | <a href="/aws/kms/2016/01/15/aws-kms-and-its-usage#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>什么是KMS</h2>
-
-<hr />
-
-<p><a href="https://aws.amazon.com/kms/">KMS</a>是AWS提供的中心化的key托管服务，它使用硬件安全模块 (HSM)保护密钥安全。它可以被集成到其它的AWS服务中，如S3, EBS, RDS等，同时所有关于key的使用都会在CloudTrail中记录，以方便审计。</p>
-
-<h2>KMS的优点</h2>
-
-<hr />
-
-<p>基本上来自于<a href="https://aws.amazon.com/kms/">文档</a>，其好处有如下几点：</p>
-
-<ol>
-<li>中心化的key托管服务。举个例子，对于不同的环境(staging/production)，我们需要维护不同private key 去做部署，调试等等，还得考虑定期rotate。出于安全考虑，这些private key不推荐和部署的repo放在一起。一般情况下你得把它们放在一个统一的地方去保存，如<a href="http://rattic.org/">Rattic</a>或者<a href="https://www.vaultproject.io/">Vault</a>去管理。这样的话，你的承担这些工具的维护任务。KMS可以让你免除维护的压力。</li>
-<li>和 AWS 服务的集成。S3，EBS，RDS的数据加密，都可以使用KMS。同时，它也支持命令行或者API去管理key，进行key的rotate，加密解密等。</li>
-<li>可伸缩性、耐用性和高可用性。KMS会自动帮你保存key多份拷贝，耐用性99.999999999%，同时KMS会在多个AZ部署，保证高可用性。</li>
-<li>安全。KMS在服务端通过硬件加密，保证了你在上面存储的key的安全性。其实现的细节在<a href="https://d0.awsstatic.com/whitepapers/KMS-Cryptographic-Details.pdf">这里</a></li>
-<li>审计。对于key的请求，都会被记录在CloudTrail中，方便审计。</li>
-</ol>
-
-
-<p>可以看到的好处有很多，比如直接把加密过后的private key或者密码扔到repo中，再也不用担心被别人拿去干坏事。</p>
-
-<h2>使用 KMS 服务</h2>
-
-<hr />
-
-<p>要使用KMS服务，首先得创建一个新的master key。key是按照region划分， 自己创建key的价格是1刀一个月，每个月的前20000次请求是免费的。</p>
-
-<h3>创建新key</h3>
-
-<hr />
-
-<p>在AWS Console -> IAM界面的<code>Encryption Keys</code>中找到创建Key和Key管理的选项，如key的<code>Enable</code>、<code>Disable</code>或者删除等。当然，我们可以通过AWS CLI来创建key，这样可以将整个过程用代码管理起来:</p>
-
-<ol>
-<li>假设AWS account为<code>123456789</code>,指定key policy并保存到文件(e.g <code>policy.json</code>)中</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="nt">&quot;Id&quot;</span><span class="p">:</span> <span class="s2">&quot;KeyPolicy-1&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nt">&quot;Version&quot;</span><span class="p">:</span> <span class="s2">&quot;2012-10-17&quot;</span><span class="p">,</span>
-</span><span class='line'>  <span class="nt">&quot;Statement&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>      <span class="nt">&quot;Sid&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow access for Admin&quot;</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;Principal&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span class='line'>        <span class="nt">&quot;AWS&quot;</span><span class="p">:</span> <span class="s2">&quot;arn:aws:iam::123456789:root&quot;</span>
-</span><span class='line'>      <span class="p">},</span>
-</span><span class='line'>      <span class="nt">&quot;Action&quot;</span><span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>        <span class="s2">&quot;kms:Create*&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;kms:Describe*&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;kms:Enable*&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;kms:List*&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;kms:Put*&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;kms:Update*&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;kms:Revoke*&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;kms:Disable*&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;kms:Get*&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;kms:Delete*&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;kms:ScheduleKeyDeletion&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;kms:CancelKeyDeletion&quot;</span>
-</span><span class='line'>      <span class="p">],</span>
-</span><span class='line'>      <span class="nt">&quot;Resource&quot;</span><span class="p">:</span> <span class="s2">&quot;*&quot;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>  <span class="p">]</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li>创建key，并绑定对应的policy</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; aws kms create-key --key-usage <span class="s2">&quot;encryption key&quot;</span> --description <span class="s2">&quot;master key&quot;</span> --policy <span class="s2">&quot;$(cat policy.json)&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>返回的内容可能如下</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="nt">&quot;KeyMetadata&quot;</span><span class="p">:</span> <span class="p">{</span>
-</span><span class='line'>    <span class="nt">&quot;KeyId&quot;</span><span class="p">:</span> <span class="s2">&quot;aabbccdd-4444-5555-6666-778899001122&quot;</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;Description&quot;</span><span class="p">:</span> <span class="s2">&quot;master key&quot;</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;Enabled&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;KeyUsage&quot;</span><span class="p">:</span> <span class="s2">&quot;encryption key&quot;</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;CreationDate&quot;</span><span class="p">:</span> <span class="mf">2433401783.841</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;Arn&quot;</span><span class="p">:</span> <span class="s2">&quot;arn:aws:kms:ap-southeast-2:123456789:key/aabbccdd-4444-5555-6666-778899001122&quot;</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;AWSAccountId&quot;</span><span class="p">:</span> <span class="s2">&quot;123456789&quot;</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li>授权IAM user/role去使用或者管理key,这是除了policy之外的另一种访问管理控制的机制。</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="o">{</span>
-</span><span class='line'>  <span class="s2">&quot;Sid&quot;</span>: <span class="s2">&quot;Allow use of the key&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;Effect&quot;</span>: <span class="s2">&quot;Allow&quot;</span>,
-</span><span class='line'>  <span class="s2">&quot;Principal&quot;</span>: <span class="o">{</span><span class="s2">&quot;AWS&quot;</span>: <span class="o">[</span>
-</span><span class='line'>    <span class="s2">&quot;arn:aws:iam::111122223333:user/KMSUser&quot;</span>,
-</span><span class='line'>    <span class="s2">&quot;arn:aws:iam::111122223333:role/KMSRole&quot;</span>,
-</span><span class='line'>  <span class="o">]}</span>,
-</span><span class='line'>  <span class="s2">&quot;Action&quot;</span>: <span class="o">[</span>
-</span><span class='line'>    <span class="s2">&quot;kms:Encrypt&quot;</span>,
-</span><span class='line'>    <span class="s2">&quot;kms:Decrypt&quot;</span>,
-</span><span class='line'>    <span class="s2">&quot;kms:ReEncrypt*&quot;</span>,
-</span><span class='line'>    <span class="s2">&quot;kms:GenerateDataKey*&quot;</span>,
-</span><span class='line'>    <span class="s2">&quot;kms:DescribeKey&quot;</span>
-</span><span class='line'>  <span class="o">]</span>,
-</span><span class='line'>  <span class="s2">&quot;Resource&quot;</span>: <span class="s2">&quot;*&quot;</span>
-</span><span class='line'><span class="o">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li>创建alias,可以作为keyid的替身使用</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws kms create-alias --alias-name <span class="s2">&quot;alias/test-encryption-key&quot;</span> --target-key-id aabbccdd-4444-5555-6666-778899001122
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li>使用key去加密文件。加密后的输出为base64编码后的密文，可以进一步解码为二进制文件。</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws kms encrypt --key-id 1234abcd-12ab-34cd-56ef-1234567890ab --plaintext fileb://ExamplePlaintextFile --output text --query CiphertextBlob <span class="p">|</span> base64 --decode &gt; ExampleEncryptedFile
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li>解密文件，原理如加密的过程。</li>
-</ol>
-
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>aws kms decrypt --ciphertext-blob fileb://ExampleEncryptedFile --output text --query Plaintext <span class="p">|</span> base64 --decode &gt; ExamplePlaintextFile
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>局限性</h3>
-
-<p>这种使用KMS的方式只能加密最多4KB的数据。想要加密更大的数据可以使用KMS去生成一个<a href="http://docs.aws.amazon.com/kms/latest/developerguide/workflow.html">Data Key</a>，然后利用Data Key去加密数据。</p>
-
-<h3>使用场景举例</h3>
-
-<p>在REA项目中，在AWS上部署的大多数APP都是（尽量）遵循12factors原则的。应用运行时依赖的配置是通过<code>user-data</code>传入环境变量设置。在一个instance上启动服务的过程大致如下：
-1. 在<code>launchConfiguration</code>中为instance添加<code>instanceProfile</code>，对应的role有使用KMS的权限；
-2. 在<code>user-data</code>中设置cypher text并且解密到环境变量中:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">cipher</span><span class="o">=</span><span class="s2">&quot;CiBwo3lXT5T+pTZu7P9Cqkh0Iolpaz9FMzha5jJb6kTdiBKNAQEBAgB4cKN5V0+U/qU2buz/QqpIdCKJaWs/RTM4WuYyW+pE3YgAAABkMGIGCSqGSIb3DQEHBqBVMFMCAQAwTgYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAwIxkIN0TeX1HiWyj0CARCAIVaSfD/spTBFAfBVIp/Wy6TadlwUKKz/oTMWUUob9fcxdg==&quot;</span>
-</span><span class='line'><span class="nv">cipher_blob</span><span class="o">=</span><span class="k">$(</span>mktemp /tmp/blob.123<span class="k">)</span>
-</span><span class='line'><span class="nb">echo</span> -n <span class="s2">&quot;${cipher}&quot;</span> <span class="p">|</span> base64 -D &gt; cipher_blob
-</span><span class='line'><span class="nv">PASSWORD</span><span class="o">=</span><span class="k">$(</span>aws kms decrypt --ciphertext-blob fileb://<span class="nv">$cipher_blob</span> <span class="se">\</span>
-</span><span class='line'>             --query <span class="s2">&quot;Plaintext&quot;</span>                         <span class="se">\</span>
-</span><span class='line'>             --output text                               <span class="se">\</span>
-</span><span class='line'>             --region ap-southeast-2  <span class="p">|</span> <span class="se">\</span>
-</span><span class='line'>             base64 -D
-</span><span class='line'><span class="k">)</span>
-</span><span class='line'>
-</span><span class='line'>docker run -d -e <span class="nv">PASSWORD</span><span class="o">=</span><span class="nv">$PASSWORD</span> .......
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2016-01-10T14:33:29+08:00'><span class='date'><span class='date-month'>Jan</span> <span class='date-day'>10</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span> <span class='time'>2:33 pm</span></time>
-        
-           | <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>上次在<a href="http://www.meetup.com/Infrastructure-Coders/">Melbourne Infrastructure-Coders</a>上介绍过一次，比较惨，改进了一遍后，这次重新在<a href="http://gdgxian.org/">GDG Xi'an</a>讲了下，还是中文讲起来比较6。</p>
-
-<p>屁屁踢如下:</p>
-
-<script async class="speakerdeck-embed" data-id="f32cb7fad8ec4785b1b48c91eaccd8db" data-ratio="1.33333333333333" src="//speakerdeck.com/assets/embed.js"></script>
-
-
-<p>Demo的环境是在本地实现的，repo在这里:<a href="https://github.com/iambowen/ansible-mesos">https://github.com/iambowen/ansible-mesos</a></p>
-
-<p>看不到屁屁踢的，请设置DNS为8.8.8.8或者翻墙……</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-12-28T22:24:42+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>28</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>10:24 pm</span></time>
-        
-           | <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/aws/practice/2015/12/28/stopping-creating-new-wheels">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>大概4-5年前，客户开始使用AWS作为他们的开发和测试环境，因为澳洲当时没有亚马逊的数据中心，所以只好
-使用us-east, us-west这些region。后来澳洲有了AWS的数据中心，应用的产品就都迁移到新的region
-和新的AWS账户下。由于这个历史原因，一部分bake AMI的任务以及部署的任务，都是跨账户以及region
-的。</p>
-
-<p>这些任务的工具，都是用ruby的<code>aws-sdk</code>包装的，从表面上看，这么做有如下的好处:</p>
-
-<ol>
-<li>更细粒度去控制这些任务以及过程</li>
-<li>代码可测试</li>
-<li>打包/发布/共享会更加容易些</li>
-<li>只要SDK支持，你都可以用自己熟悉的语言去实现这些工具</li>
-<li>写代码实现感觉很牛逼</li>
-</ol>
-
-
-<p>对于程序员来说，这么做感觉棒棒哒，写完很有满足感。但是实际中会带来很大的问题，具体表现在维护方面。
-我举两个例子：</p>
-
-<ol>
-<li>不是所有人都喜欢这个工具，有些人会提交patch，改进这个工具，有些人会重新实现一个类似功能的工
-具，比如我喜欢用Java，但是现有的工具是用Ruby实现，我表示不服，重头写一个。维护的难度在这种分散
-的项目和语言中增大了。</li>
-<li>实现者没有在对工具进行维护，其中依赖的sdk已经过期，而作为工具的使用者，并没有察觉到这件事情，
-在实际的使用中会遇到问题，面对非常深的stacktrace，debug的难度较高。</li>
-</ol>
-
-
-<p>最近，我和同事就碰到了这样的问题。我们AMI构建和部署的工具是用Ruby的<code>aws-sdk</code>实现，我们要做的工
-作是把构建AMI和部署的任务从一个AWS Account移到另外一个Account，原本的验证方式是通过Hard
-Code的Credentials如<code>AWS_SECRET_ACCESS_KEY/AWS_ACCESS_KEY_ID</code>。更好的实践是通过STS服务
-，用AssumeRole的方式去获得临时的Credential。听上去并没有什么太大的难度，但是当我们去迁移的时
-候，发现始终提示权限不足，而仔细检查role的权限后发现没有任何不妥，于是百思不得其解，尝试追踪
-stacktrace也没什么结果。</p>
-
-<p>无意中看了眼<code>Gemfile</code>，感觉<code>aws-sdk</code>的版本有点低，随手升了个级，然后试了下，竟然可以通过验证
-了……。</p>
-
-<p>多花了两个小时，就是因为没有再去维护这个工具。而这个工具实际实现的功能，用<code>aws-cli</code>也可
-以很容易实现，而且依赖更少：</p>
-
-<ol>
-<li>本地使用，只需要有<code>aws-cli</code>(可能还有python，除了windows，一般的系统默认都会有)和bash就可
-以了</li>
-<li>CI的slave上使用，可以让<code>aws-cli</code>在镜像启动时自动更新，这样就完全不需要维护</li>
-<li>如果cli参数有变动，提示会更加直接些，也容易追踪</li>
-</ol>
-
-
-<p>所以，如果大家要针对AWS做一些开发，比如镜像构建，清理或者自动化部署，推荐使用CLI的方式，而不是
-SDK去实现，从使用的角度，依赖更少，从维护的角度，成本更低。</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/ssh/security/2015/12/19/ssh-securely-and-handy">更加安全和简单的方式通过堡垒机ssh</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-12-19T14:24:30+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>19</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>2:24 pm</span></time>
-        
-           | <a href="/ssh/security/2015/12/19/ssh-securely-and-handy#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/ssh/security/2015/12/19/ssh-securely-and-handy">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>理想情况下的运维，是不需要ops去ssh到服务器上检查问题(包括安全问题)/日志等，这些是可以通过更好
-监控,如使用newrelic,或者更好的日志收集系统，如splunk等去避免。不过现实不总是完美的，加上历史
-遗留的原因，ops总是会ssh到堡垒机(bastion host)，然后跳转到目标服务器去做操作。</p>
-
-<p>于是，就有很多人(包括我)在堡垒机上生成key/pair, 而且private key很少加密(包括我)，这个存在
-很严重的安全风险。</p>
-
-<p>一个比较合理的方式是通过ssh proxy的方式去访问目标服务器，这样不需要把key暴露给bastion，比如:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; ssh -L 3333:destination_host:22 user@bastion
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>然后再启动一个新的ssh进程去通过proxy连接:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'> ~&gt; ssh -p <span class="m">3333</span> user@0
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>每次这么操作略麻烦，可以通过在ssh配置文件简化：</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host bastion
-</span><span class='line'>        HostName 192.168.1.1
-</span><span class='line'>        HostKeyAlias bastion
-</span><span class='line'>        LocalForward <span class="m">9999</span> target:22
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>那么建立proxy就只是<code>ssh user@bastion</code>就可以了，然后同理去<code>ssh -p 9999 user@0</code>。
-这么做的坏处在于<code>~/.ssh/config</code>配置可能会迅速膨胀，同时，每次还是启动两个进程去完成这件事情，不开心。</p>
-
-<p>于是，我们的安全大神介绍一个更加简单的方法，在<code>~/.ssh/config</code>中，加入下面的内容:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host */*
-</span><span class='line'>        ProxyCommand ssh <span class="k">$(</span>dirname %h<span class="k">)</span> -W <span class="k">$(</span>basename %h<span class="k">)</span>:%
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>如此我就可以通过<code>ssh user@bastion/target</code>的方式直接ssh到远程主机，<code>ProxyCommand</code>指令会
-生成两个进程，后台proxy进程，前台的进程直接通过proxy连接到目标主机。这样从命令行窗口看来我只
-是打开了一个会话。同时，你可以链接很多个主机，如<code>ssh user@bastion/targetA/targetB/targetC</code>。
-依次通过前一个主机建立的proxy连接到后面的主机上。</p>
-
-<p>这个方法有一些局限：</p>
-
-<ol>
-<li>不能在主机链上指定不同的端口；</li>
-<li>不能对不同的主机使用不同的登录用户名；</li>
-<li>不同链上建立的连接不能重用已经建立的连接，这可能会导致连接的速度减缓；</li>
-<li>其实还有个问题就是不能很容易的从<code>targetC</code>退出到 <code>targetB</code>…… (我想的)</li>
-</ol>
-
-
-<p>为了解决这些问题，大神想出了终极解决方案:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host */*
-</span><span class='line'>    ControlMaster auto
-</span><span class='line'>    ControlPath   ~/.ssh/.sessions/%r@%h:%p
-</span><span class='line'>    ProxyCommand /bin/sh -c <span class="s1">&#39;mkdir -p -m700 ~/.ssh/.sessions/&quot;%r@$(dirname %h)&quot; &amp;&amp; exec ssh -o &quot;ControlMaster auto&quot; -o &quot;ControlPath   ~/.ssh/.sessions/%r@$(dirname %h):%p&quot; -o &quot;ControlPersist 120s&quot; -l %r -p %p $(dirname %h) -W $(basename %h):%p&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<ol>
-<li><code>Host */*</code>: 匹配ssh到<code>A/B/X</code>这样的主机类型，然后递归的ssh到链中的主机；</li>
-<li><code>ControlMaster auto</code>: 这个指令的意思是指ssh应当复用已有的control channel连接远程主
-机，如果这样的channel不存在，则重新创建，以便以后的链接复用；</li>
-<li><code>ControlPath ~/.ssh/.sessions/%r@%h:%p</code>: 这个指令告诉ssh control channel socket
-文件的位置。对于每个远程主机，socket文件应该是唯一的，如此我们可以重用已有连接并且跳过验证。所
-以我们用<code>%r</code>(remote login name),<code>%h</code>(remote host name)和<code>%p</code>(端口)作为文件名的部分。
-唯一的问题是因为路径中的<code>/</code>，这里会在<code>%h</code>被当成一个目录，但是ssh不会自动创建目录；</li>
-<li><code>ProxyCommand blah</code>: 命令开始时就先创建了所有必须的目录。 <code>ControlPersist</code>的意思是如果
-control channel 2分钟内没有活动则停止ssh进程。如果你有两个会话<code>bastion/HostA</code>和
-<code>bastion/HostB</code>，如果不配置<code>ControlPersist</code>，结束第一个进程时第二进程也会同时被干掉。</li>
-</ol>
-
-
-<p>所以，当你用上面的配置去<code>ssh user@bastion/A/B/C</code>时:</p>
-
-<ol>
-<li>ssh 匹配到了<code>*/*</code>模式</li>
-<li>ssh 尝试重用<code>~/.ssh/.sessions/user@bastion/A/B/C:22</code>的socket，如果成功则建立连接，
-没有则继续执行</li>
-<li>ssh执行<code>ProxyCommand</code>中的内容， 创建目录同时递归的ssh到最终的主机C</li>
-<li>然后ssh在主机C上进行身份验证，成功则创建<code>~/.ssh/.sessions/user@bastion/A/B/C:22</code>的
-control channel socket文件，并且成为control channel的master</li>
-<li>显示命令行提示符</li>
-</ol>
-
-
-<p>你现在有没有和我一样晕，在和大神交流一番后，大神告诉我一个改进版的配置:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>Host */*
-</span><span class='line'>        ControlMaster auto
-</span><span class='line'>        ProxyCommand    /usr/bin/ssh -o <span class="s2">&quot;ControlMaster auto&quot;</span> -o <span class="s2">&quot;ControlPath ~/.ssh/.sessions/%%C&quot;</span> -o <span class="s2">&quot;ControlPersist 120s&quot;</span> -l %r -p %p <span class="k">$(</span>dirname %h<span class="k">)</span> -W <span class="k">$(</span>basename %h<span class="k">)</span>:%p
-</span><span class='line'>
-</span><span class='line'>Host *
-</span><span class='line'>        ControlPath     ~/.ssh/.sessions/%C
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这个配置要简单些，不过他假设你已经创建了<code>~/.ssh/.sessions</code>目录。</p>
-
-<p>荣耀归于Dmitry大神，虽然那个ssh keypair我还没有删除……。</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Don't Copy/paste Keys From Chatting Tools</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-12-17T16:58:30+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>4:58 pm</span></time>
-        
-           | <a href="/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/ssh/practice/2015/12/17/dont-copy-slash-paste-keys-from-chatting-tools">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>今天，别的组的同事过来问我一个关于SSH的问题，问题是这样的:</p>
-
-<ol>
-<li>客户把AWS的ssh instance的private key通过slack拷给了同事；</li>
-<li>同事发现用部署工具<a href="http://www.fabfile.org/">fabric</a>可以使用该key，ssh到EC2的instance上进行部署；</li>
-<li>但是如果使用key去ssh(如<code>ssh -i key user@instance</code>)到EC2的instance，就会提示输入<code>passphrase</code></li>
-<li>客户的Ops很肯定说这个private key没有加<code>passphrase</code></li>
-</ol>
-
-
-<p>这个问题很有趣，我先查看了下key，在我的印象里，如果在<code>ssh-keygen</code>的时候加入密码保护了，private
-key 中会有如下的额外信息:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>-----BEGIN RSA PRIVATE KEY-----
-</span><span class='line'>Proc-Type: 4,ENCRYPTED
-</span><span class='line'>DEK-Info: AES-128-CBC,B88893260B6CCFDC6304101075B74A9F
-</span><span class='line'>.....</span></code></pre></td></tr></table></div></figure>
-
-
-<p>但是同事给我的private key中没有.</p>
-
-<p>在不同的系统下尝试用该key去ssh到EC2 instance得到的结果都是需要输入passpharse,通过输入冗余
-ssh信息<code>ssh -vvvv</code>也没有看到什么有用信息(其实是我忽略了)。</p>
-
-<p>google搜索，猜测会不会是key generate时候的格式不同导致的，但是觉得这种可能性不高。</p>
-
-<p>在客户的ops channel询问了下，有人给出了这个建议，用</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>openssl rsa -text -noout -in KEYFILE</span></code></pre></td></tr></table></div></figure>
-
-
-<p>去检查key的完整性,返回结果如下:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>[vagrant@localhost ~]$ openssl rsa -text -noout -in id_rsa
-</span><span class='line'>unable to load Private Key
-</span><span class='line'>140516793460640:error:0906D066:PEM routines:PEM_read_bio:bad end line:pem_lib.c:802:</span></code></pre></td></tr></table></div></figure>
-
-
-<p>实际上这个信息已经比较明显了，另外有人也从ssh debug的信息中指出:</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>debug1: key_parse_private2: missing begin marker
-</span><span class='line'>debug1: key_parse_private_pem: PEM_read_PrivateKey failed</span></code></pre></td></tr></table></div></figure>
-
-
-<p>private key的开始或者结束的marker出问题了，于是客户询问这个key是不是从slack拷贝过去的，因为
-聊天工具有时候会自动纠错，把结束的marker <code>----</code>自动改成<code>——</code>，他曾经就遇到过这种情况。
-再看一遍private key，果然是这样……好羞愧。修改后，果然可以顺利ssh 到instance上了。
-(更正下，虽然他指出了问题的来源，但是这段debug信息，在private key是完整的情况下仍然存在，所以这不是key出错的绝对证据。)</p>
-
-<p>从这个事情中，我们可以得到一些教训</p>
-
-<ol>
-<li>不要用聊天工具copy/paste private key或者代码之类的东西，很容易引起错误。</li>
-<li>同时，这种方式也很不安全，尽量不要这么做，要么在传递完后迅速删除聊天记录</li>
-<li>或者使用一个公共的key管理的服务，如<a href="http://rattic.org/">rattic</a>，或者使用临时生成的credential来ssh，如这个<a href="https://github.com/realestate-com-au/sshephalopod">项目</a>进一步提高安全性。</li>
-</ol>
-
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Make Everything Production Like - (2/2)</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-12-06T17:12:21+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>5:12 pm</span></time>
-        
-           | <a href="/practice/aws/2015/12/06/make-everything-production-like-2-slash-2#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/practice/aws/2015/12/06/make-everything-production-like-2-slash-2">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="http://iambowen.github.io/2015/07/05/make-everything-production-like/">开发环境出问题的时候，影响到只是自己</a>，如果持续集成环境或者其相关的基础设施出了问题，那影响到的就
-是所有人以及整个开发的进展，我们曾经遇到一次这样的事故，整个 <a href="https://www.atlassian.com/software/bamboo">Bamboo</a>(CI)环境的Master和Database都被干掉了，出乎意料的是AWS RDS的自动镜像同时也被删除,于是所有的人花了一个礼拜才重新建好了全部的流水线。</p>
-
-<p>除此之外，一些基础设施，比如企业私有的Repository(如Nexus, Koji, rubygems服务器等)出现问题，也会影响到整个开发和持续交付的时间。</p>
-
-<p>如何解决这个问题？很简单，提高这些环境的可用性，把他们当做产品环境一样看待，提高出错的响应速度，
-减少平均恢复时间等。</p>
-
-<p>先举一个CI环境当做产品环境来对待的例子。
-一些简单的背景:</p>
-
-<ol>
-<li>客户使用的持续集成工具是<a href="https://www.atlassian.com/software/bamboo">Bamboo</a></li>
-<li>CI Master，Agent以及数据库服务都采用了AWS的服务，如EC2、RDS、R53等</li>
-<li>用CloudFormation去管理整个CI服务的基础设施，同时用Rake task去简化管理的难度。</li>
-</ol>
-
-
-<p>其具体的结构图如下:
-<img src="http://7xp2qy.com1.z0.glb.clouddn.com/bamboo_arch.png" alt="arch" /></p>
-
-<p>该结构详细解释如下:</p>
-
-<ol>
-<li>Bamboo Agent和 Bamboo Master的依赖及其配置打包成RPM，部署的EC2 instance基于Centos定制过的AMI</li>
-<li>Bamboo Master/Agent/DB 都用CloudFormation管理</li>
-<li>在Bamboo Agent Stack的LaunchConfiguration中的Metadata中，安装在Agent中运行各种build的依赖，
-比如不同的Ruby版本等，同时定义<code>cfn-hup</code>服务，监听Agent的Stack变化，如果有Metadata的变化，
-比如，更新了Agent上支持的Java版本，则在Agent上更新该配置</li>
-<li>Bamboo Agent由一个AutoScalingGroup管理，除了自动Scale，还可以每天定时启动或者停止Agent
-Instance，节省成本</li>
-<li>Bamboo Master的Stack中做的事情类似</li>
-<li>Bamboo Master的SecurityGroup只接受来自Bamboo Agent的SecurityGroup的访问，Bamboo
-Master DB的SecurityGroup只接受来自Bamboo Master SecurityGroup的请求</li>
-<li>Bamboo Master DB使用RDS服务</li>
-<li>Bamboo Master服务器上运行的Cron Job每天会定时备份文件系统的Snapshot</li>
-<li>Bamboo 服务器上的一个Plan每天会运行定时的任务，创建Master DB的Snapshot,RDS可以设置自动
-生成snapshot，不过一旦Master DB被干掉，snapshot也会被一起干掉。所以，安全期间，还是manual
-snapshot比较好。</li>
-</ol>
-
-
-<p>回顾这套结构，如果某个Agent挂掉，AutoScalingGroup会重新spin up一个新的Agent Instance。
-如果Bamboo Master或者Master DB挂掉，也可以通过CloudFormation Stack以及备份的Snapshot
-在1-2个小时以内恢复，时间的开销相对较少。</p>
-
-<p>仔细的同学可能会注意到，为了满足运行build的各种条件，需要安装各种依赖，比如不同的Ruby版本，
-不同的Java版本等，重新创建一个Agent Instance到配置完成注册成为Bamboo服务，时间会比较长。而且
-如果Metadata的更新导致环境失败，会迅速影响到所有的Agent。</p>
-
-<p>相信很多人会想到更好的解决方案，比如将每个build任务都在Docker容器中运行，如此作为整个CI环境
-的维护者，只需要保证每个Agent上面有docker deamon运行，整个Agent挂掉的几率大大降低，同时维护
-的责任分散到每个团队内，减轻了维护的压力。</p>
-
-<p>下面介绍如何提高企业内部的私有Repository，如Nexus的可用性和稳定性以及快速恢复能力。
-我们的Nexus服务器的结构图，如下:
-<img src="http://7xp2qy.com1.z0.glb.clouddn.com/nexus_arch.png" alt="nexus arch" /></p>
-
-<p>详细解释如下:</p>
-
-<ol>
-<li>Nexus服务运行在ELB后的一个EC2 Instance上</li>
-<li>其部署基于安装有Nexus服务的Base AMI以及CloudFormation stack</li>
-<li>Nexus的artifact目录挂载在一个EBS volume下，Instance在初始化时配置了InstanceProfile，
-在crontab添加脚本，可以用InstanceProfile中的role去创建EBS volume的daily snapshot，以防止artifact数据丢失</li>
-<li>监控方面，如果ELB下面的健康的Instance数量少于1或者Instance上的EBS Volume没有正确的挂载，都会触发Cloudwatch Alarm，并通过SNS通知Pagerduty，然后Pagerduty再将警报发给维护Nexus的Ops</li>
-</ol>
-
-
-<p>对于上面的Nexus结构，由于有足够的备份，不论是Volume挂载失败需要恢复或者是Instance当机，处理的
-时间成本都会比较低，在半个小时以内。</p>
-
-<p>开发/测试依赖的环境可能还有很多，更多的把它们当做产品环境对待，会大大增加持续交付的流畅度，减轻环境维护方面的痛楚。</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Specifying Amazon Credentials in Packer</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-12-02T20:50:33+08:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>2</span><span class='date-suffix'>nd</span>, <span class='date-year'>2015</span></span> <span class='time'>8:50 pm</span></time>
-        
-           | <a href="/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="https://packer.io/">Packer</a>是一个用一份配置构建跨平台镜像的工具，它支持EC2 AMI，Vmware，
-QEMU，Virtualbox，docker等多个平台。</p>
-
-<p>我们使用AWS作为基础设施平台，通过EC2 AMI作为镜像部署，构建AMI工具基于Packer，加上了一些定制
-的东西以减少配置，简化使用的方式。</p>
-
-<p>Packer在构建AMI时，需要创建临时的key pair,security group以及EC2实例，因为需要对应的API
-credentials,像这样:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>access key id:     AKIAIOSFODNN7EXAMPLE
-</span><span class='line'>secret access key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>所以Packer需要在配置文件中hard code credentials或者通过环境变量传入，如果这些都没有找到，
-Packer会通过如下的步骤去自动查找credential:</p>
-
-<p>1.查找AWS相关环境变量，如:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">AWS_ACCESS_KEY_ID</span><span class="o">=</span>AKIAIOSFODNN7EXAMPLE
-</span><span class='line'><span class="nv">AWS_SECRET_ACCESS_KEY</span><span class="o">=</span>wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>2.寻找AWS配置文件<code>~/.aws/credentials</code>或者<code>AWS_PROFILE</code>环境变量</p>
-
-<p>3.查找运行Packer的EC2实例中<a href="http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html">instance profile</a>中的role，然后用AWS STS(Security Token Service)来获取临时的credential.该role的policy至少要允许如下的Actions:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="nt">&quot;Statement&quot;</span><span class="p">:</span> <span class="p">[{</span>
-</span><span class='line'>      <span class="nt">&quot;Effect&quot;</span><span class="p">:</span> <span class="s2">&quot;Allow&quot;</span><span class="p">,</span>
-</span><span class='line'>      <span class="nt">&quot;Action&quot;</span> <span class="p">:</span> <span class="p">[</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:AttachVolume&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:CreateVolume&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:DeleteVolume&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:CreateKeypair&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:DeleteKeypair&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:CreateSecurityGroup&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:DeleteSecurityGroup&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:AuthorizeSecurityGroupIngress&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:CreateImage&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:RunInstances&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:TerminateInstances&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:StopInstances&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:DescribeVolumes&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:DetachVolume&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:DescribeInstances&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:CreateSnapshot&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:DeleteSnapshot&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:DescribeSnapshots&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:DescribeImages&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:RegisterImage&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:CreateTags&quot;</span><span class="p">,</span>
-</span><span class='line'>        <span class="s2">&quot;ec2:ModifyImageAttribute&quot;</span>
-</span><span class='line'>      <span class="p">],</span>
-</span><span class='line'>      <span class="nt">&quot;Resource&quot;</span> <span class="p">:</span> <span class="s2">&quot;*&quot;</span>
-</span><span class='line'>  <span class="p">}]</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>这几种方式中，使用instance profile的的方式是最好的，原因大致如下:</p>
-
-<ol>
-<li>固定credential的方式会带来安全隐患，一旦泄露，会导致巨大的损失。</li>
-<li>从安全的角度考虑，API credential需要rotate，这样会带来维护成本。读取配置文件也有同样的
-问题。</li>
-<li>在持续集成流水线AMI构建任务中，credential必须通过环境变量的方式传入，任务本身增加了额外的
-依赖，维护成本提高。</li>
-</ol>
-
-
-<p>之所以总结Packer在构建AMI时指定credential的方式，是因为最近在把一个用packer构建AMI的流水线
-从一个Region移到另一个Region时遇到了原有的credential不工作的情况，后来发现，其实运行这个任务
-的Agent(EC2实例)初始化时就绑定了instance profile，不用设置任何额外的credential，packer可以
-自动去读取，于是在移除了原有的各种credential之后，顺利的构建出了镜像。</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/2015/09/14/solution-for-joseph-question">Solution for Joseph Question</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-<time class='entry-date' datetime='2015-09-14T00:00:00+08:00'><span class='date'><span class='date-month'>Sep</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span> <span class='time'>12:00 am</span></time>
-        
-           | <a href="/2015/09/14/solution-for-joseph-question#disqus_thread"
-             data-disqus-identifier="http://iambowen.github.com/2015/09/14/solution-for-joseph-question">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="https://www.coursera.org/learn/jisuanji-biancheng/programming/nXnUt/shu-ju-cheng-fen-ying-yong-lian-xi">囧瑟夫问题</a>:</p>
-
-<h4>描述</h4>
-
-<p>有ｎ只猴子，按顺时针方向围成一圈选大王（编号从１到ｎ），从第１号开始报数，一直数到ｍ，数到ｍ的猴子退出圈外，剩下的猴子再接着从1开始报数。就这样，直到圈内只剩下一只猴子时，这个猴子就是猴王，编程求输入ｎ，ｍ后，输出最后猴王的编号。</p>
-
-<h4>输入</h4>
-
-<p>每行是用空格分开的两个整数，第一个是 n, 第二个是 m ( 0 &lt; m,n &lt;=300)。最后一行是：</p>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>0 0</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>输出</h4>
-
-<p>对于每行输入数据（最后一行除外)，输出数据也是一行，即最后猴王的编号</p>
-
-<h4>样例输入</h4>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>6 2
-</span><span class='line'>12 4
-</span><span class='line'>8 3
-</span><span class='line'>0 0</span></code></pre></td></tr></table></div></figure>
-
-
-<h4>样例输出</h4>
-
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>5
-</span><span class='line'>1
-</span><span class='line'>7</span></code></pre></td></tr></table></div></figure>
-
-
-<p>有用类似链表的实现方法，我没有这么做……</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-</pre></td><td class='code'><pre><code class='c++'><span class='line'><span class="c1">//for joseph problem</span>
-</span><span class='line'><span class="cp">#include &lt;iostream&gt;</span>
-</span><span class='line'><span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span> <span class="nf">joseph</span><span class="p">(</span><span class="kt">int</span> <span class="n">n</span><span class="p">,</span> <span class="kt">int</span> <span class="n">m</span><span class="p">){</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">flat</span><span class="p">[</span><span class="mi">300</span><span class="p">];</span>
-</span><span class='line'>  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">flat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="n">n</span><span class="p">,</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">m</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="n">count</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">i</span> <span class="o">=</span> <span class="p">((</span><span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="o">%</span> <span class="n">n</span><span class="p">)){</span>
-</span><span class='line'>      <span class="k">if</span><span class="p">(</span><span class="n">flat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">){</span>
-</span><span class='line'>        <span class="k">if</span><span class="p">(</span><span class="n">mod</span> <span class="o">==</span> <span class="mi">0</span><span class="p">){</span>
-</span><span class='line'>          <span class="n">flat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'>          <span class="n">count</span><span class="o">--</span><span class="p">;</span>
-</span><span class='line'>        <span class="p">}</span>
-</span><span class='line'>        <span class="n">mod</span> <span class="o">=</span> <span class="p">(</span><span class="n">mod</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">m</span><span class="p">;</span>
-</span><span class='line'>      <span class="p">}</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">){</span>
-</span><span class='line'>    <span class="k">if</span><span class="p">(</span><span class="n">flat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
-</span><span class='line'>      <span class="k">return</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(){</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">set_n</span><span class="p">[</span><span class="mi">100</span><span class="p">],</span> <span class="n">set_m</span><span class="p">[</span><span class="mi">100</span><span class="p">];</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">while</span><span class="p">(</span><span class="nb">true</span><span class="p">){</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">cin</span> <span class="o">&gt;&gt;</span> <span class="n">n</span> <span class="o">&gt;&gt;</span> <span class="n">m</span><span class="p">;</span>
-</span><span class='line'>    <span class="k">if</span> <span class="p">((</span><span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="n">m</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)){</span>
-</span><span class='line'>      <span class="k">break</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>      <span class="n">set_n</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span><span class="p">;</span>
-</span><span class='line'>      <span class="n">set_m</span><span class="p">[</span><span class="n">count</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span><span class="p">;</span>
-</span><span class='line'>      <span class="n">count</span><span class="o">++</span><span class="p">;</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">count</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
-</span><span class='line'>    <span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">joseph</span><span class="p">(</span><span class="n">set_n</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">set_m</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">&lt;&lt;</span> <span class="n">endl</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/posts/2">&larr; Older</a>
@@ -1331,23 +1000,23 @@ Packer会通过如下的步骤去自动查找credential:</p>
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/virutalbox/dns/network/2016/01/20/hand-over-dns-resolve-to-virutalbox">Hand Over DNS Resolve to VirutalBox</a>
+        <a href="/log/spring/2016/11/17/supressing-an-warning-log">Supressing an Warning Log</a>
       </li>
     
       <li class="post">
-        <a href="/akamai/diagnostic/2016/01/19/using-akamai-diagnostic-tools-slash-api">Using Akamai Diagnostic tools/API</a>
+        <a href="/dns/2016/11/15/issue-raised-by-dns">Issue Raised by DNS</a>
       </li>
     
       <li class="post">
-        <a href="/aws/kms/2016/01/15/aws-kms-and-its-usage">AWS KMS and Its Usage</a>
+        <a href="/bamboo/emoji/2016/11/03/dont-put-emoji-in-commit-message">Don't Put Emoji in Commit Message</a>
       </li>
     
       <li class="post">
-        <a href="/ci/mesos/aws/2016/01/10/ci-solution-with-mesos">Ci Solution With Mesos</a>
+        <a href="/2016/08/19/gpgand-keybase-introduction-and-usage">Gpgand Keybase Introduction and Usage</a>
       </li>
     
       <li class="post">
-        <a href="/aws/practice/2015/12/28/stopping-creating-new-wheels">Stop Wrapping AWS SDK to Create Tools</a>
+        <a href="/git/2016/08/17/how-to-write-useful-git-commit-message">How to Write Useful Git Commit Message</a>
       </li>
     
   </ul>

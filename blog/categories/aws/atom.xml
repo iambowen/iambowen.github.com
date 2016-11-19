@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Aws | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[AWS KMS and Its Usage]]></title>
     <link href="http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage"/>
-    <updated>2016-01-15T09:33:30+08:00</updated>
+    <updated>2016-01-15T12:33:30+11:00</updated>
     <id>http://iambowen.github.com/aws/kms/2016/01/15/aws-kms-and-its-usage</id>
     <content type="html"><![CDATA[<h2>什么是KMS</h2>
 
@@ -182,7 +182,7 @@ docker run -d -e PASSWORD=$PASSWORD .......
   <entry>
     <title type="html"><![CDATA[Ci Solution With Mesos]]></title>
     <link href="http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos"/>
-    <updated>2016-01-10T14:33:29+08:00</updated>
+    <updated>2016-01-10T17:33:29+11:00</updated>
     <id>http://iambowen.github.com/ci/mesos/aws/2016/01/10/ci-solution-with-mesos</id>
     <content type="html"><![CDATA[<p>上次在<a href="http://www.meetup.com/Infrastructure-Coders/">Melbourne Infrastructure-Coders</a>上介绍过一次，比较惨，改进了一遍后，这次重新在<a href="http://gdgxian.org/">GDG Xi'an</a>讲了下，还是中文讲起来比较6。</p>
 
@@ -199,9 +199,9 @@ docker run -d -e PASSWORD=$PASSWORD .......
   
   <entry>
     <title type="html"><![CDATA[Stop Wrapping AWS SDK to Create Tools]]></title>
-    <link href="http://iambowen.github.com/aws/practice/2015/12/28/stopping-creating-new-wheels"/>
-    <updated>2015-12-28T22:24:42+08:00</updated>
-    <id>http://iambowen.github.com/aws/practice/2015/12/28/stopping-creating-new-wheels</id>
+    <link href="http://iambowen.github.com/aws/practice/2015/12/29/stopping-creating-new-wheels"/>
+    <updated>2015-12-29T01:24:42+11:00</updated>
+    <id>http://iambowen.github.com/aws/practice/2015/12/29/stopping-creating-new-wheels</id>
     <content type="html"><![CDATA[<p>大概4-5年前，客户开始使用AWS作为他们的开发和测试环境，因为澳洲当时没有亚马逊的数据中心，所以只好
 使用us-east, us-west这些region。后来澳洲有了AWS的数据中心，应用的产品就都迁移到新的region
 和新的AWS账户下。由于这个历史原因，一部分bake AMI的任务以及部署的任务，都是跨账户以及region
@@ -259,7 +259,7 @@ SDK去实现，从使用的角度，依赖更少，从维护的角度，成本�
   <entry>
     <title type="html"><![CDATA[Make Everything Production Like - (2/2)]]></title>
     <link href="http://iambowen.github.com/practice/aws/2015/12/06/make-everything-production-like-2-slash-2"/>
-    <updated>2015-12-06T17:12:21+08:00</updated>
+    <updated>2015-12-06T20:12:21+11:00</updated>
     <id>http://iambowen.github.com/practice/aws/2015/12/06/make-everything-production-like-2-slash-2</id>
     <content type="html"><![CDATA[<p><a href="http://iambowen.github.io/2015/07/05/make-everything-production-like/">开发环境出问题的时候，影响到只是自己</a>，如果持续集成环境或者其相关的基础设施出了问题，那影响到的就
 是所有人以及整个开发的进展，我们曾经遇到一次这样的事故，整个 <a href="https://www.atlassian.com/software/bamboo">Bamboo</a>(CI)环境的Master和Database都被干掉了，出乎意料的是AWS RDS的自动镜像同时也被删除,于是所有的人花了一个礼拜才重新建好了全部的流水线。</p>
@@ -340,7 +340,7 @@ snapshot比较好。</li>
   <entry>
     <title type="html"><![CDATA[Specifying Amazon Credentials in Packer]]></title>
     <link href="http://iambowen.github.com/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer"/>
-    <updated>2015-12-02T20:50:33+08:00</updated>
+    <updated>2015-12-02T23:50:33+11:00</updated>
     <id>http://iambowen.github.com/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer</id>
     <content type="html"><![CDATA[<p><a href="https://packer.io/">Packer</a>是一个用一份配置构建跨平台镜像的工具，它支持EC2 AMI，Vmware，
 QEMU，Virtualbox，docker等多个平台。</p>

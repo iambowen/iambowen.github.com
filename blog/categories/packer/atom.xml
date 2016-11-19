@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Packer | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/packer/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Specifying Amazon Credentials in Packer]]></title>
     <link href="http://iambowen.github.com/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer"/>
-    <updated>2015-12-02T20:50:33+08:00</updated>
+    <updated>2015-12-02T23:50:33+11:00</updated>
     <id>http://iambowen.github.com/packer/aws/2015/12/02/specifying-amazon-credentials-in-packer</id>
     <content type="html"><![CDATA[<p><a href="https://packer.io/">Packer</a>是一个用一份配置构建跨平台镜像的工具，它支持EC2 AMI，Vmware，
 QEMU，Virtualbox，docker等多个平台。</p>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Git | Bowen's Blog]]></title>
   <link href="http://iambowen.github.com/blog/categories/git/atom.xml" rel="self"/>
   <link href="http://iambowen.github.com/"/>
-  <updated>2016-07-03T14:37:09+08:00</updated>
+  <updated>2016-11-19T22:34:38+11:00</updated>
   <id>http://iambowen.github.com/</id>
   <author>
     <name><![CDATA[Bowen Ma]]></name>
@@ -14,9 +14,166 @@
 
   
   <entry>
+    <title type="html"><![CDATA[How to Write Useful Git Commit Message]]></title>
+    <link href="http://iambowen.github.com/git/2016/08/17/how-to-write-useful-git-commit-message"/>
+    <updated>2016-08-17T13:20:33+10:00</updated>
+    <id>http://iambowen.github.com/git/2016/08/17/how-to-write-useful-git-commit-message</id>
+    <content type="html"><![CDATA[<p>相信大家在自己项目的历史提交里面看到类似的提交记录
+<img src="http://imgs.xkcd.com/comics/git_commit.png" alt="" />
+我还见过更加糟糕的，类似这样
+<code>
+53ee0c7 fix build again
+7a63a11 fix build
+</code>
+这样的提交信息的问题在于不表意，没有简要的说明修改的内容，为什么要这样的修改，别人只能去查看具体的代码改动才能知道发生了什么，但是可能无法知道为什么这样修改。当然，这样的提交我自己也写过，原因包括
+1. 语法、拼写错误，羞于示人
+2. 解释原因得写很长，懒的敲键盘
+3. 无法解释为什么这样的修改就能work
+这其实算是一种比较不负责任的行为，估计别人看到会比较崩溃，幸运的是还没有领导看到，所以至今没有被开除。举个例子，假设某个提交引起了产品环境的错误，别人需要迅速定位是哪个提交引起的问题，但是如果提交都是类似<code>Perfectly complete a new story</code>，而且每次代码修改的量都比较庞大，那就得花很多时间才能定位。相反如果提交信息很清晰，<code>BAU-1008 add xxx form in xxx page. :pear: Kevin</code>。你用<code>git log --oneline --after "Aug 10 2016"</code>可以迅速看到对应的提交，进一步的可以查看修改内容再查找具体的问题。</p>
+
+<p>今天早上客户跟我们一起做了一个关于如何有效的提交<code>git commit</code>信息。他提到了<code>git commit message</code>的7个<a href="http://chris.beams.io/posts/git-commit/">规则</a>。他认为从项目维护性的角度考虑，应当注意提交的信息以及规范。一个项目的提交信息首先得从下面三个方面达成一致:</p>
+
+<ol>
+<li>格式。消息体的格式，如Markdown，语法应该是什么样子，大写的规则等。</li>
+<li>内容。提交的信息中应当包含什么，不应当包含什么。</li>
+<li>元数据。问题跟踪的ID（Jira，Leankit等）要不要引用，PR的sha code要不要引用。</li>
+</ol>
+
+
+<p>具体的规则有下面7点：</p>
+
+<ol>
+<li>用空行将内容和主题分开</li>
+<li>提交的主题限制在50个字符</li>
+<li>主题首字母大写</li>
+<li>主题结尾不要使用句号</li>
+<li>主题需要使用祈使/肯定语气</li>
+<li>内容每72个字符换行</li>
+<li>在内容中解释清楚修改的原因及方式</li>
+</ol>
+
+
+<p>第一条，如果内容和主题没有分开，<code>git log --oneline</code>主题和下面的内容会一起显示。
+第二条，主题超过50个字符时超过的部分在github上显示为<code>...</code>，提交PR的时候超过的部分会被折断到comments中，很烦人。用vim去编辑提交信息的时候，如果看到主题的字的颜色变化了，就说明超过了50个字符。
+第三、四条不评价，感觉更多是从美观和规范上统一的。
+第五条，感觉这样可以少写一些字，而且和git 缺省的提交信息，如revert的提交信息一致。
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>Revert &ldquo;Add the thing with the stuff&rdquo;&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;This reverts commit cc87791524aedd593cff5a74532befe7ab69ce9d.
+</span><span class='line'>&lt;code&gt;
+</span><span class='line'>第六条，因为git不会帮你wrap文字，所以得手动的来做这个事情，这里可以借助一些编辑器，如VI的帮助。
+</span><span class='line'>第七条，个人觉得这个才是最重要的，解释清楚修改的原因以及方式，引用别人文章里面的一个例子:
+</span><span class='line'>&lt;/code&gt;
+</span><span class='line'>commit eb0b56b19017ab5c16c745e6da39c53126924ed6
+</span><span class='line'>Author: Pieter Wuille &lt;a href="&#109;&#x61;&#x69;&#108;&#116;&#x6f;&#x3a;&#x70;&#x69;&#101;&#x74;&#101;&#114;&#46;&#x77;&#117;&#105;&#108;&#x6c;&#101;&#64;&#103;&#109;&#97;&#105;&#108;&#x2e;&#x63;&#x6f;&#x6d;"&gt;&#112;&#105;&#x65;&#x74;&#101;&#x72;&#46;&#x77;&#x75;&#105;&#108;&#108;&#101;&#64;&#103;&#109;&#x61;&#105;&#108;&#46;&#99;&#111;&#109;&lt;/a&gt;
+</span><span class='line'>Date:   Fri Aug 1 22:57:55 2014 +0200&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;   Simplify serialize.h&rsquo;s exception handling&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;   Remove the &lsquo;state&rsquo; and &lsquo;exceptmask&rsquo; from serialize.h&rsquo;s stream
+</span><span class='line'>   implementations, as well as related methods.&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;   As exceptmask always included &lsquo;failbit&rsquo;, and setstate was always
+</span><span class='line'>   called with bits = failbit, all it did was immediately raise an
+</span><span class='line'>   exception. Get rid of those variables, and replace the setstate
+</span><span class='line'>   with direct exception throwing (which also removes some dead
+</span><span class='line'>   code).&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;   As a result, good() is never reached after a failure (there are
+</span><span class='line'>   only 2 calls, one of which is in tests), and can just be replaced
+</span><span class='line'>   by !eof().&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt;   fail(), clear(n) and exceptions() are just never called. Delete
+</span><span class='line'>   them.
+</span><span class='line'> ```
+</span><span class='line'>业务相关的代码修改，可以将story ID加在最前面，方便issue track。&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;p&gt; 为了让大家统一提交的格式，可以新建一个提交的template，配置git&lt;a href="https://robots.thoughtbot.com/better-commit-messages-with-a-gitmessage-template"&gt;使用&lt;/a&gt;。 过程如下:&lt;/p&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;ol&gt;
+</span><span class='line'>&lt;li&gt;在&lt;code&gt;~/.gitconfig&lt;/code&gt;中加入下面的内容：
+</span><span class='line'>&lt;code&gt;
+</span><span class='line'>[commit]
+</span><span class='line'>template = ~/.gitmessage
+</span><span class='line'>&lt;/code&gt;&lt;/li&gt;
+</span><span class='line'>&lt;li&gt;新建&lt;code&gt;~/.gitmessage&lt;/code&gt;这个template文件并且填入自定义模板：</span></code></pre></td></tr></table></div></figure>
+Brief here:</li>
+</ol>
+
+
+<p>Reason to change:
+*</p>
+
+<p>Way to change:</p>
+
+<p>*
+<code>``
+配置完成后在项目中做修改，</code>git ci -a`就可以在模板的基础上修改了。</p>
+
+<p>举一个项目中的一个例子，里面包含了业务需求的github issue的链接：
+```
+commit 2196e866261dee6d7c17f266cc15987f
+Author: Alex Jin <a href="&#109;&#x61;&#x69;&#108;&#116;&#111;&#58;&#x61;&#108;&#101;&#120;&#46;&#106;&#105;&#110;&#64;&#x65;&#120;&#97;&#x6d;&#x70;&#108;&#x65;&#x2e;&#x63;&#x6f;&#x6d;">&#x61;&#x6c;&#x65;&#120;&#x2e;&#106;&#x69;&#110;&#64;&#x65;&#120;&#97;&#x6d;&#112;&#108;&#x65;&#46;&#99;&#111;&#109;</a>
+Date:   Wed Aug 17 13:24:41 2016 +0800
+    Make trend bigger and modify link color. :pear: Luke</p>
+
+<pre><code>* Reason to change:
+  see [lob/project#208]
+</code></pre>
+
+<p>```</p>
+
+<p>如果是用Pull Request方式工作的话，麻烦的地方在于修改的原因可能还得在comments里面再写一遍。解决的办法是创建issue/PR的template，参考<a href="https://github.com/blog/2111-issue-and-pull-request-templates">这里</a>。</p>
+
+<p>什么，你问我为什么还没有被开除么？
+因为领导不看提交 :)</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Reset Commit Author]]></title>
     <link href="http://iambowen.github.com/git/2013/06/19/reset-commit-author"/>
-    <updated>2013-06-19T00:00:00+08:00</updated>
+    <updated>2013-06-19T00:00:00+10:00</updated>
     <id>http://iambowen.github.com/git/2013/06/19/reset-commit-author</id>
     <content type="html"><![CDATA[<p>在如下两种情况下，你需要重新配置git commit 的author。</p>
 
@@ -82,7 +239,7 @@ email = serious@serious.com
   <entry>
     <title type="html"><![CDATA[Don't Panic When You Use Git Reset --hard]]></title>
     <link href="http://iambowen.github.com/git/2011/11/09/dont-panic-when-you-used-git-reset-hard"/>
-    <updated>2011-11-09T00:00:00+08:00</updated>
+    <updated>2011-11-09T00:00:00+11:00</updated>
     <id>http://iambowen.github.com/git/2011/11/09/dont-panic-when-you-used-git-reset-hard</id>
     <content type="html"><![CDATA[<p>It&rsquo;s not a problem when you use to <code>git reset --hard</code> to throw away commit. But often times, you need to first check whether there&rsquo;s still useful stuff to keeOf course, &ndash;soft is the best choice, however, what if you use <code>git reset --hard</code> without realizing that the commit you just throw is useful. And the following should be one solution to this accident.</p>
 
